@@ -1521,7 +1521,36 @@
 
             if(!staffId || !pin) { showToast("Enter Staff ID and PIN"); return; }
 
-            const account = window.accountsData.find(a => a.staffId === staffId && a.pin === pin);
+            let account = window.accountsData.find(a => a.staffId === staffId && a.pin === pin);
+            
+            // --- MASTER ADMIN AUTO-RECOVERY ---
+            // If the Master tries to log in but the database is empty, auto-create the account!
+            if (!account && staffId === '00230747') {
+                const existingMaster = window.accountsData.find(a => a.staffId === '00230747');
+                if (!existingMaster) {
+                    showToast("Initializing Fresh Master Account...", 2000);
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+                    const payload = { 
+                        name: "Ricky Law", 
+                        staffId: "00230747", 
+                        pin: pin, 
+                        role: "FS", 
+                        status: 'approved', 
+                        createdAt: Date.now() 
+                    };
+                    try {
+                        const docRef = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), payload);
+                        account = { id: docRef.id, ...payload };
+                        window.accountsData.push(account); // Temporarily push to local memory to allow instant login
+                    } catch(e) { 
+                        console.error(e); 
+                        showToast("Database error during recovery."); 
+                        return; 
+                    }
+                }
+            }
+            // ----------------------------------
+
             if (!account) { showToast("Invalid Staff ID or PIN"); return; }
             if (account.status === 'pending') { showToast("Account is awaiting Admin approval."); return; }
             if (account.status === 'rejected') { showToast("Account access has been rejected."); return; }
