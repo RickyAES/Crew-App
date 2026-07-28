@@ -4342,7 +4342,8 @@ Tone: Professional, helpful, concise, and friendly.`
 
         document.getElementById('excel-upload').addEventListener('change', function(e) {
             const file = e.target.files[0];
-            if (!file || !currentUser || !db || !window.currentStaffId) {
+            // FIX: Removed strict !currentUser and !db checks so it accepts the Bulletproof bypass
+            if (!file || !window.currentStaffId) {
                 showToast("Please login before importing data.");
                 return;
             }
@@ -4514,7 +4515,11 @@ Tone: Professional, helpful, concise, and friendly.`
                             } catch (rowError) {}
                         }
                     }
-                    showToast(`Imported ${count} flights securely!`);
+                    if (count > 0) {
+                        showToast(`Imported ${count} flights securely!`);
+                    } else {
+                        showToast(`Import finished, but 0 valid flights were found.`);
+                    }
                 } catch (err) {
                     showToast("Error processing file.");
                 }
@@ -4529,7 +4534,8 @@ Tone: Professional, helpful, concise, and friendly.`
         document.getElementById('image-upload').addEventListener('change', async function(e) {
             const files = e.target.files;
             if (!files || files.length === 0) return;
-            if (!currentUser || !db || !window.currentStaffId) { showToast("Login Required to scan logs."); return; }
+            // FIX: Removed strict !currentUser and !db checks so it accepts the Bulletproof bypass
+            if (!window.currentStaffId) { showToast("Login Required to scan logs."); return; }
             
             window.pendingScanFiles = Array.from(files);
             
