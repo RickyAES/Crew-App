@@ -2211,7 +2211,7 @@
         };
 
         window.saveNewEntry = async function(override = false) {
-            if (!currentUser || !db || !window.currentStaffId) { showToast("Login required"); return; }
+            if (!db || !window.currentStaffId) { showToast("Login required"); return; }
             
             const date = document.getElementById('in-date').value;
             const dep = document.getElementById('in-dep').value;
@@ -2448,7 +2448,7 @@
         };
 
         window.saveMobileEntry = async function(override = false) {
-            if (!currentUser || !db || !window.currentStaffId) { showToast("Login Required"); return; }
+            if (!db || !window.currentStaffId) { showToast("Login Required"); return; }
             
             const date = document.getElementById('mobile-date').value;
             const dep = document.getElementById('mobile-dep').value;
@@ -2584,7 +2584,7 @@
         }
 
         window.deleteEntry = async function(docId) {
-            if (!currentUser || !db) return;
+            if (!db) return;
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
             try {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'flights', docId));
@@ -2609,7 +2609,7 @@
         };
 
         window.executeDataPurge = async function() {
-            if (!currentUser || !db || !window.currentStaffId) return;
+            if (!db || !window.currentStaffId) return;
             
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
             showToast("Purging data... Please wait.", 5000);
@@ -2647,8 +2647,8 @@
                 return;
             }
             
-            if (!currentUser || !db) {
-                showToast("Connecting to secure database... Please try again in 3 seconds.");
+            if (!db) {
+                showToast("Database system unavailable. Please refresh.");
                 if (event.target) event.target.value = '';
                 return;
             }
@@ -3412,6 +3412,8 @@
                 showToast("Master Timetable is empty. Admin must import data first.");
                 return;
             }
+            
+            if (!db || !window.currentStaffId) { showToast("Database offline."); return; }
 
             const outbound = window.timetableData.find(t => t.flightNo === fltNo);
             if (!outbound) {
