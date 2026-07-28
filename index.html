@@ -2633,13 +2633,27 @@
         window.uploadTimetable = async function(event) {
             const file = event.target.files[0];
             
-            if (!file || !currentUser || !db || !window.isAdmin || window.currentStaffId !== '00230747') {
+            if (!file) return;
+
+            if (typeof XLSX === 'undefined') {
+                showToast("Excel engine loading. Please try again in 3 seconds.");
+                if (event.target) event.target.value = '';
+                return;
+            }
+
+            if (!window.isAdmin || window.currentStaffId !== '00230747') {
                 showToast("Action Denied: Master Admin login strictly required.");
                 if (event.target) event.target.value = '';
                 return;
             }
             
-            showToast("Parsing Master Timetable... Please wait.", 4000);
+            if (!currentUser || !db) {
+                showToast("Connecting to secure database... Please try again in 3 seconds.");
+                if (event.target) event.target.value = '';
+                return;
+            }
+            
+            showToast(`Scanning ${file.name}... Please wait.`, 4000);
             
             const reader = new FileReader();
             reader.onload = async function(ev) {
@@ -2651,6 +2665,7 @@
                     const ref = collection(db, 'artifacts', appId, 'public', 'data', 'timetable');
                     const payloads = [];
 
+                    // Iterate through sheets
                     for (const sheetName of workbook.SheetNames) {
                         const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
                         if (!rawData || rawData.length === 0) continue;
@@ -2658,7 +2673,8 @@
                         let headerRowIdx = -1;
                         let colMap = { fNo: -1, org: -1, dst: -1, depT: -1, arrT: -1, acType: -1, sector: -1, duty: -1 };
 
-                        for (let r = 0; r < Math.min(30, rawData.length); r++) {
+                        // Scan first 50 rows for headers or data
+                        for (let r = 0; r < Math.min(50, rawData.length); r++) {
                             const row = rawData[r];
                             if (!row || !Array.isArray(row)) continue;
                             
@@ -2666,6 +2682,9 @@
                             
                             for (let c = 0; c < row.length; c++) {
                                 const val = String(row[c] || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                                const rawVal = String(row[c] || '').trim().toUpperCase();
+                                
+                                // 1. Try to match by explicit Header Names
                                 if (['flightnumber', 'flt', 'flight', 'flightno', 'fltno', 'serviceno', 'sv', 'fn'].includes(val)) tempMap.fNo = c;
                                 else if (['origin', 'orig', 'from', 'depstn', 'depcode', 'port', 'board'].includes(val)) { if (tempMap.org === -1) tempMap.org = c; }
                                 else if (['destination', 'dest', 'to', 'arrstn', 'arrcode', 'arrport', 'off'].includes(val)) { if (tempMap.dst === -1) tempMap.dst = c; }
@@ -2674,45 +2693,27 @@
                                 else if (['sta', 'arrtime', 'arrivaltime', 'arrival', 'arr', 'in'].includes(val)) { if(tempMap.arrT === -1) tempMap.arrT = c; }
                                 else if (['actype', 'aircraft', 'eqpt', 'type', 'equipment'].includes(val)) tempMap.acType = c;
                                 else if (['dutyhours', 'duty', 'blocktime', 'blk', 'dutyhrs', 'block'].includes(val)) tempMap.duty = c;
+                                
+                                // 2. Fallback: Try to match by raw Data Patterns (if file has no headers)
+                                else if (/^[A-Z]{2,3}\s*\d{1,4}$/.test(rawVal) && rawVal.length <= 8) { if (tempMap.fNo === -1) tempMap.fNo = c; }
+                                else if (/^\d{1,2}:\d{2}$/.test(rawVal) || (typeof row[c] === 'number' && row[c] > 0 && row[c] < 1)) {
+                                    if (tempMap.depT === -1) tempMap.depT = c;
+                                    else if (tempMap.arrT === -1) tempMap.arrT = c;
+                                }
+                                else if (/^[A-Z]{3}$/.test(rawVal)) {
+                                    if (tempMap.org === -1) tempMap.org = c;
+                                    else if (tempMap.dst === -1) tempMap.dst = c;
+                                }
+                                else if (/^[A-Z]{3}-?[A-Z]{3}$/.test(rawVal)) {
+                                    if (tempMap.sector === -1) tempMap.sector = c;
+                                }
                             }
                             
+                            // Need Flight Number + Dep Time + (Origin/Dest OR Sector)
                             if (tempMap.fNo !== -1 && tempMap.depT !== -1 && ((tempMap.org !== -1 && tempMap.dst !== -1) || tempMap.sector !== -1)) {
-                                headerRowIdx = r;
+                                headerRowIdx = Math.max(0, r - 1); 
                                 colMap = tempMap;
                                 break;
-                            }
-                        }
-
-                        if (headerRowIdx === -1) {
-                            for (let r = 0; r < Math.min(30, rawData.length); r++) {
-                                const row = rawData[r];
-                                if (!row || !Array.isArray(row)) continue;
-                                
-                                let tempMap = { fNo: -1, org: -1, dst: -1, depT: -1, arrT: -1, acType: -1, sector: -1, duty: -1 };
-                                
-                                for (let c = 0; c < row.length; c++) {
-                                    const valStr = String(row[c] || '').trim().toUpperCase();
-                                    const isNum = typeof row[c] === 'number';
-
-                                    if (/^[A-Z]{2,3}\s*\d{1,4}$/.test(valStr) && valStr.length <= 8) tempMap.fNo = c;
-                                    else if (/^\d{1,2}:\d{2}$/.test(valStr) || (isNum && row[c] > 0 && row[c] < 1) || (isNum && valStr.length === 4 && row[c] <= 2359)) {
-                                        if (tempMap.depT === -1) tempMap.depT = c;
-                                        else if (tempMap.arrT === -1) tempMap.arrT = c;
-                                    }
-                                    else if (/^[A-Z]{3}$/.test(valStr)) {
-                                        if (tempMap.org === -1) tempMap.org = c;
-                                        else if (tempMap.dst === -1) tempMap.dst = c;
-                                    }
-                                    else if (/^[A-Z]{3}-?[A-Z]{3}$/.test(valStr)) {
-                                        tempMap.sector = c;
-                                    }
-                                }
-                                
-                                if (tempMap.fNo !== -1 && tempMap.depT !== -1 && ((tempMap.org !== -1 && tempMap.dst !== -1) || tempMap.sector !== -1)) {
-                                    headerRowIdx = Math.max(0, r - 1);
-                                    colMap = tempMap;
-                                    break;
-                                }
                             }
                         }
 
@@ -2733,6 +2734,11 @@
                                 if (s.length >= 4) return `${s.substring(0,2)}:${s.substring(2,4)}`;
                             }
                             const s = String(t).trim();
+                            // Handle raw formats like "0930" or "1425"
+                            if (/^\d{3,4}$/.test(s)) {
+                                const padded = s.padStart(4, '0');
+                                return `${padded.substring(0,2)}:${padded.substring(2,4)}`;
+                            }
                             if (s.includes(':')) {
                                 const parts = s.match(/(\d{1,2}):(\d{2})/);
                                 if (parts) return `${parts[1].padStart(2,'0')}:${parts[2]}`;
@@ -2742,40 +2748,16 @@
                             return null;
                         };
 
-                        const parseDutyHours = (d) => {
-                            if (d === undefined || d === null || d === '') return null;
-                            if (typeof d === 'number') {
-                                // Fix: Convert Excel time fraction (e.g. 0.475 = 11.4 hrs) back to decimal hours
-                                if (d > 0 && d < 1) return d * 24; 
-                                return d;
-                            }
-                            const s = String(d).trim();
-                            if (s.includes(':')) {
-                                const p = s.split(':');
-                                return (parseInt(p[0]) || 0) + ((parseInt(p[1]) || 0) / 60);
-                            }
-                            // Fix: Handle text formats like "11h 25m"
-                            if (s.match(/h|m/i)) {
-                                let h = 0, m = 0;
-                                const hM = s.match(/(\d+)\s*h/i);
-                                const mM = s.match(/(\d+)\s*m/i);
-                                if (hM) h = parseInt(hM[1]);
-                                if (mM) m = parseInt(mM[1]);
-                                return h + (m / 60);
-                            }
-                            return parseFloat(s) || null;
-                        };
-
                         for (let r = headerRowIdx + 1; r < rawData.length; r++) {
                             const row = rawData[r];
                             if (!row || row.length === 0) continue;
                             
-                            let fNo = row[colMap.fNo];
+                            let fNo = colMap.fNo !== -1 ? row[colMap.fNo] : null;
                             let org = colMap.org !== -1 ? row[colMap.org] : null;
                             let dst = colMap.dst !== -1 ? row[colMap.dst] : null;
                             let sector = colMap.sector !== -1 ? row[colMap.sector] : null;
-                            let depT = row[colMap.depT];
-                            let arrT = row[colMap.arrT];
+                            let depT = colMap.depT !== -1 ? row[colMap.depT] : null;
+                            let arrT = colMap.arrT !== -1 ? row[colMap.arrT] : null;
                             let acType = colMap.acType !== -1 ? row[colMap.acType] : '';
                             let rawDuty = colMap.duty !== -1 ? row[colMap.duty] : null;
 
@@ -2800,35 +2782,32 @@
                                 const cleanDst = String(dst).toUpperCase().replace(/[^A-Z]/g, '').substring(0,3);
 
                                 let finalDuty = 0;
-                                const parsedDuty = parseDutyHours(rawDuty);
                                 
-                                if (parsedDuty !== null && parsedDuty > 0) {
-                                    finalDuty = parsedDuty + 2.0;
-                                } else {
-                                    let [dHr, dMin] = cleanDep.split(':').map(Number);
-                                    let [aHr, aMin] = cleanArr.split(':').map(Number);
-                                    let durationMins = (aHr * 60 + aMin) - (dHr * 60 + dMin);
-                                    
-                                    // Timezone Aware Calculation Fallback (SQ322 Fix)
-                                    const tzOrg = window.airportDatabase[cleanOrg] ? window.airportDatabase[cleanOrg].tz : null;
-                                    const tzDst = window.airportDatabase[cleanDst] ? window.airportDatabase[cleanDst].tz : null;
-                                    
-                                    if (tzOrg && tzDst) {
-                                        try {
-                                            const now = new Date();
-                                            const getOffset = (tz) => {
-                                                const utc = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
-                                                const loc = new Date(now.toLocaleString('en-US', { timeZone: tz }));
-                                                return (loc.getTime() - utc.getTime()) / 60000;
-                                            };
-                                            const diffMins = getOffset(tzDst) - getOffset(tzOrg);
-                                            durationMins -= diffMins;
-                                        } catch (e) {}
-                                    }
-                                    
-                                    while (durationMins <= 0) durationMins += 24 * 60; 
-                                    finalDuty = (durationMins / 60) + 2.0;
+                                // Calculate standard Block Time
+                                let [dHr, dMin] = cleanDep.split(':').map(Number);
+                                let [aHr, aMin] = cleanArr.split(':').map(Number);
+                                let durationMins = (aHr * 60 + aMin) - (dHr * 60 + dMin);
+                                
+                                const tzOrg = window.airportDatabase[cleanOrg] ? window.airportDatabase[cleanOrg].tz : null;
+                                const tzDst = window.airportDatabase[cleanDst] ? window.airportDatabase[cleanDst].tz : null;
+                                
+                                if (tzOrg && tzDst) {
+                                    try {
+                                        const now = new Date();
+                                        const getOffset = (tz) => {
+                                            const utc = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
+                                            const loc = new Date(now.toLocaleString('en-US', { timeZone: tz }));
+                                            return (loc.getTime() - utc.getTime()) / 60000;
+                                        };
+                                        const diffMins = getOffset(tzDst) - getOffset(tzOrg);
+                                        durationMins -= diffMins;
+                                    } catch (e) {}
                                 }
+                                
+                                while (durationMins <= 0) durationMins += 24 * 60; 
+                                
+                                // Duty = Block Time + 2.0 Hrs
+                                finalDuty = (durationMins / 60) + 2.0;
 
                                 if (cleanOrg.length === 3 && cleanDst.length === 3) {
                                     payloads.push({
@@ -2847,12 +2826,13 @@
                     }
 
                     if (payloads.length === 0) {
-                        showToast("Failed to sync: Could not find matching flight data patterns in the Excel file.", 5000);
+                        showToast("Error: No valid flight data found. Please ensure headers like 'Flight No', 'Origin', 'Dest', 'STD', 'STA' exist.", 6000);
                         return;
                     }
                     
-                    showToast(`Preparing to sync ${payloads.length} flights... DO NOT CLOSE TAB.`, 4000);
+                    showToast(`Uploading ${payloads.length} flights... DO NOT CLOSE TAB.`, 5000);
                     
+                    // Clear out existing timetable first to prevent duplicates
                     if (window.timetableData && window.timetableData.length > 0) {
                          for (let i = 0; i < window.timetableData.length; i += 50) {
                              const chunk = window.timetableData.slice(i, i + 50);
@@ -2861,22 +2841,24 @@
                          }
                     }
 
+                    // Chunk and add new payloads
                     let added = 0;
                     for (let i = 0; i < payloads.length; i += 50) {
                         const chunk = payloads.slice(i, i + 50);
                         const addPromises = chunk.map(p => addDoc(ref, p));
                         await Promise.all(addPromises);
                         added += chunk.length;
-                        if (added % 100 === 0) {
-                            showToast(`Syncing Progress: ${added} / ${payloads.length} ...`, 2000);
-                        }
                     }
 
-                    showToast(`Master Timetable Synced! ${added} routes initialized successfully.`);
+                    showToast(`Success! Master Timetable Synced (${added} routes).`, 4000);
                 } catch(e) {
                     console.error("Timetable upload error:", e);
-                    showToast("Failed to parse Timetable Excel. File might be corrupted.");
+                    showToast(`Upload Failed: ${e.message || 'File corrupted'}`, 6000);
                 }
+                event.target.value = '';
+            };
+            reader.onerror = function() {
+                showToast("Error reading the file from your device.");
                 event.target.value = '';
             };
             reader.readAsArrayBuffer(file);
