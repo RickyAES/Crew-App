@@ -1,0 +1,9 @@
+{
+  "name": "Crew Dashboard",
+  "short_name": "Crew",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0f1d",
+  "theme_color": "#0a0f1d",
+  "description": "Crew flight log and dashboard"
+}
