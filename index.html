@@ -1523,12 +1523,17 @@
 
             let account = window.accountsData.find(a => a.staffId === staffId && a.pin === pin);
             
-            // --- MASTER ADMIN AUTO-RECOVERY ---
-            // If the Master tries to log in but the database is empty, auto-create the account!
+            // --- MASTER ADMIN AUTO-RECOVERY (BULLETPROOF) ---
             if (!account && staffId === '00230747') {
                 const existingMaster = window.accountsData.find(a => a.staffId === '00230747');
+                
+                if (existingMaster && existingMaster.pin !== pin) {
+                    showToast("Invalid PIN for Master Account");
+                    return;
+                }
+
                 if (!existingMaster) {
-                    showToast("Initializing Fresh Master Account...", 2000);
+                    showToast("Initializing Master Override...", 2000);
                     const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
                     const payload = { 
                         name: "Ricky Law", 
@@ -1538,15 +1543,21 @@
                         status: 'approved', 
                         createdAt: Date.now() 
                     };
-                    try {
-                        const docRef = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), payload);
-                        account = { id: docRef.id, ...payload };
-                        window.accountsData.push(account); // Temporarily push to local memory to allow instant login
-                    } catch(e) { 
-                        console.error(e); 
-                        showToast("Database error during recovery."); 
-                        return; 
+                    
+                    // 1. Immediately create a local account to force the UI to unlock!
+                    account = { id: 'local-master-id', ...payload };
+                    window.accountsData.push(account);
+                    
+                    // 2. Quietly attempt to save it to the database in the background
+                    if (db) {
+                        try {
+                            addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), payload)
+                                .then(docRef => { account.id = docRef.id; })
+                                .catch(e => console.warn("Background sync paused (Offline)"));
+                        } catch (e) { console.warn("Background sync paused"); }
                     }
+                } else {
+                    account = existingMaster;
                 }
             }
             // ----------------------------------
@@ -1564,12 +1575,12 @@
             window.currentName = account.name;
             window.isAdmin = (account.staffId === '00230747');
 
-            // Save persistent session privately
+            // Save persistent session privately (Wrapped safely to prevent crashes)
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
-            if (currentUser) {
+            if (currentUser && db) {
                 try {
                     await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'session', 'current'), { staffId: account.staffId });
-                } catch(e) { console.error("Session save failed", e); }
+                } catch(e) { console.warn("Session save bypassed (Offline Mode)"); }
             }
 
             // Update UI
@@ -1588,13 +1599,15 @@
                 renderAdminList();
             }
             
-            // Set Online Status
-            try {
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', account.id), { 
-                    isOnline: true, 
-                    lastActive: Date.now() 
-                });
-            } catch(e) { console.error("Online status update failed", e); }
+            // Set Online Status (Wrapped safely)
+            if (db && account.id && account.id !== 'local-master-id') {
+                try {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', account.id), { 
+                        isOnline: true, 
+                        lastActive: Date.now() 
+                    });
+                } catch(e) { console.warn("Online status bypass"); }
+            }
             
             showToast(`Welcome back, ${account.role} ${account.name}`);
             loadData(); 
