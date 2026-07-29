@@ -1688,28 +1688,35 @@
                 window.accountsData.forEach(acc => {
                     if (acc.staffId === '00230747') return; // Skip master
 
-                    if (acc.status === 'pending') {
+                    if (acc.status === 'pending' || acc.status === 'rejected') {
+                        const borderCol = acc.status === 'rejected' ? 'border-red-500/30' : 'border-yellow-500/30';
+                        const statusBadge = acc.status === 'rejected' ? '<span class="text-red-500 ml-2 border border-red-500/50 px-1 rounded text-[8px] bg-red-900/20">REJECTED</span>' : '';
+                        
                         pHTML += `
-                            <div class="flex justify-between items-center bg-[#131A2A] p-3 rounded-lg border border-yellow-500/30">
+                            <div class="flex justify-between items-center bg-[#131A2A] p-3 rounded-lg border ${borderCol}">
                                 <div>
-                                    <p class="text-sm font-bold text-white">${acc.name} <span class="text-[10px] text-app-accent ml-1">${acc.role}</span></p>
+                                    <p class="text-sm font-bold text-white">${acc.name} <span class="text-[10px] text-app-accent ml-1">${acc.role}</span> ${statusBadge}</p>
                                     <p class="text-[10px] text-gray-400 font-mono">ID: ${acc.staffId} &bull; PIN: ${acc.pin}</p>
                                 </div>
                                 <div class="flex gap-2">
-                                    <button onclick="adminAction('${acc.id}', 'approved')" class="bg-green-600 hover:bg-green-500 text-white p-2 rounded text-xs font-bold transition-colors"><i class="ph-bold ph-check"></i></button>
-                                    <button onclick="adminAction('${acc.id}', 'rejected')" class="bg-red-600 hover:bg-red-500 text-white p-2 rounded text-xs font-bold transition-colors"><i class="ph-bold ph-x"></i></button>
+                                    ${acc.status === 'pending' ? `<button onclick="adminAction('${acc.id}', 'approved')" class="bg-green-600 hover:bg-green-500 text-white p-2 rounded text-xs font-bold transition-colors" title="Approve"><i class="ph-bold ph-check"></i></button>` : `<button onclick="adminAction('${acc.id}', 'approved')" class="bg-gray-600 hover:bg-green-500 text-white p-2 rounded text-xs font-bold transition-colors" title="Restore & Approve"><i class="ph-bold ph-arrow-u-up-left"></i></button>`}
+                                    ${acc.status === 'pending' ? `<button onclick="adminAction('${acc.id}', 'rejected')" class="bg-yellow-600 hover:bg-yellow-500 text-white p-2 rounded text-xs font-bold transition-colors" title="Reject"><i class="ph-bold ph-x"></i></button>` : ''}
+                                    <button onclick="adminDeleteAccount('${acc.id}')" class="bg-red-900/50 hover:bg-red-600 border border-red-500/50 text-white p-2 rounded text-xs font-bold transition-colors" title="Permanently Delete Account"><i class="ph-bold ph-trash"></i></button>
                                 </div>
                             </div>
                         `;
-                    } else if (acc.status === 'approved') {
+                    } else if (acc.status === 'approved' || acc.status === 'inactive') {
+                        const borderCol = acc.status === 'inactive' ? 'border-gray-500/30 opacity-60' : 'border-green-500/30';
+                        const statusBadge = acc.status === 'inactive' ? '<span class="text-gray-400 ml-2 border border-gray-500/50 px-1 rounded text-[8px] bg-gray-900/20">INACTIVE</span>' : '';
+
                         aHTML += `
-                            <div class="flex justify-between items-center bg-[#131A2A] p-3 rounded-lg border border-green-500/30">
+                            <div class="flex justify-between items-center bg-[#131A2A] p-3 rounded-lg border ${borderCol}">
                                 <div>
-                                    <p class="text-sm font-bold text-white">${acc.name} <span class="text-[10px] text-app-accent ml-1">${acc.role}</span></p>
+                                    <p class="text-sm font-bold text-white">${acc.name} <span class="text-[10px] text-app-accent ml-1">${acc.role}</span> ${statusBadge}</p>
                                     <p class="text-[10px] text-gray-400 font-mono">ID: ${acc.staffId} &bull; PIN: ${acc.pin}</p>
                                 </div>
                                 <div class="flex gap-2">
-                                    <button onclick="adminAction('${acc.id}', 'inactive')" class="bg-gray-600 hover:bg-gray-500 text-white p-2 rounded text-xs font-bold transition-colors" title="Make Inactive"><i class="ph-bold ph-pause"></i></button>
+                                    ${acc.status === 'approved' ? `<button onclick="adminAction('${acc.id}', 'inactive')" class="bg-gray-600 hover:bg-gray-500 text-white p-2 rounded text-xs font-bold transition-colors" title="Make Inactive"><i class="ph-bold ph-pause"></i></button>` : `<button onclick="adminAction('${acc.id}', 'approved')" class="bg-green-600 hover:bg-green-500 text-white p-2 rounded text-xs font-bold transition-colors" title="Reactivate"><i class="ph-bold ph-play"></i></button>`}
                                     <button onclick="adminDeleteAccount('${acc.id}')" class="bg-red-900/50 hover:bg-red-600 border border-red-500/50 text-white p-2 rounded text-xs font-bold transition-colors" title="Delete Account"><i class="ph-bold ph-trash"></i></button>
                                 </div>
                             </div>
