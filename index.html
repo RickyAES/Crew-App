@@ -1588,6 +1588,9 @@
                 try {
                     await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'session', 'current'), { staffId: account.staffId });
                 } catch(e) { console.warn("Session save bypassed (Offline Mode)"); }
+            } else {
+                // VERCEL OFFLINE SESSION SAVE
+                localStorage.setItem('crew_offline_session', account.staffId);
             }
 
             // Update UI
@@ -1643,6 +1646,9 @@
                 try {
                     await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'session', 'current'));
                 } catch(e) { console.error("Session clear failed", e); }
+            } else {
+                // VERCEL OFFLINE SESSION CLEAR
+                localStorage.removeItem('crew_offline_session');
             }
             
             document.getElementById('header-crew-info').innerHTML = `Please Login`;
@@ -1985,8 +1991,16 @@
                 const firebaseConfig = envConfig || VERCEL_FIREBASE_CONFIG;
                 
                 if (!firebaseConfig) {
-                    showToast("System Offline - Local Temporary Mode");
-                    document.getElementById('sync-status').innerText = "SYSTEM // OFFLINE";
+                    showToast("System Offline - Local Storage Mode");
+                    document.getElementById('sync-status').innerText = "SYSTEM // LOCAL (VERCEL)";
+                    
+                    // VERCEL AUTO-LOGIN RECOVERY
+                    const savedId = localStorage.getItem('crew_offline_session');
+                    if (savedId === '00230747') {
+                        const mockMaster = { name: "Ricky Law", staffId: "00230747", pin: "123456", role: "FS", status: 'approved', id: 'local-master-id' };
+                        window.accountsData = [mockMaster];
+                        completeLogin(mockMaster);
+                    }
                     return;
                 }
 
@@ -2078,6 +2092,23 @@
         // --- MULTI-USER FLIGHT DATA SYSTEM ---
 
         function loadData() {
+            if (!db) {
+                // --- VERCEL OFFLINE RENDER ENGINE ---
+                const syncStatus = document.getElementById('sync-status');
+                if (syncStatus) syncStatus.innerText = "SYSTEM // LOCAL STORAGE";
+                
+                // Load saved local data
+                const savedFlights = localStorage.getItem('crew_offline_flights');
+                if (savedFlights) window.flightsData = JSON.parse(savedFlights);
+                
+                const savedTimetable = localStorage.getItem('crew_offline_timetable');
+                if (savedTimetable) window.timetableData = JSON.parse(savedTimetable);
+                
+                // CRITICAL FIX: Ensure the dashboard actually paints even if offline!
+                renderUI();
+                return;
+            }
+
             if (!currentUser || !db || !window.currentStaffId) return;
             if (dbUnsubscribe) dbUnsubscribe();
             if (msgUnsubscribe) msgUnsubscribe();
@@ -2839,8 +2870,12 @@
                     // --- VERCEL OFFLINE FALLBACK MODE ---
                     if (!db) {
                         window.timetableData = payloads.map((p, idx) => ({ id: 'local_' + idx, ...p }));
-                        showToast(`Vercel Offline Mode: Saved ${payloads.length} routes to temporary memory! Add Firebase keys to persist.`, 6000);
-                        event.target.value = '';
+                        localStorage.setItem('crew_offline_timetable', JSON.stringify(window.timetableData));
+                        showToast(`Vercel Offline Mode: Saved ${payloads.length} routes to Local Memory!`, 6000);
+                        
+                        // Force UI refresh so Auto-Log features unlock instantly
+                        renderUI();
+                        if (event.target) event.target.value = '';
                         return;
                     }
 
