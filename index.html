@@ -4382,6 +4382,9 @@ Tone: Professional, helpful, concise, and friendly.`
         // 🧠 INJECTING THE VISION AI ENGINE
         window.pendingScanFiles = [];
 
+        // Add a variable to store the API key securely in the session
+        window.sessionApiKey = null;
+
         document.getElementById('image-upload').addEventListener('change', async function(e) {
             const files = e.target.files;
             if (!files || files.length === 0) return;
@@ -4390,7 +4393,23 @@ Tone: Professional, helpful, concise, and friendly.`
             
             window.pendingScanFiles = Array.from(files);
             
-            executeScan(""); 
+            // Handle API Key retrieval before scanning
+            let apiKeyToUse = window.sessionApiKey;
+            
+            if (!apiKeyToUse) {
+                // If not in session, ask the user
+                const userKey = prompt("To use the AI Roster Scanner outside the development environment, please enter your Gemini API Key.\n\n(This is only stored in your browser session for security)");
+                if (userKey && userKey.trim() !== "") {
+                    window.sessionApiKey = userKey.trim();
+                    apiKeyToUse = window.sessionApiKey;
+                } else {
+                    showToast("API Key required for AI Scanning.");
+                    e.target.value = '';
+                    return;
+                }
+            }
+
+            executeScan(apiKeyToUse); 
             e.target.value = ''; 
         });
 
@@ -4468,6 +4487,10 @@ JSON Format:
                     body: JSON.stringify(payload)
                 });
 
+                if (response.status === 400 || response.status === 403) {
+                     window.sessionApiKey = null; // Clear invalid key
+                     throw new Error(`API Key Invalid or Expired (Error ${response.status}). Please try again.`);
+                }
                 if (!response.ok) throw new Error(`AI Scan Error: ${response.status}`);
                 
                 const result = await response.json();
