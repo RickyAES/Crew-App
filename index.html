@@ -1141,6 +1141,13 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection as fCollection, addDoc, updateDoc, onSnapshot, query, deleteDoc, doc as fDoc, setDoc, getDoc, getDocs, initializeFirestore, memoryLocalCache, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // ==========================================
+        // 🚀 VERCEL DEPLOYMENT CONFIGURATION 🚀
+        // To make the database work on Vercel, replace 'null' below with your own Firebase Config object!
+        // Example: const VERCEL_FIREBASE_CONFIG = { apiKey: "AIza...", authDomain: "...", projectId: "..." };
+        // ==========================================
+        const VERCEL_FIREBASE_CONFIG = null;
+
         // --- DATABASE ROUTING FIXED ---
         // Restoring original paths to comply strictly with the backend security rules 
         // which require data to remain inside the "public/" and "users/" directories.
@@ -1972,10 +1979,13 @@
             try {
                 setLogLevel('error');
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
-                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+                
+                // Smart Config Loader: Uses injected environment config OR falls back to Vercel custom config
+                const envConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+                const firebaseConfig = envConfig || VERCEL_FIREBASE_CONFIG;
                 
                 if (!firebaseConfig) {
-                    showToast("System Offline - Local Mode");
+                    showToast("System Offline - Local Temporary Mode");
                     document.getElementById('sync-status').innerText = "SYSTEM // OFFLINE";
                     return;
                 }
@@ -2647,12 +2657,6 @@
                 return;
             }
             
-            if (!db) {
-                showToast("Database system unavailable. Please refresh.");
-                if (event.target) event.target.value = '';
-                return;
-            }
-            
             showToast(`Scanning ${file.name}... Please wait.`, 4000);
             
             const reader = new FileReader();
@@ -2832,6 +2836,14 @@
                     
                     showToast(`Uploading ${payloads.length} flights... DO NOT CLOSE TAB.`, 5000);
                     
+                    // --- VERCEL OFFLINE FALLBACK MODE ---
+                    if (!db) {
+                        window.timetableData = payloads.map((p, idx) => ({ id: 'local_' + idx, ...p }));
+                        showToast(`Vercel Offline Mode: Saved ${payloads.length} routes to temporary memory! Add Firebase keys to persist.`, 6000);
+                        event.target.value = '';
+                        return;
+                    }
+
                     // Clear out existing timetable first to prevent duplicates
                     if (window.timetableData && window.timetableData.length > 0) {
                          for (let i = 0; i < window.timetableData.length; i += 50) {
