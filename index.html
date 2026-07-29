@@ -1327,7 +1327,8 @@
         window.showToast = function(msg, duration = 3000) {
             const t = document.getElementById('toast');
             document.getElementById('toast-msg').innerText = msg;
-            t.classList.remove('opacity-0');
+            t.classList.remove('opacity-0', 'pointer-events-auto');
+            t.classList.add('pointer-events-none');
             setTimeout(() => t.classList.add('opacity-0'), duration);
         }
 
@@ -1507,31 +1508,12 @@
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
             const payload = { name, staffId, pin, role, status, createdAt: Date.now() };
             
-            // 1. OPEN WHATSAPP INSTANTLY (100% Synchronous to bypass mobile popup blockers)
-            if (status === 'pending') {
-                const waMessage = `Hi Ricky, I have just registered for the Crew Portal. Please approve my access.\n\nName: ${name}\nStaff ID: ${staffId}\nRole: ${role}`;
-                const waUrl = `https://wa.me/6581265820?text=${encodeURIComponent(waMessage)}`;
-                
-                // Try opening in a new tab. If the browser blocks it, force a direct redirect.
-                const newTab = window.open(waUrl, '_blank');
-                if (!newTab || newTab.closed || typeof newTab.closed == 'undefined') {
-                    window.location.href = waUrl; 
-                }
-            }
-
-            // 2. UPDATE UI IMMEDIATELY (Do not wait for database)
-            showToast(status === 'approved' ? "Master Account Created! Please Login." : "Registration Sent! Opening WhatsApp...");
-            toggleAuthMode('login');
-            document.getElementById('login-staffid').value = staffId;
-            document.getElementById('login-pin').value = pin;
-
-            // 3. SAVE TO DATABASE IN BACKGROUND
+            // 1. SAVE TO DATABASE IN BACKGROUND FIRST (To prevent navigation aborts)
             try {
                 if (db) {
                     addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), payload)
-                    .catch(e => console.warn("Firebase save delayed (Check Security Rules):", e));
+                    .catch(e => console.warn("Firebase save delayed:", e));
                 } else {
-                    // VERCEL OFFLINE FALLBACK - Save to Local Memory
                     payload.id = 'local_acc_' + Date.now();
                     window.accountsData.push(payload);
                     localStorage.setItem('crew_offline_accounts', JSON.stringify(window.accountsData));
@@ -1539,6 +1521,34 @@
             } catch(e) {
                 console.error("Background sync error:", e);
             }
+
+            // 2. TRIGGER WHATSAPP NOTIFICATION
+            if (status === 'pending') {
+                const waMessage = `Hi Ricky, I have just registered for the Crew Portal. Please approve my access.\n\nName: ${name}\nStaff ID: ${staffId}\nRole: ${role}`;
+                const waUrl = `https://wa.me/6581265820?text=${encodeURIComponent(waMessage)}`;
+                
+                const newTab = window.open(waUrl, '_blank');
+                
+                if (!newTab || newTab.closed || typeof newTab.closed == 'undefined') {
+                    // POPUP BLOCKED - SHOW INTERACTIVE FALLBACK LINK
+                    const toast = document.getElementById('toast');
+                    document.getElementById('toast-msg').innerHTML = `Account created! <a href="${waUrl}" target="_blank" class="text-green-400 underline ml-2 hover:text-green-300">Click here to notify Admin</a>`;
+                    toast.classList.remove('opacity-0', 'pointer-events-none');
+                    toast.classList.add('pointer-events-auto'); 
+                    setTimeout(() => { 
+                        toast.classList.add('opacity-0', 'pointer-events-none'); 
+                        toast.classList.remove('pointer-events-auto');
+                    }, 10000);
+                } else {
+                    showToast("Registration Sent! Opening WhatsApp...");
+                }
+            } else {
+                showToast("Master Account Created! Please Login.");
+            }
+
+            toggleAuthMode('login');
+            document.getElementById('login-staffid').value = staffId;
+            document.getElementById('login-pin').value = pin;
         };
 
         window.loginAccount = async function() {
@@ -1657,13 +1667,109 @@
             window.currentName = null;
             window.isAdmin = false;
             
-            localStorage.removeItem('crew_offline_session'); // Clear offline session
+            localStorage.removeItem('crew_offline_session'); 
             
             const navAdmin = document.getElementById('nav-admin');
             if (navAdmin) navAdmin.classList.add('hidden');
             
             document.getElementById('view-login').classList.remove('hidden-view');
             ['login-staffid', 'login-pin'].forEach(id => document.getElementById(id).value = '');
+        };
+
+        window.renderAdminList = function() {
+            const pendingList = document.getElementById('admin-pending-list');
+            const activeList = document.getElementById('admin-active-list');
+            if(!pendingList || !activeList) return;
+
+            let pHTML = '';
+            let aHTML = '';
+
+            if (window.accountsData) {
+                window.accountsData.forEach(acc => {
+                    if (acc.staffId === '00230747') return; // Skip master
+
+                    if (acc.status === 'pending') {
+                        pHTML += `
+                            <div class="flex justify-between items-center bg-[#131A2A] p-3 rounded-lg border border-yellow-500/30">
+                                <div>
+                                    <p class="text-sm font-bold text-white">${acc.name} <span class="text-[10px] text-app-accent ml-1">${acc.role}</span></p>
+                                    <p class="text-[10px] text-gray-400 font-mono">ID: ${acc.staffId} &bull; PIN: ${acc.pin}</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="adminAction('${acc.id}', 'approved')" class="bg-green-600 hover:bg-green-500 text-white p-2 rounded text-xs font-bold transition-colors"><i class="ph-bold ph-check"></i></button>
+                                    <button onclick="adminAction('${acc.id}', 'rejected')" class="bg-red-600 hover:bg-red-500 text-white p-2 rounded text-xs font-bold transition-colors"><i class="ph-bold ph-x"></i></button>
+                                </div>
+                            </div>
+                        `;
+                    } else if (acc.status === 'approved') {
+                        aHTML += `
+                            <div class="flex justify-between items-center bg-[#131A2A] p-3 rounded-lg border border-green-500/30">
+                                <div>
+                                    <p class="text-sm font-bold text-white">${acc.name} <span class="text-[10px] text-app-accent ml-1">${acc.role}</span></p>
+                                    <p class="text-[10px] text-gray-400 font-mono">ID: ${acc.staffId} &bull; PIN: ${acc.pin}</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="adminAction('${acc.id}', 'inactive')" class="bg-gray-600 hover:bg-gray-500 text-white p-2 rounded text-xs font-bold transition-colors" title="Make Inactive"><i class="ph-bold ph-pause"></i></button>
+                                    <button onclick="adminDeleteAccount('${acc.id}')" class="bg-red-900/50 hover:bg-red-600 border border-red-500/50 text-white p-2 rounded text-xs font-bold transition-colors" title="Delete Account"><i class="ph-bold ph-trash"></i></button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+            }
+
+            pendingList.innerHTML = pHTML || '<p class="text-xs font-mono text-gray-500 py-2">No pending requests.</p>';
+            activeList.innerHTML = aHTML || '<p class="text-xs font-mono text-gray-500 py-2">No active crew.</p>';
+        };
+
+        window.adminAction = async function(id, newStatus) {
+            if (!db) { showToast("Database offline."); return; }
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+            try {
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', id), { status: newStatus });
+                showToast(`Account updated to ${newStatus}`);
+            } catch(e) { console.error(e); showToast("Failed to update account."); }
+        };
+
+        window.adminDeleteAccount = async function(id) {
+            if (!db) { showToast("Database offline."); return; }
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+            if (confirm("Permanently delete this account?")) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', id));
+                    showToast("Account deleted.");
+                } catch(e) { console.error(e); showToast("Failed to delete account."); }
+            }
+        };
+
+        window.adminCreateAccount = async function() {
+            const name = document.getElementById('admin-new-name').value.trim();
+            const staffId = document.getElementById('admin-new-staffid').value.trim();
+            const pin = document.getElementById('admin-new-pin').value.trim();
+            const role = document.getElementById('admin-new-role').value;
+
+            if(!name || !staffId || pin.length !== 6 || !role) {
+                showToast("Please fill all fields (6-digit PIN).");
+                return;
+            }
+
+            if (window.accountsData && window.accountsData.some(a => a.staffId === staffId)) {
+                showToast("Staff ID already exists!");
+                return;
+            }
+
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+            const payload = { name, staffId, pin, role, status: 'approved', createdAt: Date.now() };
+
+            if (!db) { showToast("Database offline."); return; }
+
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), payload);
+                showToast("Account Provisioned!");
+                ['admin-new-name', 'admin-new-staffid', 'admin-new-pin'].forEach(id => document.getElementById(id).value = '');
+            } catch(e) {
+                console.error(e); showToast("Failed to provision account.");
+            }
         };
 
         async function initApp() {
