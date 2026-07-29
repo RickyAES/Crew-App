@@ -129,7 +129,7 @@
         .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #131A2A; color: white; border: 1px solid #8A6B32; }
     </style>
 </head>
-<body class="h-screen flex flex-col font-sans overflow-hidden text-gray-100 relative z-0">
+<body class="h-[100dvh] flex flex-col font-sans overflow-hidden text-gray-100 relative z-0">
 
     <!-- LOGIN & REGISTRATION PORTAL -->
     <div id="view-login" class="fixed inset-0 z-[100] bg-[#0A0F1D] flex flex-col items-center justify-center p-4 transition-opacity duration-500">
@@ -223,7 +223,7 @@
         <div class="absolute inset-0" style="background-image: url('IMG_4861_6.webp'); background-size: cover; background-position: left center; opacity: 0.3; mix-blend-mode: lighten;"></div>
     </div>
 
-    <header class="flex-none p-4 md:p-6 flex justify-between items-center z-10 border-b border-app-border/70 bg-[#0A0F1D]/80 backdrop-blur-md sticky top-0 relative">
+    <header class="flex-none p-3 md:p-6 flex justify-between items-center z-40 border-b border-app-border/70 bg-[#0A0F1D]/80 backdrop-blur-md relative">
         <div class="flex items-center gap-3 md:gap-4 relative z-10">
             
             <!-- Custom Batik + SVG Singapore Airlines Logo -->
@@ -771,38 +771,40 @@
             </div>
         </div>
 
+    </main>
+
     <!-- BOTTOM NAVIGATION -->
-    <nav class="fixed bottom-0 w-full glass-panel border-t border-app-border z-50" style="padding-bottom: env(safe-area-inset-bottom);">
-        <div class="max-w-md mx-auto flex justify-around items-center w-full px-1 sm:px-2 py-3">
-            <button onclick="switchView('overview')" id="nav-overview" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-accent transition-colors">
-                <i class="ph-fill ph-house text-2xl"></i>
-                <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider w-full text-center truncate">Overview</span>
+    <nav class="fixed bottom-0 left-0 w-full glass-panel border-t border-app-border z-50 pb-2 pt-1" style="padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);">
+        <div class="max-w-lg mx-auto flex items-center justify-evenly w-full px-2">
+            <button onclick="switchView('overview')" id="nav-overview" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-accent transition-colors py-2">
+                <i class="ph-fill ph-house text-2xl mb-0.5"></i>
+                <span class="text-[10px] font-bold uppercase tracking-wider w-full text-center truncate">Overview</span>
             </button>
-            <button onclick="switchView('map')" id="nav-map" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-text hover:text-white transition-colors">
-                <i class="ph ph-globe text-2xl"></i>
-                <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider w-full text-center truncate">HUD</span>
+            <button onclick="switchView('map')" id="nav-map" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-text hover:text-white transition-colors py-2">
+                <i class="ph ph-globe text-2xl mb-0.5"></i>
+                <span class="text-[10px] font-bold uppercase tracking-wider w-full text-center truncate">HUD</span>
             </button>
-            <button onclick="switchView('logs')" id="nav-logs" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-text hover:text-white transition-colors">
-                <i class="ph ph-books text-2xl"></i>
-                <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider w-full text-center truncate">Logs</span>
+            <button onclick="switchView('logs')" id="nav-logs" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-text hover:text-white transition-colors py-2">
+                <i class="ph ph-books text-2xl mb-0.5"></i>
+                <span class="text-[10px] font-bold uppercase tracking-wider w-full text-center truncate">Logs</span>
             </button>
-            <button onclick="switchView('chat')" id="nav-chat" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-text hover:text-white transition-colors">
-                <i class="ph ph-chats text-2xl"></i>
-                <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider w-full text-center truncate">Comms</span>
+            <button onclick="switchView('chat')" id="nav-chat" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-text hover:text-white transition-colors py-2">
+                <i class="ph ph-chats text-2xl mb-0.5"></i>
+                <span class="text-[10px] font-bold uppercase tracking-wider w-full text-center truncate">Comms</span>
             </button>
-            <button onclick="switchView('admin')" id="nav-admin" class="hidden flex-1 flex-col items-center justify-center gap-1 text-app-text hover:text-white transition-colors">
-                <i class="ph ph-shield-check text-2xl"></i>
-                <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider w-full text-center truncate">Admin</span>
+            <button onclick="switchView('admin')" id="nav-admin" class="hidden flex-1 flex-col items-center justify-center gap-1 text-app-text hover:text-white transition-colors py-2">
+                <i class="ph ph-shield-check text-2xl mb-0.5"></i>
+                <span class="text-[10px] font-bold uppercase tracking-wider w-full text-center truncate">Admin</span>
             </button>
         </div>
     </nav>
 
     <!-- AI ASSISTANT FAB & CHAT PANEL -->
-    <button onclick="toggleAIChat()" class="fixed bottom-20 right-4 w-12 h-12 bg-app-accent text-[#0A0F1D] rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(203,160,82,0.4)] hover:bg-[#B58D22] transition-colors z-40 border border-[#8A6B32]">
+    <button onclick="toggleAIChat()" class="fixed right-4 md:right-6 w-12 h-12 bg-app-accent text-[#0A0F1D] rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(203,160,82,0.4)] hover:bg-[#B58D22] transition-colors z-40 border border-[#8A6B32]" style="bottom: max(6rem, calc(5rem + env(safe-area-inset-bottom)));">
         <i class="ph-fill ph-sparkle text-2xl"></i>
     </button>
 
-    <div id="ai-chat-panel" class="hidden-view fixed bottom-36 right-4 w-[90vw] md:w-80 h-96 glass-panel rounded-xl shadow-2xl flex-col z-50 overflow-hidden border border-app-accent/50">
+    <div id="ai-chat-panel" class="hidden-view fixed right-4 w-[90vw] md:w-80 h-96 glass-panel rounded-xl shadow-2xl flex-col z-50 overflow-hidden border border-app-accent/50" style="bottom: max(10rem, calc(9rem + env(safe-area-inset-bottom)));">
         <!-- Chat Header -->
         <div class="bg-[#0A0F1D] p-3 border-b border-app-border flex justify-between items-center">
             <div class="flex items-center gap-2">
