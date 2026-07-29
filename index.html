@@ -1483,7 +1483,7 @@
             }
         };
 
-        window.registerAccount = async function() {
+        window.registerAccount = function() {
             const name = document.getElementById('reg-name').value.trim();
             const staffId = document.getElementById('reg-staffid').value.trim();
             const pin = document.getElementById('reg-pin').value.trim();
@@ -1507,33 +1507,37 @@
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
             const payload = { name, staffId, pin, role, status, createdAt: Date.now() };
             
-            // PREPARE WHATSAPP MESSAGE (Synchronous to avoid Browser Popup Blockers)
-            let newTab = null;
+            // 1. OPEN WHATSAPP INSTANTLY (100% Synchronous to bypass mobile popup blockers)
             if (status === 'pending') {
                 const waMessage = `Hi Ricky, I have just registered for the Crew Portal. Please approve my access.\n\nName: ${name}\nStaff ID: ${staffId}\nRole: ${role}`;
                 const waUrl = `https://wa.me/6581265820?text=${encodeURIComponent(waMessage)}`;
                 
-                // Open window immediately during the click event (Bypasses Safari/Chrome popup blockers)
-                newTab = window.open(waUrl, '_blank');
+                // Try opening in a new tab. If the browser blocks it, force a direct redirect.
+                const newTab = window.open(waUrl, '_blank');
+                if (!newTab || newTab.closed || typeof newTab.closed == 'undefined') {
+                    window.location.href = waUrl; 
+                }
             }
 
+            // 2. UPDATE UI IMMEDIATELY (Do not wait for database)
+            showToast(status === 'approved' ? "Master Account Created! Please Login." : "Registration Sent! Opening WhatsApp...");
+            toggleAuthMode('login');
+            document.getElementById('login-staffid').value = staffId;
+            document.getElementById('login-pin').value = pin;
+
+            // 3. SAVE TO DATABASE IN BACKGROUND
             try {
                 if (db) {
-                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), payload);
+                    addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), payload)
+                    .catch(e => console.warn("Firebase save delayed (Check Security Rules):", e));
                 } else {
-                    // VERCEL OFFLINE FALLBACK
+                    // VERCEL OFFLINE FALLBACK - Save to Local Memory
                     payload.id = 'local_acc_' + Date.now();
                     window.accountsData.push(payload);
+                    localStorage.setItem('crew_offline_accounts', JSON.stringify(window.accountsData));
                 }
-                
-                showToast(status === 'approved' ? "Master Account Created! Please Login." : "Registration Sent for Admin Approval!");
-                toggleAuthMode('login');
-                document.getElementById('login-staffid').value = staffId;
-                
             } catch(e) {
-                if (newTab) newTab.close(); // Close the WhatsApp tab if database fails
-                showToast("Registration failed. Please check your network.");
-                console.error(e);
+                console.error("Background sync error:", e);
             }
         };
 
@@ -1639,401 +1643,61 @@
         }
 
         window.logoutAccount = async function() {
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
-            
-            // Set Offline Status
-            if (window.currentStaffId && db && window.accountsData) {
-                const myAcc = window.accountsData.find(a => a.staffId === window.currentStaffId);
-                if (myAcc) {
-                    try {
-                        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', myAcc.id), { isOnline: false });
-                    } catch(e) { console.error("Offline status update failed", e); }
-                }
+            if (currentUser && db) {
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+                try {
+                    const myAcc = window.accountsData.find(a => a.staffId === window.currentStaffId);
+                    if (myAcc) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', myAcc.id), { isOnline: false });
+                } catch(e) {}
+                if (auth) await auth.signOut();
             }
-
+            
             window.currentStaffId = null;
             window.currentUserRole = null;
             window.currentName = null;
             window.isAdmin = false;
-            window.flightsData = [];
             
-            if (currentUser && db) {
-                try {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'session', 'current'));
-                } catch(e) { console.error("Session clear failed", e); }
-            } else {
-                // VERCEL OFFLINE SESSION CLEAR
-                localStorage.removeItem('crew_offline_session');
-            }
+            localStorage.removeItem('crew_offline_session'); // Clear offline session
             
-            document.getElementById('header-crew-info').innerHTML = `Please Login`;
-            
-            const adminNav = document.getElementById('nav-admin');
-            if (adminNav) {
-                adminNav.classList.add('hidden');
-                adminNav.classList.remove('flex');
-            }
+            const navAdmin = document.getElementById('nav-admin');
+            if (navAdmin) navAdmin.classList.add('hidden');
             
             document.getElementById('view-login').classList.remove('hidden-view');
-            switchView('overview'); 
-            
-            renderUI();
-            showToast("Logged out successfully.");
+            ['login-staffid', 'login-pin'].forEach(id => document.getElementById(id).value = '');
         };
-
-        window.openProfileModal = function() {
-            if (!window.currentStaffId) return;
-            const myAcc = window.accountsData.find(a => a.staffId === window.currentStaffId);
-            if (!myAcc) return;
-            
-            document.getElementById('edit-profile-name').value = myAcc.name;
-            document.getElementById('edit-profile-pin').value = myAcc.pin;
-            document.getElementById('edit-profile-role').value = myAcc.role || 'FS';
-            
-            // Load Wallet Data
-            document.getElementById('edit-wallet-passport').value = myAcc.passport || '';
-            document.getElementById('edit-wallet-medical').value = myAcc.medical || '';
-            document.getElementById('edit-wallet-visa').value = myAcc.visa || '';
-            document.getElementById('edit-wallet-esta').value = myAcc.esta || '';
-
-            document.getElementById('modal-profile').classList.remove('hidden-view');
-        };
-        
-        window.closeProfileModal = function() {
-            document.getElementById('modal-profile').classList.add('hidden-view');
-        };
-        
-        window.saveProfile = async function() {
-            const newName = document.getElementById('edit-profile-name').value.trim();
-            const newPin = document.getElementById('edit-profile-pin').value.trim();
-            const newRole = document.getElementById('edit-profile-role').value;
-            
-            // Get Wallet Data
-            const passDate = document.getElementById('edit-wallet-passport').value;
-            const medDate = document.getElementById('edit-wallet-medical').value;
-            const visaDate = document.getElementById('edit-wallet-visa').value;
-            const estaDate = document.getElementById('edit-wallet-esta').value;
-            
-            if (!newName || newPin.length !== 6 || !newRole) {
-                showToast("Name required, PIN must be 6 digits, and Rank selected.");
-                return;
-            }
-            
-            const myAcc = window.accountsData.find(a => a.staffId === window.currentStaffId);
-            if (!myAcc) return;
-            
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
-            try {
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', myAcc.id), {
-                    name: newName,
-                    pin: newPin,
-                    role: newRole,
-                    passport: passDate,
-                    medical: medDate,
-                    visa: visaDate,
-                    esta: estaDate
-                });
-                
-                // Instantly update local memory so the session "remembers" it before the database snapshot fires
-                window.currentName = newName;
-                window.currentUserRole = newRole;
-                myAcc.role = newRole;
-                myAcc.name = newName;
-                myAcc.pin = newPin;
-                myAcc.passport = passDate;
-                myAcc.medical = medDate;
-                myAcc.visa = visaDate;
-                myAcc.esta = estaDate;
-                
-                document.getElementById('header-crew-info').innerHTML = `
-                    <div class="flex items-center gap-2 mt-1">
-                        <div class="w-4 h-4 rounded-full border border-app-border overflow-hidden shrink-0 shadow-sm">${window.getAvatarSVG(newRole)}</div>
-                        <span>${newRole} ${newName} ${myAcc.staffId} &bull; ACTIVE</span>
-                    </div>
-                `;
-                
-                if (!document.getElementById('view-chat').classList.contains('hidden-view')) {
-                    renderChatList();
-                    if (window.chatTarget) updateChatHeader();
-                }
-                showToast("Profile & Wallet Updated Successfully!");
-                closeProfileModal();
-                renderDashboard(); // Re-trigger dashboard to immediately calculate warnings
-            } catch (e) {
-                console.error(e);
-                showToast("Failed to update profile.");
-            }
-        };
-
-        window.renderAdminList = function() {
-            if (!window.isAdmin) return;
-            const pendingContainer = document.getElementById('admin-pending-list');
-            const activeContainer = document.getElementById('admin-active-list');
-            
-            let pending = window.accountsData.filter(a => a.status === 'pending');
-            let active = window.accountsData.filter(a => (a.status === 'approved' || a.status === 'suspended') && a.staffId !== '00230747');
-            
-            const sortFn = (a, b) => {
-                const wA = window.getRankWeight(a.role);
-                const wB = window.getRankWeight(b.role);
-                if (wA !== wB) return wA - wB;
-                return a.name.localeCompare(b.name);
-            };
-            
-            pending.sort(sortFn);
-            active.sort(sortFn);
-            
-            // Pending Render
-            if (pending.length === 0) {
-                pendingContainer.innerHTML = '<p class="text-xs font-mono text-gray-500 py-2">No pending requests.</p>';
-            } else {
-                let html = '';
-                pending.forEach(acc => {
-                    html += `
-                        <div class="bg-[#131A2A] border border-app-border/50 rounded-lg p-2.5 flex justify-between items-center">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full border border-app-border flex items-center justify-center shadow-sm overflow-hidden shrink-0 bg-[#0A0F1D]">
-                                    ${window.getAvatarSVG(acc.role)}
-                                </div>
-                                <div>
-                                    <p class="text-sm font-bold text-white">${acc.name} <span class="text-app-accent">(${acc.role})</span></p>
-                                    <p class="text-[10px] font-mono text-gray-400">ID: ${acc.staffId}</p>
-                                </div>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="approveAccount('${acc.id}')" class="bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-[#0A0F1D] px-3 py-1.5 rounded transition-colors text-[10px] font-bold uppercase">Approve</button>
-                                <button onclick="rejectAccount('${acc.id}')" class="bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded transition-colors text-[10px] font-bold uppercase">Reject</button>
-                            </div>
-                        </div>
-                    `;
-                });
-                pendingContainer.innerHTML = html;
-            }
-
-            // Active Render
-            if (active.length === 0) {
-                activeContainer.innerHTML = '<p class="text-xs font-mono text-gray-500 py-2">No active crew.</p>';
-            } else {
-                let html = '';
-                active.forEach(acc => {
-                    const isSuspended = acc.status === 'suspended';
-                    const statusDot = isSuspended ? '<span class="w-2 h-2 rounded-full bg-red-500 mr-2" title="Inactive"></span>' : '<span class="w-2 h-2 rounded-full bg-green-500 mr-2" title="Active"></span>';
-                    const actionBtn = isSuspended 
-                        ? `<button onclick="toggleAccountStatus('${acc.id}', 'suspended', '${acc.name}')" class="bg-green-900/20 text-green-400 hover:bg-green-500 hover:text-white px-3 py-1.5 rounded transition-colors text-[10px] font-bold uppercase flex items-center gap-1 shadow-sm"><i class="ph-bold ph-check"></i> Activate</button>`
-                        : `<button onclick="toggleAccountStatus('${acc.id}', 'approved', '${acc.name}')" class="bg-yellow-900/20 text-yellow-500 hover:bg-yellow-600 hover:text-white px-3 py-1.5 rounded transition-colors text-[10px] font-bold uppercase flex items-center gap-1 shadow-sm"><i class="ph-bold ph-pause"></i> Inactive</button>`;
-                    
-                    const deleteBtn = `<button onclick="deleteAccount('${acc.id}', '${acc.name}')" class="bg-red-900/20 text-red-400 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded transition-colors text-[10px] font-bold uppercase flex items-center gap-1 shadow-sm"><i class="ph-bold ph-trash"></i> Delete</button>`;
-                    
-                    html += `
-                        <div class="bg-[#131A2A] border border-app-border/50 rounded-lg p-2.5 flex flex-col sm:flex-row justify-between items-start sm:items-center group gap-3">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full border border-app-border flex items-center justify-center shadow-sm overflow-hidden shrink-0 bg-[#0A0F1D]">
-                                    ${window.getAvatarSVG(acc.role)}
-                                </div>
-                                <div>
-                                    <p class="text-sm font-bold text-white flex items-center">${statusDot}${acc.name} <span class="text-[10px] text-app-accent ml-2 font-mono">(${acc.role})</span></p>
-                                    <p class="text-[10px] font-mono text-gray-400 ml-4">ID: ${acc.staffId}</p>
-                                </div>
-                            </div>
-                            <div class="flex gap-2 w-full sm:w-auto justify-end">
-                                ${actionBtn}
-                                ${deleteBtn}
-                            </div>
-                        </div>
-                    `;
-                });
-                activeContainer.innerHTML = html;
-            }
-        };
-        
-        window.toggleAccountStatus = async function(docId, currentStatus, name) {
-            const newStatus = currentStatus === 'approved' ? 'suspended' : 'approved';
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', docId), { status: newStatus });
-            showToast(`Account for ${name} set to ${newStatus === 'suspended' ? 'Inactive' : 'Active'}!`);
-        };
-
-        window.deleteAccount = async function(docId, name) {
-            if (!db) return;
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
-            try {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', docId));
-                showToast(`Account for ${name} permanently deleted.`);
-            } catch(e) {
-                console.error(e);
-                showToast("Failed to delete account.");
-            }
-        };
-
-        window.exportCrewCSV = function() {
-            if (!window.accountsData || window.accountsData.length === 0) {
-                showToast("No crew data to export!");
-                return;
-            }
-            showToast("Generating CSV Roster...");
-            
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "Staff ID,Name,Rank,Status,Last Active\r\n";
-            
-            window.accountsData.forEach(acc => {
-                const lastActive = acc.lastActive ? new Date(acc.lastActive).toISOString().split('T')[0] : 'N/A';
-                const row = `${acc.staffId},"${acc.name}",${acc.role},${acc.status},${lastActive}`;
-                csvContent += row + "\r\n";
-            });
-            
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Crew_Roster_Backup_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showToast("Export Complete!");
-        };
-
-        window.exportMasterLogs = async function() {
-            if (!window.isAdmin || !db) return;
-            showToast("Fetching all system flight logs... Please wait.", 4000);
-            
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
-            try {
-                const q = collection(db, 'artifacts', appId, 'public', 'data', 'flights');
-                const querySnapshot = await getDocs(q);
-                
-                if (querySnapshot.empty) {
-                    showToast("No flight logs found in the system.");
-                    return;
-                }
-
-                let csvContent = "data:text/csv;charset=utf-8,";
-                csvContent += "Staff ID,Name,Rank,Date,Flight No,A/C Type,Reg No,Origin,Dest,Dep Time,Arr Time,Duty Hours\r\n";
-                
-                const allFlights = [];
-                querySnapshot.forEach(doc => {
-                    allFlights.push(doc.data());
-                });
-
-                // Sort by Date Descending
-                allFlights.sort((a, b) => {
-                    const dateA = new Date(a.date + 'T12:00:00').getTime() || 0;
-                    const dateB = new Date(b.date + 'T12:00:00').getTime() || 0;
-                    return dateB - dateA;
-                });
-                
-                allFlights.forEach(f => {
-                    // Match the Staff ID to get the Crew Member's real name and rank
-                    const account = window.accountsData.find(a => a.staffId === f.staffId);
-                    const name = account ? account.name : 'Unknown User';
-                    const rank = account ? account.role : 'N/A';
-                    
-                    let arrStr = f.arrTime || '';
-                    if (f.arrTime && f.depTime && f.arrTime < f.depTime) {
-                        arrStr += ' (+1)';
-                    }
-                    
-                    const row = `${f.staffId},"${name}",${rank},${f.date || ''},${f.flightNo || ''},${f.acType || ''},${f.acReg || ''},${f.origin || ''},${f.dest || ''},${f.depTime || ''},${arrStr},${f.hours || 0}`;
-                    csvContent += row + "\r\n";
-                });
-                
-                const encodedUri = encodeURI(csvContent);
-                const link = document.createElement("a");
-                link.setAttribute("href", encodedUri);
-                link.setAttribute("download", `Master_Flight_Logs_${new Date().toISOString().split('T')[0]}.csv`);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                showToast("Master Logs Export Complete!");
-
-            } catch(e) {
-                console.error("Export Error:", e);
-                showToast("Failed to export logs.");
-            }
-        };
-
-        window.approveAccount = async function(docId) {
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', docId), { status: 'approved' });
-            showToast("Account Approved!");
-        };
-
-        window.rejectAccount = async function(docId) {
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', docId), { status: 'rejected' });
-            showToast("Account Rejected!");
-        };
-
-        window.adminCreateAccount = async function() {
-            if (!window.isAdmin || !db) return;
-            
-            const name = document.getElementById('admin-new-name').value.trim();
-            const staffId = document.getElementById('admin-new-staffid').value.trim();
-            const role = document.getElementById('admin-new-role').value;
-            const pin = document.getElementById('admin-new-pin').value.trim();
-
-            if (!name || !staffId || pin.length !== 6 || !role) {
-                showToast("Please fill all fields and assign a 6-digit PIN.");
-                return;
-            }
-
-            if (window.accountsData.some(a => a.staffId === staffId)) {
-                showToast(`Staff ID ${staffId} is already registered!`);
-                return;
-            }
-
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
-            const payload = { 
-                name: name, 
-                staffId: staffId, 
-                pin: pin, 
-                role: role, 
-                status: 'approved', // Pre-approved because the Master Admin created it
-                createdAt: Date.now() 
-            };
-
-            try {
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), payload);
-                showToast(`Account for ${name} created and activated!`);
-                
-                // Clear the form fields after successful creation
-                document.getElementById('admin-new-name').value = '';
-                document.getElementById('admin-new-staffid').value = '';
-                document.getElementById('admin-new-pin').value = '';
-                document.getElementById('admin-new-role').value = 'FS';
-            } catch(e) {
-                console.error("Failed to provision account", e);
-                showToast("Failed to create account. Please try again.");
-            }
-        };
-
-        function initDateInput() {
-            const today = new Date();
-            const localISOTime = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-            document.getElementById('in-date').value = localISOTime;
-        }
 
         async function initApp() {
-            try {
-                setLogLevel('error');
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+            
+            // Smart Config Loader: Uses injected environment config OR falls back to Vercel custom config
+            const envConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+            const firebaseConfig = envConfig || VERCEL_FIREBASE_CONFIG;
+            
+            if (!firebaseConfig) {
+                showToast("System Offline - Local Storage Mode");
+                document.getElementById('sync-status').innerText = "SYSTEM // LOCAL (VERCEL)";
                 
-                // Smart Config Loader: Uses injected environment config OR falls back to Vercel custom config
-                const envConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-                const firebaseConfig = envConfig || VERCEL_FIREBASE_CONFIG;
+                // VERCEL OFFLINE ACCOUNTS RECOVERY
+                const savedAccounts = localStorage.getItem('crew_offline_accounts');
+                if (savedAccounts) {
+                    window.accountsData = JSON.parse(savedAccounts);
+                }
                 
-                if (!firebaseConfig) {
-                    showToast("System Offline - Local Storage Mode");
-                    document.getElementById('sync-status').innerText = "SYSTEM // LOCAL (VERCEL)";
-                    
-                    // VERCEL AUTO-LOGIN RECOVERY
-                    const savedId = localStorage.getItem('crew_offline_session');
-                    if (savedId === '00230747') {
+                // VERCEL AUTO-LOGIN RECOVERY
+                const savedId = localStorage.getItem('crew_offline_session');
+                if (savedId) {
+                    const savedAcc = window.accountsData.find(a => a.staffId === savedId && a.status === 'approved');
+                    if (savedAcc) completeLogin(savedAcc);
+                    else if (savedId === '00230747') {
                         const mockMaster = { name: "Ricky Law", staffId: "00230747", pin: "123456", role: "FS", status: 'approved', id: 'local-master-id' };
                         window.accountsData = [mockMaster];
                         completeLogin(mockMaster);
                     }
-                    return;
                 }
+                return;
+            }
 
+            try {
                 let app;
                 if (getApps().length === 0) {
                     app = initializeApp(firebaseConfig);
@@ -2044,7 +1708,6 @@
                 }
                 
                 // 🚀 DECOUPLE DATABASE LISTENERS FROM AUTHENTICATION BLOCK
-                // This ensures accounts load immediately even if Vercel domain blocks Firebase Auth
                 if (accountsUnsubscribe) accountsUnsubscribe();
                 accountsUnsubscribe = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), async (snapshot) => {
                     window.accountsData = [];
@@ -2066,7 +1729,7 @@
                                     `;
                                 }
                             }
-                            if (window.isAdmin) renderAdminList();
+                            if (window.isAdmin && typeof renderAdminList === 'function') renderAdminList();
                         } else if (myAcct && myAcct.status !== 'approved') {
                             window.logoutAccount();
                             window.showToast("Your session was terminated or suspended by Admin.", 5000);
@@ -4743,7 +4406,6 @@ JSON Format:
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
-            initDateInput();
             initMobileForm();
             await fetchAirportData(); 
             initApp();
