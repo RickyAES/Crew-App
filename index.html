@@ -2705,7 +2705,6 @@
                     const workbook = XLSX.read(data, {type: 'array', cellDates: true});
                     
                     const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
-                    const ref = collection(db, 'artifacts', appId, 'public', 'data', 'timetable');
                     const payloads = [];
 
                     // Iterate through sheets
@@ -2729,8 +2728,8 @@
                                 
                                 // 1. Try to match by explicit Header Names
                                 if (['flightnumber', 'flt', 'flight', 'flightno', 'fltno', 'serviceno', 'sv', 'fn'].includes(val)) tempMap.fNo = c;
-                                else if (['origin', 'orig', 'from', 'depstn', 'depcode', 'port', 'board'].includes(val)) { if (tempMap.org === -1) tempMap.org = c; }
-                                else if (['destination', 'dest', 'to', 'arrstn', 'arrcode', 'arrport', 'off'].includes(val)) { if (tempMap.dst === -1) tempMap.dst = c; }
+                                else if (['origin', 'orig', 'from', 'depstn', 'depcode', 'port', 'board', 'origincode'].includes(val)) { if (tempMap.org === -1) tempMap.org = c; }
+                                else if (['destination', 'dest', 'to', 'arrstn', 'arrcode', 'arrport', 'off', 'descode'].includes(val)) { if (tempMap.dst === -1) tempMap.dst = c; }
                                 else if (['sector', 'route', 'routing', 'sect', 'leg', 'citypair'].includes(val)) tempMap.sector = c;
                                 else if (['std', 'deptime', 'departuretime', 'departure', 'dep', 'out'].includes(val)) { if(tempMap.depT === -1) tempMap.depT = c; }
                                 else if (['sta', 'arrtime', 'arrivaltime', 'arrival', 'arr', 'in'].includes(val)) { if(tempMap.arrT === -1) tempMap.arrT = c; }
@@ -2886,6 +2885,8 @@
                         if (event.target) event.target.value = '';
                         return;
                     }
+
+                    const ref = collection(db, 'artifacts', appId, 'public', 'data', 'timetable');
 
                     // Clear out existing timetable first to prevent duplicates
                     if (window.timetableData && window.timetableData.length > 0) {
@@ -4397,57 +4398,62 @@ Tone: Professional, helpful, concise, and friendly.`
 
         document.getElementById('excel-upload').addEventListener('change', function(e) {
             const file = e.target.files[0];
-            // FIX: Removed strict !currentUser and !db checks so it accepts the Bulletproof bypass
             if (!file || !window.currentStaffId) {
                 showToast("Please login before importing data.");
                 return;
             }
-            showToast("Scanning Data...");
+            showToast("Scanning Personal Roster...", 4000);
             
             const reader = new FileReader();
             reader.onload = async function(ev) {
                 try {
                     const data = new Uint8Array(ev.target.result);
                     const workbook = XLSX.read(data, {type: 'array', cellDates: true});
-                    const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                    
+                    // { header: 1 } outputs raw arrays, ignoring any empty title rows above the real headers
+                    const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
                     if (rawData.length === 0) { showToast("File appears empty"); return; }
 
                     const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
-                    const ref = collection(db, 'artifacts', appId, 'public', 'data', 'flights');
 
-                    const firstRowKeys = Object.keys(rawData[0]);
-                    let colMap = { date: null, flt: null, org: null, dst: null, hrs: null, acType: null, reg: null, gate: null, depT: null, arrT: null, sector: null };
+                    let headerRowIdx = -1;
+                    let colMap = { date: -1, flt: -1, org: -1, dst: -1, hrs: -1, acType: -1, reg: -1, gate: -1, depT: -1, arrT: -1, sector: -1 };
                     
-                    firstRowKeys.forEach(k => {
-                        const lowerK = k.toLowerCase().trim();
-                        const cleanK = lowerK.replace(/[^a-z0-9]/g, '');
-                        if (lowerK === 'start date' || lowerK === 'date' || lowerK === 'flight date' || lowerK === 'local date') colMap.date = k;
-                        if (lowerK === 'flight number' || lowerK === 'flight no' || lowerK === 'flt no' || lowerK === 'flight' || lowerK === 'flt') colMap.flt = k;
-                        if (lowerK === 'origin code' || lowerK === 'origincode') colMap.org = k;
-                        if (lowerK === 'descode' || lowerK === 'des code' || lowerK === 'dest code') colMap.dst = k;
-                        if (lowerK === 'duty time' || lowerK === 'duty hours' || lowerK === 'duty' || lowerK === 'dutyhours_hours' || lowerK === 'dutyhours') colMap.hrs = k;
-                        if (lowerK === 'std' || lowerK === 'dep time' || lowerK === 'deptime') colMap.depT = k;
-                        if (lowerK === 'sta' || lowerK === 'arr time' || lowerK === 'arrtime') colMap.arrT = k;
-                        if (lowerK === 'a/c' || lowerK === 'a/c type' || lowerK === 'ac type' || lowerK === 'actype' || cleanK === 'actype') colMap.acType = k;
-                        if (lowerK === 'sector') colMap.sector = k;
-                        if (lowerK === 'a/c reg' || lowerK === 'ac reg' || lowerK === 'registration' || lowerK === 'acreg' || lowerK === 'aircraft' || lowerK === 'tail' || lowerK === 'ac_reg' || lowerK === 'fleet' || cleanK === 'acreg' || cleanK === 'acregistration' || cleanK === 'tailno' || cleanK === 'aircraftreg' || cleanK === 'regno' || lowerK === 'reg no' || lowerK === 'regno') { colMap.reg = k; }
-                        if (lowerK === 'gate' || lowerK === 'bay' || lowerK === 'stand') colMap.gate = k;
-                    });
+                    // Deep Scan: Hunt for headers anywhere in the first 50 rows
+                    for (let r = 0; r < Math.min(50, rawData.length); r++) {
+                        const row = rawData[r];
+                        if (!row || !Array.isArray(row)) continue;
+                        
+                        let tempMap = { date: -1, flt: -1, org: -1, dst: -1, hrs: -1, acType: -1, reg: -1, gate: -1, depT: -1, arrT: -1, sector: -1 };
+                        
+                        for (let c = 0; c < row.length; c++) {
+                            const val = String(row[c] || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                            
+                            if (['startdate', 'date', 'day', 'localdate', 'flightdate'].includes(val)) tempMap.date = c;
+                            else if (['flightnumber', 'flt', 'flight', 'flightno', 'fltno'].includes(val)) tempMap.flt = c;
+                            else if (['from', 'orig', 'origin', 'depstn', 'depart', 'departure', 'origincode'].includes(val)) { if (tempMap.org === -1) tempMap.org = c; }
+                            else if (['to', 'dest', 'destination', 'arrstn', 'destcode', 'arrival', 'descode'].includes(val)) { if (tempMap.dst === -1) tempMap.dst = c; }
+                            else if (['sector', 'routing', 'route', 'sect'].includes(val)) tempMap.sector = c;
+                            else if (['dutytime', 'blk', 'block', 'hrs', 'hours', 'flttime', 'duration', 'blocktime', 'dutyhours', 'time'].includes(val)) tempMap.hrs = c;
+                            else if (['std', 'deptime', 'departuretime', 'out', 'dep'].includes(val)) tempMap.depT = c;
+                            else if (['sta', 'arrtime', 'arrivaltime', 'in', 'arr'].includes(val)) tempMap.arrT = c;
+                            else if (['ac', 'type', 'actype', 'aircrafttype', 'eqpt', 'equipment'].includes(val)) { if (!val.includes('reg') && !val.includes('no')) tempMap.acType = c; }
+                            else if (val.includes('reg') || val.includes('tail') || val.includes('fleet')) { if (!val.includes('code') && !val.includes('time') && !val.includes('date') && !val.includes('gate') && !val.includes('type')) tempMap.reg = c; }
+                            else if (['gate', 'bay', 'stand'].includes(val)) tempMap.gate = c;
+                        }
+                        
+                        // We need at least a Date and Flight Number, plus Origin/Dest or Sector to trigger
+                        if (tempMap.date !== -1 && tempMap.flt !== -1 && ((tempMap.org !== -1 && tempMap.dst !== -1) || tempMap.sector !== -1)) {
+                            headerRowIdx = r;
+                            colMap = tempMap;
+                            break;
+                        }
+                    }
 
-                    firstRowKeys.forEach(k => {
-                        const clean = k.toLowerCase().replace(/[^a-z0-9]/g, '');
-                        if (!colMap.date && ['startdate', 'date', 'day', 'localdate', 'flightdate'].includes(clean)) colMap.date = k;
-                        if (!colMap.flt && ['flightnumber', 'flt', 'flight', 'flightno', 'fltno'].includes(clean)) colMap.flt = k;
-                        if (!colMap.org && ['from', 'orig', 'origin', 'depstn', 'depart', 'departure'].includes(clean)) colMap.org = k;
-                        if (!colMap.dst && ['to', 'dest', 'destination', 'arrstn', 'destcode', 'arrival'].includes(clean)) colMap.dst = k;
-                        if (!colMap.sector && ['sector', 'routing', 'route', 'sect'].includes(clean)) colMap.sector = k;
-                        if (!colMap.hrs && ['dutytime', 'blk', 'block', 'hrs', 'hours', 'flttime', 'duration', 'blocktime', 'dutyhours', 'time', 'dutyhourshours'].includes(clean)) colMap.hrs = k;
-                        if (!colMap.depT && ['std', 'deptime', 'departuretime', 'out', 'dep'].includes(clean)) colMap.depT = k;
-                        if (!colMap.arrT && ['sta', 'arrtime', 'arrivaltime', 'in', 'arr'].includes(clean)) colMap.arrT = k;
-                        if (!colMap.acType && ['ac', 'type', 'actype', 'aircrafttype', 'eqpt', 'equipment'].includes(clean)) { if (!clean.includes('reg') && !clean.includes('no')) colMap.acType = k; }
-                        if (!colMap.reg && (clean.includes('reg') || clean.includes('tail') || clean.includes('fleet'))) { if (!clean.includes('code') && !clean.includes('time') && !clean.includes('date') && !clean.includes('gate') && !clean.includes('type')) { colMap.reg = k; } }
-                        if (!colMap.gate && ['gate', 'bay', 'stand'].includes(clean)) colMap.gate = k;
-                    });
+                    if (headerRowIdx === -1) {
+                         showToast("Error: Could not find valid roster column headers in the file.", 5000);
+                         return;
+                    }
 
                     const getIATA = (val) => {
                         if (!val || String(val).trim() === '') return '';
@@ -4461,21 +4467,25 @@ Tone: Professional, helpful, concise, and friendly.`
                         return fallback.length >= 3 ? fallback : '';
                     };
 
-                    let count = 0;
-                    for (const row of rawData) {
-                        let rDate = colMap.date ? row[colMap.date] : null;
-                        let fNo = colMap.flt ? row[colMap.flt] : null;
-                        let org = colMap.org ? row[colMap.org] : null;
-                        let dst = colMap.dst ? row[colMap.dst] : null;
-                        let rawHrs = colMap.hrs ? row[colMap.hrs] : null;
-                        let depT = colMap.depT ? row[colMap.depT] : null;
-                        let arrT = colMap.arrT ? row[colMap.arrT] : null;
-                        let acType = colMap.acType ? row[colMap.acType] : null;
-                        let reg = colMap.reg ? row[colMap.reg] : null;
-                        let gate = colMap.gate ? row[colMap.gate] : null;
+                    let payloads = [];
+                    for (let r = headerRowIdx + 1; r < rawData.length; r++) {
+                        const row = rawData[r];
+                        if (!row || row.length === 0) continue;
+                        
+                        let rDate = colMap.date !== -1 ? row[colMap.date] : null;
+                        let fNo = colMap.flt !== -1 ? row[colMap.flt] : null;
+                        let org = colMap.org !== -1 ? row[colMap.org] : null;
+                        let dst = colMap.dst !== -1 ? row[colMap.dst] : null;
+                        let rawHrs = colMap.hrs !== -1 ? row[colMap.hrs] : null;
+                        let depT = colMap.depT !== -1 ? row[colMap.depT] : null;
+                        let arrT = colMap.arrT !== -1 ? row[colMap.arrT] : null;
+                        let acType = colMap.acType !== -1 ? row[colMap.acType] : null;
+                        let reg = colMap.reg !== -1 ? row[colMap.reg] : null;
+                        let gate = colMap.gate !== -1 ? row[colMap.gate] : null;
+                        let sector = colMap.sector !== -1 ? row[colMap.sector] : null;
 
-                        if ((!org || !dst) && colMap.sector) {
-                            const sec = String(row[colMap.sector] || '');
+                        if ((!org || !dst) && sector) {
+                            const sec = String(sector || '');
                             if (sec.includes('-')) {
                                 const parts = sec.split('-');
                                 if (!org) org = parts[0];
@@ -4483,7 +4493,6 @@ Tone: Professional, helpful, concise, and friendly.`
                             }
                         }
                         
-                        // Handle specific A/C Type conversions
                         if (acType) {
                             acType = String(acType).toUpperCase().trim();
                             if (acType === '787') acType = 'B787';
@@ -4555,28 +4564,53 @@ Tone: Professional, helpful, concise, and friendly.`
                                 return s.substring(0,5);
                             };
 
-                            try {
-                                await addDoc(ref, {
-                                    staffId: window.currentStaffId,
-                                    date: pDate, flightNo: String(fNo).toUpperCase(),
-                                    acType: String(acType || '').toUpperCase(),
-                                    acReg: String(reg || '').toUpperCase().replace(/-/g, ''), 
-                                    gate: String(gate || '').toUpperCase(),
-                                    origin: org, dest: dst,
-                                    depTime: formatTime(depT), arrTime: formatTime(arrT),
-                                    hours: parseFloat(parsedHrs.toFixed(2)) || 0, createdAt: Date.now()
-                                });
-                                count++;
-                            } catch (rowError) {}
+                            payloads.push({
+                                staffId: window.currentStaffId,
+                                date: pDate, flightNo: String(fNo).toUpperCase(),
+                                acType: String(acType || '').toUpperCase(),
+                                acReg: String(reg || '').toUpperCase().replace(/-/g, ''), 
+                                gate: String(gate || '').toUpperCase(),
+                                origin: org, dest: dst,
+                                depTime: formatTime(depT), arrTime: formatTime(arrT),
+                                hours: parseFloat(parsedHrs.toFixed(2)) || 0, createdAt: Date.now()
+                            });
                         }
                     }
-                    if (count > 0) {
-                        showToast(`Imported ${count} flights securely!`);
+
+                    if (payloads.length > 0) {
+                        // --- VERCEL OFFLINE FALLBACK MODE ---
+                        if (!db) {
+                            const existing = JSON.parse(localStorage.getItem('crew_offline_flights') || '[]');
+                            const combined = [...existing, ...payloads.map((p, idx) => ({ id: 'local_flt_' + Date.now() + '_' + idx, ...p }))];
+                            localStorage.setItem('crew_offline_flights', JSON.stringify(combined));
+                            window.flightsData = combined;
+                            
+                            showToast(`Vercel Offline Mode: Saved ${payloads.length} flights locally!`, 5000);
+                            renderUI();
+                            e.target.value = '';
+                            return;
+                        }
+
+                        showToast(`Syncing ${payloads.length} flights to database...`, 4000);
+                        const ref = collection(db, 'artifacts', appId, 'public', 'data', 'flights');
+                        
+                        // Chunk uploads to prevent overwhelming the browser or database
+                        for (let i = 0; i < payloads.length; i += 50) {
+                            const chunk = payloads.slice(i, i + 50);
+                            const addPromises = chunk.map(p => addDoc(ref, p));
+                            await Promise.all(addPromises);
+                        }
+                        
+                        showToast(`Imported ${payloads.length} flights securely!`);
+                        
+                        // Force local data reload immediately so the UI reflects changes without refreshing
+                        setTimeout(() => loadData(), 500); 
                     } else {
-                        showToast(`Import finished, but 0 valid flights were found.`);
+                        showToast(`Import finished, but 0 valid flights were found. Check file format.`);
                     }
                 } catch (err) {
-                    showToast("Error processing file.");
+                    console.error("Personal Upload Error:", err);
+                    showToast("Error processing file. File may be corrupted.");
                 }
                 e.target.value = '';
             };
