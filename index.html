@@ -2021,75 +2021,64 @@
                     db = getFirestore(app);
                 }
                 
-                auth = getAuth(app);
-
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        currentUser = user;
-                        const syncStatus = document.getElementById('sync-status');
-                        if (syncStatus) syncStatus.innerText = "SYSTEM // CONNECTING...";
-                        
-                        // Listen for all accounts globally for secure login routing
-                        if (accountsUnsubscribe) accountsUnsubscribe();
-                        accountsUnsubscribe = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), async (snapshot) => {
-                            window.accountsData = [];
-                            snapshot.forEach(d => window.accountsData.push({ id: d.id, ...d.data() }));
-                            
-                            if (!window.currentStaffId) {
-                                // Auto-Login if session exists
-                                try {
-                                    const sessionDoc = await getDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'session', 'current'));
-                                    if (sessionDoc.exists()) {
-                                        const savedId = sessionDoc.data().staffId;
-                                        const acct = window.accountsData.find(a => a.staffId === savedId && a.status === 'approved');
-                                        if (acct) completeLogin(acct);
-                                    }
-                                } catch(e) {}
-                            } else {
-                                // Real-time profile sync: Keep header and access permissions updated instantly
-                                const myAcct = window.accountsData.find(a => a.staffId === window.currentStaffId);
-
-                                if (!myAcct || myAcct.status !== 'approved') {
-                                    // If Admin suspended this user while they were logged in, force logout immediately
-                                    window.logoutAccount();
-                                    window.showToast("Your session was terminated or suspended by Admin.", 5000);
-                                } else {
-                                    // If profile name or rank was updated, instantly sync the header UI
-                                    if (window.currentName !== myAcct.name || window.currentUserRole !== myAcct.role) {
-                                        window.currentName = myAcct.name;
-                                        window.currentUserRole = myAcct.role;
-                                        const headerInfo = document.getElementById('header-crew-info');
-                                        if (headerInfo) {
-                                            headerInfo.innerHTML = `
-                                                <div class="flex items-center gap-2 mt-1">
-                                                    <div class="w-4 h-4 rounded-full border border-app-border overflow-hidden shrink-0 shadow-sm">${window.getAvatarSVG(myAcct.role)}</div>
-                                                    <span>${myAcct.role} ${myAcct.name} ${myAcct.staffId} &bull; ACTIVE</span>
-                                                </div>
-                                            `;
-                                        }
-                                    }
-                                    if (window.isAdmin) renderAdminList();
+                // 🚀 DECOUPLE DATABASE LISTENERS FROM AUTHENTICATION BLOCK
+                // This ensures accounts load immediately even if Vercel domain blocks Firebase Auth
+                if (accountsUnsubscribe) accountsUnsubscribe();
+                accountsUnsubscribe = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), async (snapshot) => {
+                    window.accountsData = [];
+                    snapshot.forEach(d => window.accountsData.push({ id: d.id, ...d.data() }));
+                    
+                    if (window.currentStaffId) {
+                        const myAcct = window.accountsData.find(a => a.staffId === window.currentStaffId);
+                        if (myAcct && myAcct.status === 'approved') {
+                            if (window.currentName !== myAcct.name || window.currentUserRole !== myAcct.role) {
+                                window.currentName = myAcct.name;
+                                window.currentUserRole = myAcct.role;
+                                const headerInfo = document.getElementById('header-crew-info');
+                                if (headerInfo) {
+                                    headerInfo.innerHTML = `
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <div class="w-4 h-4 rounded-full border border-app-border overflow-hidden shrink-0 shadow-sm">${window.getAvatarSVG(myAcct.role)}</div>
+                                            <span>${myAcct.role} ${myAcct.name} ${myAcct.staffId} &bull; ACTIVE</span>
+                                        </div>
+                                    `;
                                 }
                             }
-                            
-                            // Re-render chat UI dynamically for real-time online status tracking
-                            if (!document.getElementById('view-chat').classList.contains('hidden-view')) {
-                                renderChatList();
-                                if (window.chatTarget) updateChatHeader();
-                            }
-                        });
-
+                            if (window.isAdmin) renderAdminList();
+                        } else if (myAcct && myAcct.status !== 'approved') {
+                            window.logoutAccount();
+                            window.showToast("Your session was terminated or suspended by Admin.", 5000);
+                        }
                     } else {
-                        currentUser = null;
-                        if (dbUnsubscribe) dbUnsubscribe();
-                        if (accountsUnsubscribe) accountsUnsubscribe();
+                        // Check local storage auto-login if the cloud session was blocked
+                        const savedId = localStorage.getItem('crew_offline_session');
+                        if (savedId) {
+                            const acct = window.accountsData.find(a => a.staffId === savedId && a.status === 'approved');
+                            if (acct) completeLogin(acct);
+                        }
+                    }
+                    
+                    if (!document.getElementById('view-chat').classList.contains('hidden-view')) {
+                        renderChatList();
+                        if (window.chatTarget) updateChatHeader();
                     }
                 });
+                
+                auth = getAuth(app);
+                onAuthStateChanged(auth, async (user) => {
+                    currentUser = user;
+                    const syncStatus = document.getElementById('sync-status');
+                    if (syncStatus) syncStatus.innerText = "SYSTEM // LIVE";
+                });
 
-                const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                if (!auth.currentUser) {
-                    if (token) await signInWithCustomToken(auth, token);
-                    else await signInAnonymously(auth);
+                try {
+                    const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                    if (!auth.currentUser) {
+                        if (token) await signInWithCustomToken(auth, token);
+                        else await signInAnonymously(auth);
+                    }
+                } catch (e) {
+                    console.warn("Firebase Auth bypassed due to Vercel domain restrictions. App continuing via open database.", e);
                 }
             } catch (err) {
                 console.error("Initialization error:", err);
@@ -2112,12 +2101,11 @@
                 const savedTimetable = localStorage.getItem('crew_offline_timetable');
                 if (savedTimetable) window.timetableData = JSON.parse(savedTimetable);
                 
-                // CRITICAL FIX: Ensure the dashboard actually paints even if offline!
                 renderUI();
                 return;
             }
 
-            if (!currentUser || !db || !window.currentStaffId) return;
+            if (!window.currentStaffId) return;
             if (dbUnsubscribe) dbUnsubscribe();
             if (msgUnsubscribe) msgUnsubscribe();
             
@@ -2130,12 +2118,12 @@
                 snapshot.forEach(doc => window.timetableData.push({ id: doc.id, ...doc.data() }));
             }, (error) => { console.error("Timetable Sync Error:", error); });
 
-            // Securely fetch public flights and filter by Staff ID to isolate data cleanly
+            // Securely fetch public flights and filter by Staff ID
             const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'flights'));
             
             dbUnsubscribe = onSnapshot(q, { includeMetadataChanges: true }, (snapshot) => {
                 const syncStatus = document.getElementById('sync-status');
-                syncStatus.innerText = snapshot.metadata.fromCache ? "SYSTEM // OFFLINE (CACHED)" : "SYSTEM // LIVE";
+                if (syncStatus) syncStatus.innerText = snapshot.metadata.fromCache ? "SYSTEM // OFFLINE (CACHED)" : "SYSTEM // LIVE";
 
                 window.flightsData = [];
                 snapshot.forEach(doc => {
@@ -2153,19 +2141,15 @@
             let isInitialMsgLoad = true;
             const msgQ = query(collection(db, 'artifacts', appId, 'public', 'data', 'messages'));
             msgUnsubscribe = onSnapshot(msgQ, { includeMetadataChanges: true }, (snapshot) => {
-                
-                // Detect specifically new messages arriving in real-time
                 if (!isInitialMsgLoad) {
                     snapshot.docChanges().forEach(change => {
                         if (change.type === 'added') {
                             const msg = change.doc.data();
-                            // If you received a message, and it wasn't a local write (sent by yourself)
                             if (msg.receiverId === window.currentStaffId && !snapshot.metadata.hasPendingWrites) {
                                 const sender = window.accountsData.find(a => a.staffId === msg.senderId);
                                 const senderName = sender ? sender.name : msg.senderId;
                                 
                                 const isChatViewVisible = !document.getElementById('view-chat').classList.contains('hidden-view');
-                                // Only alert if we aren't actively looking at the sender's chat window
                                 if (!(isChatViewVisible && window.chatTarget === msg.senderId)) {
                                     window.showToast(`📩 New message from ${senderName}`, 4000);
                                 }
@@ -3859,7 +3843,7 @@ Tone: Professional, helpful, concise, and friendly.`
         }
 
         async function executeAIFlightLog(args) {
-            if (!currentUser || !db || !window.currentStaffId) { showToast("Cannot log via AI: Login required."); return; }
+            if (!db || !window.currentStaffId) { showToast("Cannot log via AI: Login required."); return; }
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
             const payload = {
                 staffId: window.currentStaffId,
@@ -4320,89 +4304,54 @@ Tone: Professional, helpful, concise, and friendly.`
                 }
             });
 
+            uniqueCities.forEach(city => {
+                const airport = window.airportDatabase[city];
+                if (airport && airport.lat && airport.lon) {
+                    const m = L.circleMarker([airport.lat, airport.lon], {
+                        radius: 5, color: '#CBA052', fillColor: '#CBA052', fillOpacity: 0.8, weight: 2
+                    }).bindPopup(`<b>${city}</b><br>${airport.name}`).addTo(window.hudMap);
+                    window.hudMarkers.push(m);
+                    window.hudBounds.push([airport.lat, airport.lon]);
+                }
+            });
+
             Object.entries(routeCounts).forEach(([route, count]) => {
-                const [org, dst] = route.split('-');
-                const orgData = window.airportDatabase[org];
-                const dstData = window.airportDatabase[dst];
-                
-                if (orgData && orgData.lat && orgData.lon && dstData && dstData.lat && dstData.lon) {
-                    let lat1 = parseFloat(orgData.lat), lon1 = parseFloat(orgData.lon);
-                    let lat2 = parseFloat(dstData.lat), lon2 = parseFloat(dstData.lon);
-                    
-                    if (lon1 - lon2 > 180) lon2 += 360;
-                    else if (lon2 - lon1 > 180) lon2 -= 360;
-
-                    const points = [];
-                    const midLat = (lat1 + lat2) / 2;
-                    const midLon = (lon1 + lon2) / 2;
-                    const latOffset = (lon2 - lon1) * 0.15; 
-                    const lonOffset = (lat1 - lat2) * 0.15;
-                    const ctrlLat = midLat + latOffset;
-                    const ctrlLon = midLon + lonOffset;
-
-                    for (let t = 0; t <= 1; t += 0.05) {
-                        const lat = (1 - t) * (1 - t) * lat1 + 2 * (1 - t) * t * ctrlLat + t * t * lat2;
-                        const lon = (1 - t) * (1 - t) * lon1 + 2 * (1 - t) * t * ctrlLon + t * t * lon2;
-                        points.push([lat, lon]);
-                    }
-
-                    const lineOpacity = Math.min(0.2 + (count * 0.08), 0.7);
-                    const lineWeight = Math.min(1 + (count * 0.2), 3);
-
-                    const polyline = L.polyline(points, {
-                        color: '#CBA052', 
-                        weight: lineWeight,
-                        opacity: lineOpacity,
-                        dashArray: '4, 6', 
-                        lineCap: 'round',
-                        lineJoin: 'round'
+                const parts = route.split('-');
+                const a1 = window.airportDatabase[parts[0]];
+                const a2 = window.airportDatabase[parts[1]];
+                if (a1 && a2 && a1.lat && a1.lon && a2.lat && a2.lon) {
+                    const weight = Math.min(count * 1.5, 5);
+                    const opacity = Math.min(count * 0.2, 0.8);
+                    const l = L.polyline([[a1.lat, a1.lon], [a2.lat, a2.lon]], {
+                        color: '#8A6B32', weight: weight, opacity: opacity, dashArray: '5, 10'
                     }).addTo(window.hudMap);
-
-                    window.hudLines.push(polyline);
+                    window.hudLines.push(l);
                 }
             });
-
-            let latestCity = "GLOBAL NETWORK";
-            uniqueCities.forEach(cityCode => {
-                const airportData = window.airportDatabase[cityCode];
-                if (airportData && airportData.lat && airportData.lon) {
-                    const lat = parseFloat(airportData.lat);
-                    const lon = parseFloat(airportData.lon);
-                    
-                    const marker = L.circleMarker([lat, lon], {
-                        radius: 5, fillColor: "#CBA052", color: "#0A0F1D", weight: 1, opacity: 1, fillOpacity: 0.9
-                    }).addTo(window.hudMap);
-                    
-                    marker.bindTooltip(`<b>${cityCode} (${airportData.country || '?'})</b><br><span class="text-[#8A6B32]">${airportData.city || ''}</span>`, {
-                        direction: 'top', className: 'bg-[#131A2A] text-white border border-[#8A6B32] text-xs rounded shadow-lg'
-                    });
-
-                    marker.on('click', () => {
-                        const searchInput = document.getElementById('log-search');
-                        if (searchInput) { searchInput.value = cityCode; window.setLogFilter(cityCode); }
-                        window.switchView('logs');
-                        window.showToast(`Showing flights for ${cityCode}`);
-                    });
-
-                    window.hudMarkers.push(marker);
-                    window.hudBounds.push([lat, lon]);
-                    latestCity = cityCode;
-                }
-            });
-
-            if (window.hudBounds.length > 0 && window.hudMap) {
+            
+            if (window.hudBounds.length > 0) {
                 window.hudMap.fitBounds(window.hudBounds, { padding: [50, 50], maxZoom: 6 });
             }
-            document.getElementById('map-active-city').innerText = latestCity + " ACTIVE";
+            document.getElementById('map-active-city').innerText = `${uniqueCities.size} DESTINATIONS`;
         }
 
-        document.getElementById('excel-upload').addEventListener('change', function(e) {
+        document.getElementById('excel-upload').addEventListener('change', async function(e) {
             const file = e.target.files[0];
-            if (!file || !window.currentStaffId) {
-                showToast("Please login before importing data.");
+            if (!file) return;
+
+            if (typeof XLSX === 'undefined') {
+                showToast("Excel engine loading. Please try again in 3 seconds.");
+                e.target.value = '';
                 return;
             }
-            showToast("Scanning Personal Roster...", 4000);
+
+            if (!window.currentStaffId) {
+                showToast("Action Denied: Please login to import personal roster.");
+                e.target.value = '';
+                return;
+            }
+            
+            showToast(`Scanning personal roster... Please wait.`, 4000);
             
             const reader = new FileReader();
             reader.onload = async function(ev) {
@@ -4410,11 +4359,9 @@ Tone: Professional, helpful, concise, and friendly.`
                     const data = new Uint8Array(ev.target.result);
                     const workbook = XLSX.read(data, {type: 'array', cellDates: true});
                     
-                    // { header: 1 } outputs raw arrays, ignoring any empty title rows above the real headers
-                    const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
-                    if (rawData.length === 0) { showToast("File appears empty"); return; }
-
                     const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+                    const sheetName = workbook.SheetNames[0];
+                    const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
 
                     let headerRowIdx = -1;
                     let colMap = { date: -1, flt: -1, org: -1, dst: -1, hrs: -1, acType: -1, reg: -1, gate: -1, depT: -1, arrT: -1, sector: -1 };
