@@ -1484,7 +1484,6 @@
         };
 
         window.registerAccount = async function() {
-            if (!db) { showToast("Database offline."); return; }
             const name = document.getElementById('reg-name').value.trim();
             const staffId = document.getElementById('reg-staffid').value.trim();
             const pin = document.getElementById('reg-pin').value.trim();
@@ -1495,7 +1494,7 @@
                 return;
             }
 
-            if (window.accountsData.some(a => a.staffId === staffId)) {
+            if (window.accountsData && window.accountsData.some(a => a.staffId === staffId)) {
                 showToast("Staff ID is already registered!");
                 return;
             }
@@ -1507,25 +1506,33 @@
 
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
             const payload = { name, staffId, pin, role, status, createdAt: Date.now() };
+            
+            // PREPARE WHATSAPP MESSAGE (Synchronous to avoid Browser Popup Blockers)
+            let newTab = null;
+            if (status === 'pending') {
+                const waMessage = `Hi Ricky, I have just registered for the Crew Portal. Please approve my access.\n\nName: ${name}\nStaff ID: ${staffId}\nRole: ${role}`;
+                const waUrl = `https://wa.me/6581265820?text=${encodeURIComponent(waMessage)}`;
+                
+                // Open window immediately during the click event (Bypasses Safari/Chrome popup blockers)
+                newTab = window.open(waUrl, '_blank');
+            }
 
             try {
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), payload);
+                if (db) {
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), payload);
+                } else {
+                    // VERCEL OFFLINE FALLBACK
+                    payload.id = 'local_acc_' + Date.now();
+                    window.accountsData.push(payload);
+                }
+                
                 showToast(status === 'approved' ? "Master Account Created! Please Login." : "Registration Sent for Admin Approval!");
                 toggleAuthMode('login');
                 document.getElementById('login-staffid').value = staffId;
                 
-                if (status === 'pending') {
-                    const waMessage = `Hi Ricky, I have just registered for the Crew Portal. Please approve my access.\n\nName: ${name}\nStaff ID: ${staffId}\nRole: ${role}`;
-                    const waUrl = `https://wa.me/6581265820?text=${encodeURIComponent(waMessage)}`;
-                    
-                    // Add a slight delay to allow the success toast to be seen before redirecting
-                    setTimeout(() => {
-                        window.open(waUrl, '_blank');
-                    }, 800);
-                }
-
             } catch(e) {
-                showToast("Registration failed. Network error.");
+                if (newTab) newTab.close(); // Close the WhatsApp tab if database fails
+                showToast("Registration failed. Please check your network.");
                 console.error(e);
             }
         };
