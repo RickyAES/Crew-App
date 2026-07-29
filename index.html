@@ -129,7 +129,7 @@
         .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #131A2A; color: white; border: 1px solid #8A6B32; }
     </style>
 </head>
-<body class="h-[100dvh] flex flex-col font-sans overflow-hidden text-gray-100 relative z-0">
+<body class="h-screen flex flex-col font-sans overflow-hidden text-gray-100 relative z-0">
 
     <!-- LOGIN & REGISTRATION PORTAL -->
     <div id="view-login" class="fixed inset-0 z-[100] bg-[#0A0F1D] flex flex-col items-center justify-center p-4 transition-opacity duration-500">
@@ -223,7 +223,7 @@
         <div class="absolute inset-0" style="background-image: url('IMG_4861_6.webp'); background-size: cover; background-position: left center; opacity: 0.3; mix-blend-mode: lighten;"></div>
     </div>
 
-    <header class="flex-none p-3 md:p-6 flex justify-between items-center z-40 border-b border-app-border/70 bg-[#0A0F1D]/80 backdrop-blur-md relative">
+    <header class="flex-none p-4 md:p-6 flex justify-between items-center z-10 border-b border-app-border/70 bg-[#0A0F1D]/80 backdrop-blur-md sticky top-0 relative">
         <div class="flex items-center gap-3 md:gap-4 relative z-10">
             
             <!-- Custom Batik + SVG Singapore Airlines Logo -->
@@ -771,40 +771,38 @@
             </div>
         </div>
 
-    </main>
-
     <!-- BOTTOM NAVIGATION -->
-    <nav class="fixed bottom-0 left-0 w-full glass-panel border-t border-app-border z-50 pb-2 pt-1" style="padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);">
-        <div class="max-w-lg mx-auto flex items-center justify-evenly w-full px-2">
-            <button onclick="switchView('overview')" id="nav-overview" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-accent transition-colors py-2">
-                <i class="ph-fill ph-house text-2xl mb-0.5"></i>
-                <span class="text-[10px] font-bold uppercase tracking-wider w-full text-center truncate">Overview</span>
+    <nav class="fixed bottom-0 w-full glass-panel border-t border-app-border px-2 py-3 z-50">
+        <div class="max-w-md mx-auto flex justify-between items-center px-4">
+            <button onclick="switchView('overview')" id="nav-overview" class="flex flex-col items-center gap-1 text-app-accent w-16 transition-colors">
+                <i class="ph-fill ph-house text-2xl"></i>
+                <span class="text-[10px] font-bold uppercase tracking-wider">Overview</span>
             </button>
-            <button onclick="switchView('map')" id="nav-map" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-text hover:text-white transition-colors py-2">
-                <i class="ph ph-globe text-2xl mb-0.5"></i>
-                <span class="text-[10px] font-bold uppercase tracking-wider w-full text-center truncate">HUD</span>
+            <button onclick="switchView('map')" id="nav-map" class="flex flex-col items-center gap-1 text-app-text hover:text-white w-16 transition-colors">
+                <i class="ph ph-globe text-2xl"></i>
+                <span class="text-[10px] font-bold uppercase tracking-wider">HUD</span>
             </button>
-            <button onclick="switchView('logs')" id="nav-logs" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-text hover:text-white transition-colors py-2">
-                <i class="ph ph-books text-2xl mb-0.5"></i>
-                <span class="text-[10px] font-bold uppercase tracking-wider w-full text-center truncate">Logs</span>
+            <button onclick="switchView('logs')" id="nav-logs" class="flex flex-col items-center gap-1 text-app-text hover:text-white w-16 transition-colors">
+                <i class="ph ph-books text-2xl"></i>
+                <span class="text-[10px] font-bold uppercase tracking-wider">Logs</span>
             </button>
-            <button onclick="switchView('chat')" id="nav-chat" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-text hover:text-white transition-colors py-2">
-                <i class="ph ph-chats text-2xl mb-0.5"></i>
-                <span class="text-[10px] font-bold uppercase tracking-wider w-full text-center truncate">Comms</span>
+            <button onclick="switchView('chat')" id="nav-chat" class="flex flex-col items-center gap-1 text-app-text hover:text-white w-16 transition-colors">
+                <i class="ph ph-chats text-2xl"></i>
+                <span class="text-[10px] font-bold uppercase tracking-wider">Comms</span>
             </button>
-            <button onclick="switchView('admin')" id="nav-admin" class="hidden flex-1 flex-col items-center justify-center gap-1 text-app-text hover:text-white transition-colors py-2">
-                <i class="ph ph-shield-check text-2xl mb-0.5"></i>
-                <span class="text-[10px] font-bold uppercase tracking-wider w-full text-center truncate">Admin</span>
+            <button onclick="switchView('admin')" id="nav-admin" class="hidden flex flex-col items-center gap-1 text-app-text hover:text-white w-16 transition-colors">
+                <i class="ph ph-shield-check text-2xl"></i>
+                <span class="text-[10px] font-bold uppercase tracking-wider">Admin</span>
             </button>
         </div>
     </nav>
 
     <!-- AI ASSISTANT FAB & CHAT PANEL -->
-    <button onclick="toggleAIChat()" class="fixed right-4 md:right-6 w-12 h-12 bg-app-accent text-[#0A0F1D] rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(203,160,82,0.4)] hover:bg-[#B58D22] transition-colors z-40 border border-[#8A6B32]" style="bottom: max(6rem, calc(5rem + env(safe-area-inset-bottom)));">
+    <button onclick="toggleAIChat()" class="fixed bottom-20 right-4 w-12 h-12 bg-app-accent text-[#0A0F1D] rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(203,160,82,0.4)] hover:bg-[#B58D22] transition-colors z-40 border border-[#8A6B32]">
         <i class="ph-fill ph-sparkle text-2xl"></i>
     </button>
 
-    <div id="ai-chat-panel" class="hidden-view fixed right-4 w-[90vw] md:w-80 h-96 glass-panel rounded-xl shadow-2xl flex-col z-50 overflow-hidden border border-app-accent/50" style="bottom: max(10rem, calc(9rem + env(safe-area-inset-bottom)));">
+    <div id="ai-chat-panel" class="hidden-view fixed bottom-36 right-4 w-[90vw] md:w-80 h-96 glass-panel rounded-xl shadow-2xl flex-col z-50 overflow-hidden border border-app-accent/50">
         <!-- Chat Header -->
         <div class="bg-[#0A0F1D] p-3 border-b border-app-border flex justify-between items-center">
             <div class="flex items-center gap-2">
@@ -1197,6 +1195,8 @@
         window.currentName = null;
         window.isAdmin = false;
         
+        const MASTER_ADMINS = ['00230747']; // REVERTED: Only Ricky Law is Master Admin
+        
         // Rank Weight System for Hierarchical Grouping
         window.rankWeights = {
             'CAPT': 1, 'SFO': 2, 'FO': 3, 'SO': 4,
@@ -1308,6 +1308,44 @@
         let dbUnsubscribe = null;
         let accountsUnsubscribe = null;
         let msgUnsubscribe = null;
+        let cloudSyncDisabled = false; // Add flag to track offline fallback mode
+
+        // Helper function to handle Firestore permission errors gracefully
+        function handleFirestoreError(error, context) {
+            console.warn(`Firestore Error (${context}):`, error);
+            if (error && error.code === 'permission-denied' && !cloudSyncDisabled) {
+                cloudSyncDisabled = true; // Disable further cloud sync attempts to prevent error spam
+                
+                // Switch UI to indicate local mode
+                const syncStatus = document.getElementById('sync-status');
+                if (syncStatus) syncStatus.innerText = "SYSTEM // LOCAL (DB PERMISSION DENIED)";
+                
+                const badge = document.getElementById('network-status-badge');
+                if (badge) {
+                     badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>Local Mode';
+                     badge.className = 'px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 flex items-center gap-1 transition-colors';
+                }
+
+                showToast("Cloud DB Access Denied. Switching to Local Storage Mode.", 6000);
+                
+                // Clean up failing listeners
+                if (dbUnsubscribe) { dbUnsubscribe(); dbUnsubscribe = null; }
+                if (accountsUnsubscribe) { accountsUnsubscribe(); accountsUnsubscribe = null; }
+                if (msgUnsubscribe) { msgUnsubscribe(); msgUnsubscribe = null; }
+                
+                // Force load from local storage
+                const savedFlights = localStorage.getItem('crew_offline_flights');
+                if (savedFlights) window.flightsData = JSON.parse(savedFlights);
+                
+                const savedAccounts = localStorage.getItem('crew_offline_accounts');
+                if (savedAccounts) window.accountsData = JSON.parse(savedAccounts);
+                
+                const savedTimetable = localStorage.getItem('crew_offline_timetable');
+                if (savedTimetable) window.timetableData = JSON.parse(savedTimetable);
+                
+                renderUI();
+            }
+        }
 
         async function fetchAirportData() {
             try {
@@ -1329,8 +1367,7 @@
         window.showToast = function(msg, duration = 3000) {
             const t = document.getElementById('toast');
             document.getElementById('toast-msg').innerText = msg;
-            t.classList.remove('opacity-0', 'pointer-events-auto');
-            t.classList.add('pointer-events-none');
+            t.classList.remove('opacity-0');
             setTimeout(() => t.classList.add('opacity-0'), duration);
         }
 
@@ -1459,6 +1496,10 @@
                 renderChatList();
             }
 
+            if (viewId === 'admin') {
+                if (typeof renderAdminList === 'function') renderAdminList();
+            }
+
             if (viewId === 'map') {
                 if (!window.hudMap) { renderMapHUD(); }
                 setTimeout(() => { 
@@ -1503,19 +1544,41 @@
             }
 
             let status = 'pending';
-            if (staffId === '00230747') {
+            if (MASTER_ADMINS.includes(staffId)) {
                 status = 'approved'; 
             }
 
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
             const payload = { name, staffId, pin, role, status, createdAt: Date.now() };
             
-            // 1. SAVE TO DATABASE IN BACKGROUND FIRST (To prevent navigation aborts)
+            // 1. OPEN WHATSAPP INSTANTLY (100% Synchronous to bypass mobile popup blockers)
+            if (status === 'pending') {
+                const waMessage = `Hi Ricky, I have just registered for the Crew Portal. Please approve my access.\n\nName: ${name}\nStaff ID: ${staffId}\nRole: ${role}`;
+                const waUrl = `https://wa.me/6581265820?text=${encodeURIComponent(waMessage)}`;
+                
+                // Try opening in a new tab. If the browser blocks it, force a direct redirect.
+                const newTab = window.open(waUrl, '_blank');
+                if (!newTab || newTab.closed || typeof newTab.closed == 'undefined') {
+                    window.location.href = waUrl; 
+                }
+            }
+
+            // 2. UPDATE UI IMMEDIATELY (Do not wait for database)
+            showToast(status === 'approved' ? "Master Account Created! Please Login." : "Registration Sent! Opening WhatsApp...");
+            toggleAuthMode('login');
+            document.getElementById('login-staffid').value = staffId;
+            document.getElementById('login-pin').value = pin;
+
+            // 3. SAVE TO DATABASE IN BACKGROUND
             try {
-                if (db) {
+                if (db && !cloudSyncDisabled) {
                     addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), payload)
-                    .catch(e => console.warn("Firebase save delayed:", e));
+                    .catch(e => {
+                        console.warn("Firebase save delayed:", e);
+                        if(e.code === 'permission-denied') handleFirestoreError(e, "Registration");
+                    });
                 } else {
+                    // VERCEL OFFLINE FALLBACK - Save to Local Memory
                     payload.id = 'local_acc_' + Date.now();
                     window.accountsData.push(payload);
                     localStorage.setItem('crew_offline_accounts', JSON.stringify(window.accountsData));
@@ -1523,34 +1586,6 @@
             } catch(e) {
                 console.error("Background sync error:", e);
             }
-
-            // 2. TRIGGER WHATSAPP NOTIFICATION
-            if (status === 'pending') {
-                const waMessage = `Hi Ricky, I have just registered for the Crew Portal. Please approve my access.\n\nName: ${name}\nStaff ID: ${staffId}\nRole: ${role}`;
-                const waUrl = `https://wa.me/6581265820?text=${encodeURIComponent(waMessage)}`;
-                
-                const newTab = window.open(waUrl, '_blank');
-                
-                if (!newTab || newTab.closed || typeof newTab.closed == 'undefined') {
-                    // POPUP BLOCKED - SHOW INTERACTIVE FALLBACK LINK
-                    const toast = document.getElementById('toast');
-                    document.getElementById('toast-msg').innerHTML = `Account created! <a href="${waUrl}" target="_blank" class="text-green-400 underline ml-2 hover:text-green-300">Click here to notify Admin</a>`;
-                    toast.classList.remove('opacity-0', 'pointer-events-none');
-                    toast.classList.add('pointer-events-auto'); 
-                    setTimeout(() => { 
-                        toast.classList.add('opacity-0', 'pointer-events-none'); 
-                        toast.classList.remove('pointer-events-auto');
-                    }, 10000);
-                } else {
-                    showToast("Registration Sent! Opening WhatsApp...");
-                }
-            } else {
-                showToast("Master Account Created! Please Login.");
-            }
-
-            toggleAuthMode('login');
-            document.getElementById('login-staffid').value = staffId;
-            document.getElementById('login-pin').value = pin;
         };
 
         window.loginAccount = async function() {
@@ -1562,8 +1597,8 @@
             let account = window.accountsData.find(a => a.staffId === staffId && a.pin === pin);
             
             // --- MASTER ADMIN AUTO-RECOVERY (BULLETPROOF) ---
-            if (!account && staffId === '00230747') {
-                const existingMaster = window.accountsData.find(a => a.staffId === '00230747');
+            if (!account && MASTER_ADMINS.includes(staffId)) {
+                const existingMaster = window.accountsData.find(a => a.staffId === staffId);
                 
                 if (existingMaster && existingMaster.pin !== pin) {
                     showToast("Invalid PIN for Master Account");
@@ -1574,8 +1609,8 @@
                     showToast("Initializing Master Override...", 2000);
                     const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
                     const payload = { 
-                        name: "Ricky Law", 
-                        staffId: "00230747", 
+                        name: staffId === '00230747' ? "Ricky Law" : "Master Admin", 
+                        staffId: staffId, 
                         pin: pin, 
                         role: "FS", 
                         status: 'approved', 
@@ -1583,15 +1618,18 @@
                     };
                     
                     // 1. Immediately create a local account to force the UI to unlock!
-                    account = { id: 'local-master-id', ...payload };
+                    account = { id: 'local-master-id-' + staffId, ...payload };
                     window.accountsData.push(account);
                     
                     // 2. Quietly attempt to save it to the database in the background
-                    if (db) {
+                    if (db && !cloudSyncDisabled) {
                         try {
                             addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), payload)
                                 .then(docRef => { account.id = docRef.id; })
-                                .catch(e => console.warn("Background sync paused (Offline)"));
+                                .catch(e => {
+                                     console.warn("Background sync paused");
+                                     if(e.code === 'permission-denied') handleFirestoreError(e, "Master Init");
+                                });
                         } catch (e) { console.warn("Background sync paused"); }
                     }
                 } else {
@@ -1611,14 +1649,17 @@
             window.currentStaffId = account.staffId;
             window.currentUserRole = account.role;
             window.currentName = account.name;
-            window.isAdmin = (account.staffId === '00230747');
+            window.isAdmin = MASTER_ADMINS.includes(account.staffId);
 
             // Save persistent session privately (Wrapped safely to prevent crashes)
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
-            if (currentUser && db) {
+            if (currentUser && db && !cloudSyncDisabled) {
                 try {
                     await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'session', 'current'), { staffId: account.staffId });
-                } catch(e) { console.warn("Session save bypassed (Offline Mode)"); }
+                } catch(e) { 
+                    console.warn("Session save bypassed"); 
+                    if(e.code === 'permission-denied') handleFirestoreError(e, "Session Save");
+                }
             } else {
                 // VERCEL OFFLINE SESSION SAVE
                 localStorage.setItem('crew_offline_session', account.staffId);
@@ -1635,19 +1676,24 @@
             
             if (window.isAdmin) {
                 const adminNav = document.getElementById('nav-admin');
-                if (adminNav) adminNav.classList.remove('hidden');
-                adminNav.classList.add('flex');
+                if (adminNav) {
+                    adminNav.classList.remove('hidden');
+                    adminNav.classList.add('flex');
+                }
                 renderAdminList();
             }
             
             // Set Online Status (Wrapped safely)
-            if (db && account.id && account.id !== 'local-master-id') {
+            if (db && account.id && !account.id.startsWith('local-master-id') && !cloudSyncDisabled) {
                 try {
                     await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', account.id), { 
                         isOnline: true, 
                         lastActive: Date.now() 
                     });
-                } catch(e) { console.warn("Online status bypass"); }
+                } catch(e) { 
+                     console.warn("Online status bypass"); 
+                     if(e.code === 'permission-denied') handleFirestoreError(e, "Status Update");
+                }
             }
             
             showToast(`Welcome back, ${account.role} ${account.name}`);
@@ -1655,12 +1701,14 @@
         }
 
         window.logoutAccount = async function() {
-            if (currentUser && db) {
+            if (currentUser && db && !cloudSyncDisabled) {
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
                 try {
                     const myAcc = window.accountsData.find(a => a.staffId === window.currentStaffId);
                     if (myAcc) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', myAcc.id), { isOnline: false });
-                } catch(e) {}
+                } catch(e) {
+                     if(e.code === 'permission-denied') handleFirestoreError(e, "Logout Status");
+                }
                 if (auth) await auth.signOut();
             }
             
@@ -1669,118 +1717,138 @@
             window.currentName = null;
             window.isAdmin = false;
             
-            localStorage.removeItem('crew_offline_session'); 
+            localStorage.removeItem('crew_offline_session'); // Clear offline session
             
             const navAdmin = document.getElementById('nav-admin');
-            if (navAdmin) {
-                navAdmin.classList.add('hidden');
-                navAdmin.classList.remove('flex');
-            }
+            if (navAdmin) navAdmin.classList.add('hidden');
             
             document.getElementById('view-login').classList.remove('hidden-view');
             ['login-staffid', 'login-pin'].forEach(id => document.getElementById(id).value = '');
         };
 
         window.renderAdminList = function() {
-            const pendingList = document.getElementById('admin-pending-list');
-            const activeList = document.getElementById('admin-active-list');
-            if(!pendingList || !activeList) return;
+            const pendingContainer = document.getElementById('admin-pending-list');
+            const activeContainer = document.getElementById('admin-active-list');
+            if (!pendingContainer || !activeContainer) return;
 
-            let pHTML = '';
-            let aHTML = '';
+            let pendingHtml = '';
+            let activeHtml = '';
 
-            if (window.accountsData) {
-                window.accountsData.forEach(acc => {
-                    if (acc.staffId === '00230747') return; // Skip master
-
-                    if (acc.status === 'pending' || acc.status === 'rejected') {
-                        const borderCol = acc.status === 'rejected' ? 'border-red-500/30' : 'border-yellow-500/30';
-                        const statusBadge = acc.status === 'rejected' ? '<span class="text-red-500 ml-2 border border-red-500/50 px-1 rounded text-[8px] bg-red-900/20">REJECTED</span>' : '';
-                        
-                        pHTML += `
-                            <div class="flex justify-between items-center bg-[#131A2A] p-3 rounded-lg border ${borderCol}">
-                                <div>
-                                    <p class="text-sm font-bold text-white">${acc.name} <span class="text-[10px] text-app-accent ml-1">${acc.role}</span> ${statusBadge}</p>
-                                    <p class="text-[10px] text-gray-400 font-mono">ID: ${acc.staffId} &bull; PIN: ${acc.pin}</p>
-                                </div>
-                                <div class="flex gap-2">
-                                    ${acc.status === 'pending' ? `<button onclick="adminAction('${acc.id}', 'approved')" class="bg-green-600 hover:bg-green-500 text-white p-2 rounded text-xs font-bold transition-colors" title="Approve"><i class="ph-bold ph-check"></i></button>` : `<button onclick="adminAction('${acc.id}', 'approved')" class="bg-gray-600 hover:bg-green-500 text-white p-2 rounded text-xs font-bold transition-colors" title="Restore & Approve"><i class="ph-bold ph-arrow-u-up-left"></i></button>`}
-                                    ${acc.status === 'pending' ? `<button onclick="adminAction('${acc.id}', 'rejected')" class="bg-yellow-600 hover:bg-yellow-500 text-white p-2 rounded text-xs font-bold transition-colors" title="Reject"><i class="ph-bold ph-x"></i></button>` : ''}
-                                    <button onclick="adminDeleteAccount('${acc.id}')" class="bg-red-900/50 hover:bg-red-600 border border-red-500/50 text-white p-2 rounded text-xs font-bold transition-colors" title="Permanently Delete Account"><i class="ph-bold ph-trash"></i></button>
-                                </div>
+            window.accountsData.forEach(acc => {
+                if (MASTER_ADMINS.includes(acc.staffId) && acc.id.startsWith('local-master-id')) return; // Hide mock master
+                
+                const btnClass = "px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors";
+                
+                if (acc.status === 'pending') {
+                    pendingHtml += `
+                        <div class="flex justify-between items-center bg-[#131A2A] p-2 rounded border border-app-border mb-2">
+                            <div>
+                                <p class="text-xs font-bold text-white">${acc.name} <span class="text-app-accent ml-1">${acc.role}</span></p>
+                                <p class="text-[10px] font-mono text-gray-400">${acc.staffId}</p>
                             </div>
-                        `;
-                    } else if (acc.status === 'approved' || acc.status === 'inactive') {
-                        const borderCol = acc.status === 'inactive' ? 'border-gray-500/30 opacity-60' : 'border-green-500/30';
-                        const statusBadge = acc.status === 'inactive' ? '<span class="text-gray-400 ml-2 border border-gray-500/50 px-1 rounded text-[8px] bg-gray-900/20">INACTIVE</span>' : '';
-
-                        aHTML += `
-                            <div class="flex justify-between items-center bg-[#131A2A] p-3 rounded-lg border ${borderCol}">
-                                <div>
-                                    <p class="text-sm font-bold text-white">${acc.name} <span class="text-[10px] text-app-accent ml-1">${acc.role}</span> ${statusBadge}</p>
-                                    <p class="text-[10px] text-gray-400 font-mono">ID: ${acc.staffId} &bull; PIN: ${acc.pin}</p>
-                                </div>
-                                <div class="flex gap-2">
-                                    ${acc.status === 'approved' ? `<button onclick="adminAction('${acc.id}', 'inactive')" class="bg-gray-600 hover:bg-gray-500 text-white p-2 rounded text-xs font-bold transition-colors" title="Make Inactive"><i class="ph-bold ph-pause"></i></button>` : `<button onclick="adminAction('${acc.id}', 'approved')" class="bg-green-600 hover:bg-green-500 text-white p-2 rounded text-xs font-bold transition-colors" title="Reactivate"><i class="ph-bold ph-play"></i></button>`}
-                                    <button onclick="adminDeleteAccount('${acc.id}')" class="bg-red-900/50 hover:bg-red-600 border border-red-500/50 text-white p-2 rounded text-xs font-bold transition-colors" title="Delete Account"><i class="ph-bold ph-trash"></i></button>
-                                </div>
+                            <div class="flex gap-2">
+                                <button onclick="adminApproveAccount('${acc.id}')" class="${btnClass} bg-green-900/30 text-green-400 hover:bg-green-900/60 border border-green-500/50">Approve</button>
+                                <button onclick="adminDeleteAccount('${acc.id}')" class="${btnClass} bg-red-900/30 text-red-400 hover:bg-red-900/60 border border-red-500/50">Delete</button>
                             </div>
-                        `;
-                    }
-                });
-            }
+                        </div>
+                    `;
+                } else {
+                    const deleteBtn = MASTER_ADMINS.includes(acc.staffId) ? '' : `<button onclick="adminDeleteAccount('${acc.id}')" class="${btnClass} bg-red-900/30 text-red-400 hover:bg-red-900/60 border border-red-500/50">Delete</button>`;
+                    activeHtml += `
+                        <div class="flex justify-between items-center bg-[#131A2A] p-2 rounded border border-app-border mb-2">
+                            <div>
+                                <p class="text-xs font-bold text-white">${acc.name} <span class="text-app-accent ml-1">${acc.role}</span></p>
+                                <p class="text-[10px] font-mono text-gray-400">${acc.staffId}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                ${deleteBtn}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
 
-            pendingList.innerHTML = pHTML || '<p class="text-xs font-mono text-gray-500 py-2">No pending requests.</p>';
-            activeList.innerHTML = aHTML || '<p class="text-xs font-mono text-gray-500 py-2">No active crew.</p>';
+            pendingContainer.innerHTML = pendingHtml || '<p class="text-xs font-mono text-gray-500 py-2">No pending requests.</p>';
+            activeContainer.innerHTML = activeHtml || '<p class="text-xs font-mono text-gray-500 py-2">No active crew.</p>';
         };
 
-        window.adminAction = async function(id, newStatus) {
-            if (!db) { showToast("Database offline."); return; }
+        window.adminApproveAccount = async function(docId) {
+            if (!window.isAdmin) return;
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
             try {
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', id), { status: newStatus });
-                showToast(`Account updated to ${newStatus}`);
-            } catch(e) { console.error(e); showToast("Failed to update account."); }
+                if (cloudSyncDisabled) {
+                    const acc = window.accountsData.find(a => a.id === docId);
+                    if (acc) {
+                        acc.status = 'approved';
+                        localStorage.setItem('crew_offline_accounts', JSON.stringify(window.accountsData));
+                        renderAdminList();
+                        showToast("Account Approved Locally");
+                    }
+                } else {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', docId), { status: 'approved' });
+                    showToast("Account Approved");
+                }
+            } catch(e) {
+                console.error(e);
+                showToast("Failed to approve");
+            }
         };
 
-        window.adminDeleteAccount = async function(id) {
-            if (!db) { showToast("Database offline."); return; }
+        window.adminDeleteAccount = async function(docId) {
+            if (!window.isAdmin) return;
+            if(!confirm("Are you sure you want to permanently delete this account?")) return;
+
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
-            if (confirm("Permanently delete this account?")) {
-                try {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', id));
-                    showToast("Account deleted.");
-                } catch(e) { console.error(e); showToast("Failed to delete account."); }
+            try {
+                if (cloudSyncDisabled) {
+                    window.accountsData = window.accountsData.filter(a => a.id !== docId);
+                    localStorage.setItem('crew_offline_accounts', JSON.stringify(window.accountsData));
+                    if (typeof renderAdminList === 'function') renderAdminList();
+                    if (typeof renderChatList === 'function') renderChatList();
+                    showToast("Account Deleted Locally");
+                } else {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', docId));
+                    showToast("Account Deleted");
+                }
+            } catch(e) {
+                console.error(e);
+                showToast("Failed to delete account");
             }
         };
 
         window.adminCreateAccount = async function() {
+            if (!window.isAdmin) return;
             const name = document.getElementById('admin-new-name').value.trim();
             const staffId = document.getElementById('admin-new-staffid').value.trim();
-            const pin = document.getElementById('admin-new-pin').value.trim();
             const role = document.getElementById('admin-new-role').value;
+            const pin = document.getElementById('admin-new-pin').value.trim();
 
-            if(!name || !staffId || pin.length !== 6 || !role) {
-                showToast("Please fill all fields (6-digit PIN).");
+            if(!name || !staffId || pin.length !== 6) {
+                showToast("Please fill all fields and use a 6-digit PIN.");
                 return;
             }
 
-            if (window.accountsData && window.accountsData.some(a => a.staffId === staffId)) {
-                showToast("Staff ID already exists!");
-                return;
-            }
-
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
             const payload = { name, staffId, pin, role, status: 'approved', createdAt: Date.now() };
-
-            if (!db) { showToast("Database offline."); return; }
-
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+            
             try {
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), payload);
-                showToast("Account Provisioned!");
-                ['admin-new-name', 'admin-new-staffid', 'admin-new-pin'].forEach(id => document.getElementById(id).value = '');
+                if (cloudSyncDisabled) {
+                    payload.id = 'local_acc_' + Date.now();
+                    window.accountsData.push(payload);
+                    localStorage.setItem('crew_offline_accounts', JSON.stringify(window.accountsData));
+                    renderAdminList();
+                    showToast("Account Created Locally");
+                } else {
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), payload);
+                    showToast("Account Provisioned!");
+                }
+                
+                document.getElementById('admin-new-name').value = '';
+                document.getElementById('admin-new-staffid').value = '';
+                document.getElementById('admin-new-pin').value = '';
             } catch(e) {
-                console.error(e); showToast("Failed to provision account.");
+                console.error(e);
+                showToast("Failed to create account");
             }
         };
 
@@ -1806,8 +1874,8 @@
                 if (savedId) {
                     const savedAcc = window.accountsData.find(a => a.staffId === savedId && a.status === 'approved');
                     if (savedAcc) completeLogin(savedAcc);
-                    else if (savedId === '00230747') {
-                        const mockMaster = { name: "Ricky Law", staffId: "00230747", pin: "123456", role: "FS", status: 'approved', id: 'local-master-id' };
+                    else if (MASTER_ADMINS.includes(savedId)) {
+                        const mockMaster = { name: savedId === '00230747' ? "Ricky Law" : "Master Admin", staffId: savedId, pin: "123456", role: "FS", status: 'approved', id: 'local-master-id-' + savedId };
                         window.accountsData = [mockMaster];
                         completeLogin(mockMaster);
                     }
@@ -1831,6 +1899,19 @@
                     window.accountsData = [];
                     snapshot.forEach(d => window.accountsData.push({ id: d.id, ...d.data() }));
                     
+                    // --- MASTER ADMIN AUTO-INJECTION (PREVENTS EMPTY ADMIN TAB BUG) ---
+                    if (window.currentStaffId && MASTER_ADMINS.includes(window.currentStaffId)) {
+                        if (!window.accountsData.find(a => a.staffId === window.currentStaffId)) {
+                             window.accountsData.push({
+                                 id: 'local-master-id-' + window.currentStaffId,
+                                 name: "Ricky Law",
+                                 staffId: window.currentStaffId,
+                                 role: "FS",
+                                 status: "approved"
+                             });
+                        }
+                    }
+
                     if (window.currentStaffId) {
                         const myAcct = window.accountsData.find(a => a.staffId === window.currentStaffId);
                         if (myAcct && myAcct.status === 'approved') {
@@ -1847,7 +1928,6 @@
                                     `;
                                 }
                             }
-                            if (window.isAdmin && typeof renderAdminList === 'function') renderAdminList();
                         } else if (myAcct && myAcct.status !== 'approved') {
                             window.logoutAccount();
                             window.showToast("Your session was terminated or suspended by Admin.", 5000);
@@ -1860,11 +1940,16 @@
                             if (acct) completeLogin(acct);
                         }
                     }
+
+                    // Force Admin List to refresh when database syncs
+                    if (window.isAdmin && typeof renderAdminList === 'function') renderAdminList();
                     
                     if (!document.getElementById('view-chat').classList.contains('hidden-view')) {
                         renderChatList();
                         if (window.chatTarget) updateChatHeader();
                     }
+                }, (error) => {
+                     handleFirestoreError(error, "Accounts Sync");
                 });
                 
                 auth = getAuth(app);
@@ -1892,10 +1977,10 @@
         // --- MULTI-USER FLIGHT DATA SYSTEM ---
 
         function loadData() {
-            if (!db) {
+            if (!db || cloudSyncDisabled) {
                 // --- VERCEL OFFLINE RENDER ENGINE ---
                 const syncStatus = document.getElementById('sync-status');
-                if (syncStatus) syncStatus.innerText = "SYSTEM // LOCAL STORAGE";
+                if (syncStatus && !cloudSyncDisabled) syncStatus.innerText = "SYSTEM // LOCAL STORAGE";
                 
                 // Load saved local data
                 const savedFlights = localStorage.getItem('crew_offline_flights');
@@ -1919,7 +2004,7 @@
             onSnapshot(ttQ, (snapshot) => {
                 window.timetableData = [];
                 snapshot.forEach(doc => window.timetableData.push({ id: doc.id, ...doc.data() }));
-            }, (error) => { console.error("Timetable Sync Error:", error); });
+            }, (error) => { handleFirestoreError(error, "Timetable Sync"); });
 
             // Securely fetch public flights and filter by Staff ID
             const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'flights'));
@@ -1937,7 +2022,7 @@
                 });
                 renderUI();
             }, (error) => {
-                console.error("Snapshot error:", error);
+                handleFirestoreError(error, "Flights Sync");
             });
             
             // Listen for Messages
@@ -1972,7 +2057,7 @@
                 
                 isInitialMsgLoad = false;
             }, (error) => {
-                console.error("Message Snapshot error:", error);
+                handleFirestoreError(error, "Messages Sync");
             });
         }
 
@@ -2085,6 +2170,24 @@
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
             const ref = collection(db, 'artifacts', appId, 'public', 'data', 'flights');
             
+            if (cloudSyncDisabled) {
+                 // Local Storage Fallback Save
+                 const newFlight = {
+                    id: 'local_flt_' + Date.now(), staffId: window.currentStaffId,
+                    date: date, flightNo: flt, acType: acType, acReg: reg, gate: gate,
+                    origin: org, dest: dst, depTime: dep, arrTime: arr,
+                    hours: hrs, createdAt: Date.now()
+                 };
+                 window.flightsData.push(newFlight);
+                 localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+                 showToast("Entry Logged Locally");
+                 renderUI();
+                 ['in-flt', 'in-actype', 'in-reg', 'in-gate', 'in-org', 'in-dst', 'in-dep', 'in-arr', 'in-hrs'].forEach(id => {
+                     document.getElementById(id).value = '';
+                 });
+                 return;
+            }
+
             try {
                 await addDoc(ref, {
                     staffId: window.currentStaffId,
@@ -2097,8 +2200,8 @@
                     document.getElementById(id).value = '';
                 });
             } catch (e) {
-                console.error(e);
-                showToast("Failed to save");
+                if(e.code === 'permission-denied') handleFirestoreError(e, "Save Entry");
+                else showToast("Failed to save");
             }
         }
 
@@ -2329,6 +2432,73 @@
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
             const flightRef = collection(db, 'artifacts', appId, 'public', 'data', 'flights');
             
+            if (cloudSyncDisabled) {
+                // Local Fallback Mobile Save
+                if (window.editingDocId) {
+                     const idx = window.flightsData.findIndex(f => f.id === window.editingDocId);
+                     if (idx !== -1) {
+                         window.flightsData[idx] = { ...window.flightsData[idx], ...payload };
+                         localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+                         showToast("Flight Updated Locally!");
+                     }
+                } else {
+                     payload.id = 'local_flt_' + Date.now();
+                     payload.createdAt = Date.now();
+                     window.flightsData.push(payload);
+                     let toastMsg = "Flight Logged Locally!";
+                     
+                     if (isTurnaround) {
+                         const retFlt = document.getElementById('mobile-return-flt').value.toUpperCase();
+                         const retDep = document.getElementById('mobile-return-dep').value;
+                         const retArr = document.getElementById('mobile-return-arr').value;
+                         const retHrsStr = document.getElementById('mobile-return-hrs').value;
+                         let retHrs = 0;
+                         if (retHrsStr.includes(':')) {
+                             const parts = retHrsStr.split(':');
+                             retHrs = (parseInt(parts[0]) || 0) + ((parseInt(parts[1]) || 0) / 60);
+                         } else {
+                             retHrs = parseFloat(retHrsStr) || hrs;
+                         }
+
+                         let returnDate = date;
+                         if (arr && dep && arr < dep) {
+                             const dParts = date.split('-');
+                             const d = new Date(parseInt(dParts[0]), parseInt(dParts[1]) - 1, parseInt(dParts[2]));
+                             d.setDate(d.getDate() + 1);
+                             returnDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                         }
+
+                         if (retFlt) {
+                             const retPayload = {
+                                 id: 'local_flt_ret_' + Date.now(),
+                                 staffId: window.currentStaffId, date: returnDate, 
+                                 flightNo: retFlt, acType: acType, acReg: reg, 
+                                 gate: '', origin: dst, dest: org, depTime: retDep, arrTime: retArr,
+                                 hours: retHrs, createdAt: Date.now() + 1000 
+                             };
+                             window.flightsData.push(retPayload);
+                             toastMsg = "Outbound & Return Flights Logged Locally!";
+                         }
+                     }
+                     localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+                     showToast(toastMsg);
+                }
+                
+                window.lastUsedDate = date;
+                window.editingDocId = null;
+                ['mobile-flt', 'mobile-actype', 'mobile-reg', 'mobile-gate', 'mobile-org', 'mobile-dst', 'mobile-dep', 'mobile-arr', 'mobile-hrs', 'mobile-return-flt', 'mobile-return-dep', 'mobile-return-arr', 'mobile-return-hrs'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = '';
+                });
+                document.getElementById('mobile-turnaround').checked = false;
+                const tf = document.getElementById('turnaround-fields');
+                if(tf) tf.classList.add('hidden');
+                
+                renderUI();
+                switchView('logs'); 
+                return;
+            }
+
             try {
                 if (window.editingDocId) {
                     await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'flights', window.editingDocId), payload);
@@ -2387,8 +2557,8 @@
                 
                 switchView('logs'); 
             } catch (e) {
-                console.error(e);
-                showToast("Failed to save data");
+                if(e.code === 'permission-denied') handleFirestoreError(e, "Save Mobile Entry");
+                else showToast("Failed to save data");
             }
         }
 
@@ -2422,10 +2592,21 @@
         window.deleteEntry = async function(docId) {
             if (!db) return;
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+            
+            if (cloudSyncDisabled) {
+                 window.flightsData = window.flightsData.filter(f => f.id !== docId);
+                 localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+                 renderUI();
+                 showToast("Entry Deleted Locally");
+                 return;
+            }
+
             try {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'flights', docId));
                 showToast("Entry Deleted");
-            } catch(e) { console.error(e); }
+            } catch(e) { 
+                if(e.code === 'permission-denied') handleFirestoreError(e, "Delete Entry");
+            }
         }
 
         window.confirmPurgeData = function() {
@@ -2452,7 +2633,7 @@
             closePurgeModal();
             
             try {
-                if (!db) {
+                if (!db || cloudSyncDisabled) {
                     // --- VERCEL OFFLINE FALLBACK MODE ---
                     window.flightsData = [];
                     localStorage.removeItem('crew_offline_flights'); // Completely wipe local storage for flights
@@ -2475,8 +2656,11 @@
                 
                 showToast(`Successfully purged ${deletePromises.length} flight records!`);
             } catch(e) {
-                console.error("Purge Error:", e);
-                showToast("Error purging data. Please try again.");
+                if(e.code === 'permission-denied') handleFirestoreError(e, "Purge Data");
+                else {
+                    console.error("Purge Error:", e);
+                    showToast("Error purging data. Please try again.");
+                }
             }
         };
 
@@ -2491,7 +2675,7 @@
                 return;
             }
 
-            if (!window.isAdmin || window.currentStaffId !== '00230747') {
+            if (!window.isAdmin || !MASTER_ADMINS.includes(window.currentStaffId)) {
                 showToast("Action Denied: Master Admin login strictly required.");
                 if (event.target) event.target.value = '';
                 return;
@@ -2676,7 +2860,7 @@
                     showToast(`Uploading ${payloads.length} flights... DO NOT CLOSE TAB.`, 5000);
                     
                     // --- VERCEL OFFLINE FALLBACK MODE ---
-                    if (!db) {
+                    if (!db || cloudSyncDisabled) {
                         window.timetableData = payloads.map((p, idx) => ({ id: 'local_' + idx, ...p }));
                         localStorage.setItem('crew_offline_timetable', JSON.stringify(window.timetableData));
                         showToast(`Vercel Offline Mode: Saved ${payloads.length} routes to Local Memory!`, 6000);
@@ -2709,8 +2893,12 @@
 
                     showToast(`Success! Master Timetable Synced (${added} routes).`, 4000);
                 } catch(e) {
-                    console.error("Timetable upload error:", e);
-                    showToast(`Upload Failed: ${e.message || 'File corrupted'}`, 6000);
+                    if(e && e.code === 'permission-denied') {
+                        handleFirestoreError(e, "Upload Timetable");
+                    } else {
+                        console.error("Timetable upload error:", e);
+                        showToast(`Upload Failed: ${e.message || 'File corrupted'}`, 6000);
+                    }
                 }
                 event.target.value = '';
             };
@@ -3075,18 +3263,23 @@
                 const statusColor = c.isOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-gray-500';
                 const isActive = window.chatTarget === c.staffId ? 'bg-[#1f2940]' : 'hover:bg-[#1f2940]';
                 
+                // If the current user is admin, provide a delete button for duplicates/cleanups
+                const adminControls = window.isAdmin && c.staffId !== window.currentStaffId ? 
+                    `<button onclick="event.stopPropagation(); adminDeleteAccount('${c.id}')" class="ml-auto text-red-500 hover:text-red-400 p-2 opacity-50 hover:opacity-100 transition-opacity" title="Remove Account"><i class="ph-bold ph-trash"></i></button>` : '';
+
                 html += `
-                    <div onclick="openChat('${c.staffId}')" class="p-3 border-b border-app-border cursor-pointer transition-colors flex items-center gap-3 ${isActive}">
+                    <div onclick="openChat('${c.staffId}')" class="p-3 border-b border-app-border cursor-pointer transition-colors flex items-center gap-3 ${isActive} group">
                         <div class="relative">
                             <div class="w-10 h-10 rounded-full border border-app-border flex items-center justify-center shadow-sm overflow-hidden shrink-0 bg-[#0A0F1D]">
                                 ${window.getAvatarSVG(c.role)}
                             </div>
                             <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border border-[#131A2A] ${statusColor}"></div>
                         </div>
-                        <div>
+                        <div class="flex-1">
                             <p class="text-sm font-bold text-white">${c.name} <span class="text-[10px] text-app-accent font-mono ml-1">${c.role}</span></p>
                             <p class="text-[10px] font-mono text-gray-400">ID: ${c.staffId}</p>
                         </div>
+                        ${adminControls}
                     </div>
                 `;
             });
@@ -3218,8 +3411,11 @@
                     timestamp: Date.now()
                 });
             } catch (e) {
-                console.error("Failed to send message", e);
-                showToast("Failed to transmit.");
+                if(e.code === 'permission-denied') handleFirestoreError(e, "Send Chat");
+                else {
+                    console.error("Failed to send message", e);
+                    showToast("Failed to transmit.");
+                }
             }
         };
 
@@ -3289,6 +3485,55 @@
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
             const flightRef = collection(db, 'artifacts', appId, 'public', 'data', 'flights');
             
+            if (cloudSyncDisabled) {
+                 const outPayload = {
+                    id: 'local_flt_' + Date.now(), staffId: window.currentStaffId, date: date,
+                    flightNo: outbound.flightNo, acType: outbound.acType || '', acReg: '', gate: '',
+                    origin: outbound.origin, dest: outbound.dest, depTime: outbound.depTime,
+                    arrTime: outbound.arrTime, hours: outbound.hours || 0, createdAt: Date.now()
+                 };
+                 window.flightsData.push(outPayload);
+                 let msg = `Success! Auto-Logged ${outbound.flightNo} Locally!`;
+                 
+                 // Predict Return Flight
+                 let returnFlt = null;
+                 const matchNum = outbound.flightNo.match(/^([A-Z]+)(\d+)$/i);
+                 if (matchNum) {
+                     const prefix = matchNum[1];
+                     const num = parseInt(matchNum[2]);
+                     const isEven = num % 2 === 0;
+                     const possibleRetNum = prefix + (isEven ? (num - 1) : (num + 1));
+                     returnFlt = window.timetableData.find(t => (t.flightNo === possibleRetNum) && t.origin === outbound.dest && t.dest === outbound.origin);
+                 }
+                 if (!returnFlt) returnFlt = window.timetableData.find(t => t.origin === outbound.dest && t.dest === outbound.origin);
+
+                 if (returnFlt) {
+                      let returnDate = date;
+                      if (outbound.arrTime && outbound.depTime && outbound.arrTime < outbound.depTime) {
+                          const dParts = date.split('-');
+                          const d = new Date(parseInt(dParts[0]), parseInt(dParts[1]) - 1, parseInt(dParts[2]));
+                          d.setDate(d.getDate() + 1);
+                          returnDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                      }
+                      const retPayload = {
+                          id: 'local_flt_ret_' + Date.now(), staffId: window.currentStaffId, date: returnDate, 
+                          flightNo: returnFlt.flightNo, acType: returnFlt.acType || '', acReg: '', gate: '',
+                          origin: returnFlt.dest, dest: returnFlt.origin, depTime: returnFlt.depTime,
+                          arrTime: returnFlt.arrTime, hours: returnFlt.hours || 0, createdAt: Date.now() + 1000
+                      };
+                      window.flightsData.push(retPayload);
+                      msg = `Success! Auto-Logged ${outbound.flightNo} AND Return ${returnFlt.flightNo} Locally!`;
+                 }
+                 
+                 localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+                 showToast(msg);
+                 window.lastUsedDate = date;
+                 closeQuickAddModal();
+                 renderUI();
+                 switchView('logs');
+                 return;
+            }
+
             showToast("Syncing from Master Timetable...");
 
             try {
@@ -3365,8 +3610,11 @@
                 switchView('logs');
 
             } catch (err) {
-                console.error(err);
-                showToast("Network Error: Failed to save Quick Log.");
+                if(err.code === 'permission-denied') handleFirestoreError(err, "Quick Add");
+                else {
+                    console.error(err);
+                    showToast("Network Error: Failed to save Quick Log.");
+                }
             }
         };
 
@@ -3428,8 +3676,11 @@
                 closeShareRosterModal();
                 showToast("Roster shared successfully!");
             } catch (e) {
-                console.error("Failed to share roster", e);
-                showToast("Failed to transmit roster.");
+                if(e.code === 'permission-denied') handleFirestoreError(e, "Share Roster");
+                else {
+                    console.error("Failed to share roster", e);
+                    showToast("Failed to transmit roster.");
+                }
             }
         };
 
@@ -3673,11 +3924,22 @@ Tone: Professional, helpful, concise, and friendly.`
                 acReg: (args.acReg || '').toUpperCase(),
                 gate: '', depTime: '', arrTime: '', createdAt: Date.now()
             };
+            
+            if (cloudSyncDisabled) {
+                 payload.id = 'local_flt_' + Date.now();
+                 window.flightsData.push(payload);
+                 localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+                 showToast(`AI logged ${payload.flightNo} locally!`);
+                 renderUI();
+                 return;
+            }
+
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'flights'), payload);
                 showToast(`AI logged ${payload.flightNo} successfully!`);
             } catch (e) {
-                console.error("AI db save failed", e);
+                if(e.code === 'permission-denied') handleFirestoreError(e, "AI Log Flight");
+                else console.error("AI db save failed", e);
             }
         }
 
@@ -4343,7 +4605,7 @@ Tone: Professional, helpful, concise, and friendly.`
 
                     if (payloads.length > 0) {
                         // --- VERCEL OFFLINE FALLBACK MODE ---
-                        if (!db) {
+                        if (!db || cloudSyncDisabled) {
                             const existing = JSON.parse(localStorage.getItem('crew_offline_flights') || '[]');
                             const combined = [...existing, ...payloads.map((p, idx) => ({ id: 'local_flt_' + Date.now() + '_' + idx, ...p }))];
                             localStorage.setItem('crew_offline_flights', JSON.stringify(combined));
@@ -4373,8 +4635,12 @@ Tone: Professional, helpful, concise, and friendly.`
                         showToast(`Import finished, but 0 valid flights were found. Check file format.`);
                     }
                 } catch (err) {
-                    console.error("Personal Upload Error:", err);
-                    showToast("Error processing file. File may be corrupted.");
+                    if (err && err.code === 'permission-denied') {
+                        handleFirestoreError(err, "Import Roster Excel");
+                    } else {
+                        console.error("Personal Upload Error:", err);
+                        showToast("Error processing file. File may be corrupted.");
+                    }
                 }
                 e.target.value = '';
             };
@@ -4384,9 +4650,6 @@ Tone: Professional, helpful, concise, and friendly.`
         // 🧠 INJECTING THE VISION AI ENGINE
         window.pendingScanFiles = [];
 
-        // Add a variable to store the API key securely in the session
-        window.sessionApiKey = null;
-
         document.getElementById('image-upload').addEventListener('change', async function(e) {
             const files = e.target.files;
             if (!files || files.length === 0) return;
@@ -4395,23 +4658,7 @@ Tone: Professional, helpful, concise, and friendly.`
             
             window.pendingScanFiles = Array.from(files);
             
-            // Handle API Key retrieval before scanning
-            let apiKeyToUse = window.sessionApiKey;
-            
-            if (!apiKeyToUse) {
-                // If not in session, ask the user
-                const userKey = prompt("To use the AI Roster Scanner outside the development environment, please enter your Gemini API Key.\n\n(This is only stored in your browser session for security)");
-                if (userKey && userKey.trim() !== "") {
-                    window.sessionApiKey = userKey.trim();
-                    apiKeyToUse = window.sessionApiKey;
-                } else {
-                    showToast("API Key required for AI Scanning.");
-                    e.target.value = '';
-                    return;
-                }
-            }
-
-            executeScan(apiKeyToUse); 
+            executeScan(""); 
             e.target.value = ''; 
         });
 
@@ -4489,10 +4736,6 @@ JSON Format:
                     body: JSON.stringify(payload)
                 });
 
-                if (response.status === 400 || response.status === 403) {
-                     window.sessionApiKey = null; // Clear invalid key
-                     throw new Error(`API Key Invalid or Expired (Error ${response.status}). Please try again.`);
-                }
                 if (!response.ok) throw new Error(`AI Scan Error: ${response.status}`);
                 
                 const result = await response.json();
@@ -4517,6 +4760,29 @@ JSON Format:
                 const ref = collection(db, 'artifacts', appId, 'public', 'data', 'flights');
                 
                 let addedCount = 0;
+                
+                if (cloudSyncDisabled) {
+                     for (const log of parsedLogs) {
+                        if (log.date && log.flightNo && log.origin && log.dest) {
+                            const payload = {
+                                id: 'local_flt_' + Date.now() + Math.random(), staffId: window.currentStaffId,
+                                date: log.date, flightNo: String(log.flightNo).toUpperCase(),
+                                acType: String(log.acType || '').toUpperCase(), acReg: String(log.acReg || '').toUpperCase().replace(/-/g, ''),
+                                gate: String(log.gate || '').toUpperCase(), origin: String(log.origin).toUpperCase().substring(0, 3),
+                                dest: String(log.dest).toUpperCase().substring(0, 3), depTime: log.depTime || '',
+                                arrTime: log.arrTime || '', hours: parseFloat(log.hours) || 0, createdAt: Date.now()
+                            };
+                            window.flightsData.push(payload);
+                            addedCount++;
+                        }
+                     }
+                     localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+                     showToast(`AI Scan complete! ${addedCount} flights logged locally.`);
+                     window.pendingScanFiles = [];
+                     renderUI();
+                     return;
+                }
+
                 for (const log of parsedLogs) {
                     if (log.date && log.flightNo && log.origin && log.dest) {
                         await addDoc(ref, {
@@ -4541,8 +4807,11 @@ JSON Format:
                 showToast(`Scan complete! ${addedCount} flights logged.`);
 
             } catch(e) {
-                console.error("Vision AI Error:", e);
-                showToast("Failed to analyze images. Please check format or try again.");
+                if (e.code === 'permission-denied') handleFirestoreError(e, "AI Vision Save");
+                else {
+                     console.error("Vision AI Error:", e);
+                     showToast("Failed to analyze images. Please check format or try again.");
+                }
             }
         }
 
