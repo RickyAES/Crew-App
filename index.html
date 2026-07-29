@@ -2626,7 +2626,8 @@
         }
 
         window.confirmPurgeData = function() {
-            if (!currentUser || !window.currentStaffId) {
+            // FIX: Removed strict currentUser check so bypassed logins can still purge
+            if (!window.currentStaffId) {
                 showToast("Please login first.");
                 return;
             }
@@ -2642,19 +2643,32 @@
         };
 
         window.executeDataPurge = async function() {
-            if (!db || !window.currentStaffId) return;
+            if (!window.currentStaffId) return;
             
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
             showToast("Purging data... Please wait.", 5000);
             closePurgeModal();
             
             try {
+                if (!db) {
+                    // --- VERCEL OFFLINE FALLBACK MODE ---
+                    window.flightsData = [];
+                    localStorage.removeItem('crew_offline_flights'); // Completely wipe local storage for flights
+                    renderUI();
+                    showToast("Successfully purged all local flight records!");
+                    return;
+                }
+
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
                 // Securely loop through and delete only the flights bound to the current user's Staff ID
                 const deletePromises = window.flightsData.map(flight => 
                     deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'flights', flight.id))
                 );
                 
                 await Promise.all(deletePromises);
+                
+                // Clear the UI instantly
+                window.flightsData = [];
+                renderUI();
                 
                 showToast(`Successfully purged ${deletePromises.length} flight records!`);
             } catch(e) {
