@@ -1810,13 +1810,15 @@
                 let html = '';
                 active.forEach(acc => {
                     const isSuspended = acc.status === 'suspended';
-                    const statusDot = isSuspended ? '<span class="w-2 h-2 rounded-full bg-red-500 mr-2" title="Suspended"></span>' : '<span class="w-2 h-2 rounded-full bg-green-500 mr-2" title="Active"></span>';
+                    const statusDot = isSuspended ? '<span class="w-2 h-2 rounded-full bg-red-500 mr-2" title="Inactive"></span>' : '<span class="w-2 h-2 rounded-full bg-green-500 mr-2" title="Active"></span>';
                     const actionBtn = isSuspended 
                         ? `<button onclick="toggleAccountStatus('${acc.id}', 'suspended', '${acc.name}')" class="bg-green-900/20 text-green-400 hover:bg-green-500 hover:text-white px-3 py-1.5 rounded transition-colors text-[10px] font-bold uppercase flex items-center gap-1 shadow-sm"><i class="ph-bold ph-check"></i> Activate</button>`
-                        : `<button onclick="toggleAccountStatus('${acc.id}', 'approved', '${acc.name}')" class="bg-yellow-900/20 text-yellow-500 hover:bg-yellow-600 hover:text-white px-3 py-1.5 rounded transition-colors text-[10px] font-bold uppercase flex items-center gap-1 shadow-sm"><i class="ph-bold ph-pause"></i> Suspend</button>`;
+                        : `<button onclick="toggleAccountStatus('${acc.id}', 'approved', '${acc.name}')" class="bg-yellow-900/20 text-yellow-500 hover:bg-yellow-600 hover:text-white px-3 py-1.5 rounded transition-colors text-[10px] font-bold uppercase flex items-center gap-1 shadow-sm"><i class="ph-bold ph-pause"></i> Inactive</button>`;
+                    
+                    const deleteBtn = `<button onclick="deleteAccount('${acc.id}', '${acc.name}')" class="bg-red-900/20 text-red-400 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded transition-colors text-[10px] font-bold uppercase flex items-center gap-1 shadow-sm"><i class="ph-bold ph-trash"></i> Delete</button>`;
                     
                     html += `
-                        <div class="bg-[#131A2A] border border-app-border/50 rounded-lg p-2.5 flex justify-between items-center group">
+                        <div class="bg-[#131A2A] border border-app-border/50 rounded-lg p-2.5 flex flex-col sm:flex-row justify-between items-start sm:items-center group gap-3">
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 rounded-full border border-app-border flex items-center justify-center shadow-sm overflow-hidden shrink-0 bg-[#0A0F1D]">
                                     ${window.getAvatarSVG(acc.role)}
@@ -1826,8 +1828,9 @@
                                     <p class="text-[10px] font-mono text-gray-400 ml-4">ID: ${acc.staffId}</p>
                                 </div>
                             </div>
-                            <div class="flex gap-2">
+                            <div class="flex gap-2 w-full sm:w-auto justify-end">
                                 ${actionBtn}
+                                ${deleteBtn}
                             </div>
                         </div>
                     `;
@@ -1840,7 +1843,19 @@
             const newStatus = currentStatus === 'approved' ? 'suspended' : 'approved';
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
             await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', docId), { status: newStatus });
-            showToast(`Account for ${name} ${newStatus}!`);
+            showToast(`Account for ${name} set to ${newStatus === 'suspended' ? 'Inactive' : 'Active'}!`);
+        };
+
+        window.deleteAccount = async function(docId, name) {
+            if (!db) return;
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', docId));
+                showToast(`Account for ${name} permanently deleted.`);
+            } catch(e) {
+                console.error(e);
+                showToast("Failed to delete account.");
+            }
         };
 
         window.exportCrewCSV = function() {
