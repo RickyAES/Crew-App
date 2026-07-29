@@ -1527,7 +1527,7 @@
             }
         };
 
-        window.registerAccount = function() {
+        window.registerAccount = async function() {
             const name = document.getElementById('reg-name').value.trim();
             const staffId = document.getElementById('reg-staffid').value.trim();
             const pin = document.getElementById('reg-pin').value.trim();
@@ -1551,40 +1551,45 @@
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
             const payload = { name, staffId, pin, role, status, createdAt: Date.now() };
             
-            // 1. OPEN WHATSAPP INSTANTLY (100% Synchronous to bypass mobile popup blockers)
-            if (status === 'pending') {
-                const waMessage = `Hi Ricky, I have just registered for the Crew Portal. Please approve my access.\n\nName: ${name}\nStaff ID: ${staffId}\nRole: ${role}`;
-                const waUrl = `https://wa.me/6581265820?text=${encodeURIComponent(waMessage)}`;
-                
-                // Try opening in a new tab. If the browser blocks it, force a direct redirect.
-                const newTab = window.open(waUrl, '_blank');
-                if (!newTab || newTab.closed || typeof newTab.closed == 'undefined') {
-                    window.location.href = waUrl; 
-                }
-            }
+            // 1. UPDATE UI IMMEDIATELY
+            showToast(status === 'approved' ? "Master Account Created! Please Login." : "Registering Account to Cloud...");
+            
+            const prevText = document.querySelector('#form-register button').innerText;
+            document.querySelector('#form-register button').innerText = "Processing...";
 
-            // 2. UPDATE UI IMMEDIATELY (Do not wait for database)
-            showToast(status === 'approved' ? "Master Account Created! Please Login." : "Registration Sent! Opening WhatsApp...");
-            toggleAuthMode('login');
-            document.getElementById('login-staffid').value = staffId;
-            document.getElementById('login-pin').value = pin;
-
-            // 3. SAVE TO DATABASE IN BACKGROUND
+            // 2. SAVE TO DATABASE (AWAIT COMPLETION TO PREVENT REDIRECT ABORT)
             try {
                 if (db && !cloudSyncDisabled) {
-                    addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), payload)
-                    .catch(e => {
-                        console.warn("Firebase save delayed:", e);
-                        if(e.code === 'permission-denied') handleFirestoreError(e, "Registration");
-                    });
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), payload);
                 } else {
-                    // VERCEL OFFLINE FALLBACK - Save to Local Memory
                     payload.id = 'local_acc_' + Date.now();
                     window.accountsData.push(payload);
                     localStorage.setItem('crew_offline_accounts', JSON.stringify(window.accountsData));
                 }
             } catch(e) {
-                console.error("Background sync error:", e);
+                console.error("Registration save error:", e);
+                if(e.code === 'permission-denied') handleFirestoreError(e, "Registration");
+                document.querySelector('#form-register button').innerText = prevText;
+                return; // Stop if it fails
+            }
+
+            // 3. SWITCH TO LOGIN MODE
+            toggleAuthMode('login');
+            document.getElementById('login-staffid').value = staffId;
+            document.getElementById('login-pin').value = pin;
+            document.querySelector('#form-register button').innerText = prevText;
+
+            // 4. OPEN WHATSAPP SAFELY (After database save is fully confirmed)
+            if (status === 'pending') {
+                const waMessage = `Hi Ricky, I have just registered for the Crew Portal. Please approve my access.\n\nName: ${name}\nStaff ID: ${staffId}\nRole: ${role}`;
+                const waUrl = `https://wa.me/6581265820?text=${encodeURIComponent(waMessage)}`;
+                
+                setTimeout(() => {
+                    const newTab = window.open(waUrl, '_blank');
+                    if (!newTab || newTab.closed || typeof newTab.closed == 'undefined') {
+                        window.location.href = waUrl; 
+                    }
+                }, 800); // Slight delay so the user sees the success toast
             }
         };
 
@@ -1724,6 +1729,88 @@
             
             document.getElementById('view-login').classList.remove('hidden-view');
             ['login-staffid', 'login-pin'].forEach(id => document.getElementById(id).value = '');
+        };
+
+        // --- PROFILE & DIGITAL WALLET ENGINE ---
+
+        window.openProfileModal = function() {
+            if (!window.currentStaffId) {
+                showToast("Please login to view profile.");
+                return;
+            }
+            const myAcc = window.accountsData.find(a => a.staffId === window.currentStaffId);
+            if (!myAcc) return;
+
+            document.getElementById('edit-profile-name').value = myAcc.name || '';
+            document.getElementById('edit-profile-role').value = myAcc.role || 'FS';
+            document.getElementById('edit-profile-pin').value = myAcc.pin || '';
+            
+            document.getElementById('edit-wallet-passport').value = myAcc.passport || '';
+            document.getElementById('edit-wallet-medical').value = myAcc.medical || '';
+            document.getElementById('edit-wallet-visa').value = myAcc.visa || '';
+            document.getElementById('edit-wallet-esta').value = myAcc.esta || '';
+
+            document.getElementById('modal-profile').classList.remove('hidden-view');
+        };
+
+        window.closeProfileModal = function() {
+            document.getElementById('modal-profile').classList.add('hidden-view');
+        };
+
+        window.saveProfile = async function() {
+            if (!window.currentStaffId) return;
+            const myAcc = window.accountsData.find(a => a.staffId === window.currentStaffId);
+            if (!myAcc) return;
+
+            const name = document.getElementById('edit-profile-name').value.trim();
+            const role = document.getElementById('edit-profile-role').value;
+            const pin = document.getElementById('edit-profile-pin').value.trim();
+            
+            const passport = document.getElementById('edit-wallet-passport').value;
+            const medical = document.getElementById('edit-wallet-medical').value;
+            const visa = document.getElementById('edit-wallet-visa').value;
+            const esta = document.getElementById('edit-wallet-esta').value;
+
+            if (!name || pin.length !== 6) {
+                showToast("Name required and PIN must be 6 digits.");
+                return;
+            }
+
+            const updates = { name, role, pin, passport, medical, visa, esta };
+
+            if (cloudSyncDisabled || myAcc.id.startsWith('local-master-id')) {
+                Object.assign(myAcc, updates);
+                localStorage.setItem('crew_offline_accounts', JSON.stringify(window.accountsData));
+                showToast("Profile Updated Locally!");
+            } else {
+                try {
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', myAcc.id), updates);
+                    showToast("Profile Updated Successfully!");
+                } catch (e) {
+                    console.error(e);
+                    showToast("Failed to save profile. Check connection.");
+                    return;
+                }
+            }
+            
+            // Update live variables
+            window.currentName = name;
+            window.currentUserRole = role;
+            
+            // Update Header UI Instantly
+            const headerInfo = document.getElementById('header-crew-info');
+            if (headerInfo) {
+                headerInfo.innerHTML = `
+                    <div class="flex items-center gap-2 mt-1">
+                        <div class="w-4 h-4 rounded-full border border-app-border overflow-hidden shrink-0 shadow-sm">${window.getAvatarSVG(role)}</div>
+                        <span>${role} ${name} ${window.currentStaffId} &bull; ACTIVE</span>
+                    </div>
+                `;
+            }
+
+            closeProfileModal();
+            renderDashboard(); // Re-trigger the expiry checker for the dashboard banner
         };
 
         window.renderAdminList = function() {
