@@ -877,6 +877,10 @@
                         <button id="chat-share-btn" onclick="openShareRosterModal()" class="bg-[#0A0F1D] border border-app-border text-app-accent w-10 h-10 rounded-md flex items-center justify-center hover:bg-[#1a233a] transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed" disabled title="Share Roster">
                             <i class="ph-bold ph-calendar-plus text-lg"></i>
                         </button>
+                        <button id="chat-attach-btn" onclick="document.getElementById('chat-file-input').click()" class="bg-[#0A0F1D] border border-app-border text-blue-400 w-10 h-10 rounded-md flex items-center justify-center hover:bg-[#1a233a] transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed" disabled title="Attach Image, Video or File">
+                            <i class="ph-bold ph-paperclip text-lg"></i>
+                        </button>
+                        <input type="file" id="chat-file-input" class="hidden" onchange="handleChatFileUpload(event)" accept="image/*, video/*, application/pdf, .doc, .docx, .xls, .xlsx">
                         <input type="text" id="chat-message-input" placeholder="Type a secure message..." class="flex-1 bg-[#0A0F1D] border border-app-border rounded-md px-3 py-3 text-xs text-white outline-none focus:border-app-accent disabled:opacity-50" onkeypress="if(event.key === 'Enter') sendChatMessage()" disabled>
                         <button id="chat-send-btn" onclick="sendChatMessage()" class="bg-app-accent text-[#0A0F1D] w-10 h-10 rounded-md flex items-center justify-center hover:bg-[#B58D22] transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                             <i class="ph-bold ph-paper-plane-right text-lg"></i>
@@ -4469,6 +4473,7 @@
             document.getElementById('chat-message-input').disabled = false;
             document.getElementById('chat-send-btn').disabled = false;
             document.getElementById('chat-share-btn').disabled = false;
+            document.getElementById('chat-attach-btn').disabled = false;
             
             updateChatHeader();
             renderChatList(); 
@@ -4487,6 +4492,7 @@
             document.getElementById('chat-message-input').disabled = true;
             document.getElementById('chat-send-btn').disabled = true;
             document.getElementById('chat-share-btn').disabled = true;
+            document.getElementById('chat-attach-btn').disabled = true;
             document.getElementById('chat-active-name').innerText = "Select a crew member";
             document.getElementById('chat-active-status').className = "w-2.5 h-2.5 rounded-full bg-gray-500";
             document.getElementById('chat-messages-container').innerHTML = '<div class="m-auto text-[10px] text-app-accent font-mono border border-app-accent/30 px-3 py-1 rounded-full bg-[#0A0F1D]/50 mt-4 mb-2">End-to-End Encrypted Crew Comms</div>';
@@ -4543,6 +4549,31 @@
                         </div>
                         <p class="text-[10px] mt-1.5 opacity-80 italic">Shared by ${senderName}</p>
                     `;
+                } else if (m.text && m.text.startsWith('[IMAGE]:')) {
+                    const src = m.text.substring(8);
+                    messageContentHtml = `<img src="${src}" class="max-w-[200px] md:max-w-[250px] rounded-lg cursor-pointer hover:opacity-90 border ${isMe ? 'border-[#0A0F1D]/30' : 'border-app-border/50'} mt-1" onclick="window.open('${src}')" alt="Shared Image">`;
+                } else if (m.text && m.text.startsWith('[VIDEO]:')) {
+                    const src = m.text.substring(8);
+                    messageContentHtml = `<video src="${src}" controls class="max-w-[200px] md:max-w-[250px] rounded-lg border ${isMe ? 'border-[#0A0F1D]/30' : 'border-app-border/50'} mt-1"></video>`;
+                } else if (m.text && m.text.startsWith('[FILE]:')) {
+                    const payloadStr = m.text.substring(7);
+                    const separatorIdx = payloadStr.indexOf('|');
+                    if (separatorIdx > -1) {
+                        const fileName = payloadStr.substring(0, separatorIdx);
+                        const fileData = payloadStr.substring(separatorIdx + 1);
+                        messageContentHtml = `
+                            <div class="flex items-center gap-3 bg-[#0A0F1D]/20 p-2 rounded-lg border ${isMe ? 'border-[#0A0F1D]/20' : 'border-app-border/50'} mt-1">
+                                <i class="ph-fill ph-file text-3xl ${isMe ? 'text-[#0A0F1D]' : 'text-blue-500'}"></i>
+                                <div class="flex-1 min-w-0 max-w-[140px]">
+                                    <p class="text-xs font-bold leading-tight truncate">${fileName}</p>
+                                    <p class="text-[9px] font-mono opacity-80 leading-tight">Document Attachment</p>
+                                </div>
+                                <a href="${fileData}" download="${fileName}" class="${isMe ? 'bg-[#0A0F1D] text-[#CBA052] hover:bg-[#1a233a]' : 'bg-app-accent text-[#0A0F1D] hover:bg-[#B58D22]'} px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors shadow-sm shrink-0" title="Download File">
+                                    <i class="ph-bold ph-download-simple"></i>
+                                </a>
+                            </div>
+                        `;
+                    }
                 } else {
                     // Standard text message
                     messageContentHtml = `<p class="text-sm ${isMe ? 'font-semibold' : ''}">${m.text}</p>`;
@@ -4583,6 +4614,51 @@
                     showToast("Failed to transmit.");
                 }
             }
+        };
+
+        window.handleChatFileUpload = async function(event) {
+            if (!window.chatTarget || !window.currentStaffId || !db) return;
+            const file = event.target.files[0];
+            if (!file) return;
+            event.target.value = ''; // Reset input
+            
+            // Firestore max document size is 1MB. Base64 encoding adds ~33% overhead.
+            // Limit file size to strictly 700KB to safely remain within the database quota.
+            if (file.size > 700 * 1024) {
+                showToast("File too large! Max limit is 700KB for this secure comms channel.");
+                return;
+            }
+            
+            showToast("Encrypting and uploading attachment...");
+            
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const base64Data = e.target.result;
+                
+                let prefix = '[FILE]:' + file.name + '|';
+                if (file.type.startsWith('image/')) prefix = '[IMAGE]:';
+                else if (file.type.startsWith('video/')) prefix = '[VIDEO]:';
+                
+                const messageText = prefix + base64Data;
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+                
+                try {
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
+                        senderId: window.currentStaffId,
+                        receiverId: window.chatTarget,
+                        text: messageText,
+                        timestamp: Date.now()
+                    });
+                    showToast("Attachment sent!");
+                } catch(err) {
+                    if(err.code === 'permission-denied') handleFirestoreError(err, "Send File");
+                    else {
+                        console.error("Failed to send file", err);
+                        showToast("Failed to transmit attachment.");
+                    }
+                }
+            };
+            reader.readAsDataURL(file);
         };
 
         // --- ROSTER SHARING VIA CHAT ---
