@@ -140,6 +140,12 @@
         
         .leaflet-container { background: #0A0F1D !important; font-family: 'Inter', sans-serif; }
         .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #131A2A; color: white; border: 1px solid #8A6B32; }
+        
+        /* Custom Navy & Gold Map Theme Matrix */
+        .navy-map-tiles {
+            /* Softened filter to prevent the map from becoming pitch black */
+            filter: sepia(10%) hue-rotate(190deg) saturate(150%) brightness(0.9);
+        }
     </style>
 </head>
 <body class="font-sans text-gray-100 relative z-0 bg-[#0A0F1D]">
@@ -277,7 +283,7 @@
             <label class="cursor-pointer bg-[#0A0F1D] hover:bg-[#1a233a] border border-app-accent px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2 text-app-accent shadow-[0_0_15px_rgba(203,160,82,0.2)]" title="AI Monthly Roster Scanner">
                 <i class="ph-fill ph-sparkle"></i>
                 <span class="hidden md:inline">AI Roster Scan</span>
-                <input type="file" id="image-upload" multiple accept="image/*" class="hidden">
+                <input type="file" id="image-upload" multiple accept="image/*, application/pdf" class="hidden">
             </label>
             <label class="cursor-pointer bg-app-card hover:bg-[#1f2940] border border-app-border px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2">
                 <i class="ph ph-upload-simple text-app-accent"></i>
@@ -885,7 +891,7 @@
                 <i class="ph-fill ph-house text-2xl"></i>
                 <span class="text-[10px] font-bold uppercase tracking-wider">Overview</span>
             </button>
-            <button onclick="switchView('map')" id="nav-map" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-text hover:text-white transition-colors hidden sm:flex">
+            <button onclick="switchView('map')" id="nav-map" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-text hover:text-white transition-colors flex">
                 <i class="ph ph-globe text-2xl"></i>
                 <span class="text-[10px] font-bold uppercase tracking-wider">HUD</span>
             </button>
@@ -992,6 +998,22 @@
             <div class="flex gap-3 w-full">
                 <button onclick="closeDeleteConfirmModal()" class="flex-1 bg-app-card border border-app-border text-white p-3 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-[#1f2940] transition-colors">Cancel</button>
                 <button onclick="executeDeleteEntry()" class="flex-1 bg-red-600 hover:bg-red-700 text-white p-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors shadow-[0_0_15px_rgba(220,38,38,0.4)]">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- API KEY PROMPT MODAL -->
+    <div id="modal-api-key" class="hidden-view fixed inset-0 z-[500] bg-[#0A0F1D]/90 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-sm p-6 rounded-2xl shadow-2xl relative z-10 flex flex-col items-center border border-app-accent/50 text-center">
+            <div class="w-16 h-16 rounded-full bg-app-accent/20 flex items-center justify-center mb-4 border border-app-accent mx-auto">
+                <i class="ph-fill ph-key text-3xl text-app-accent"></i>
+            </div>
+            <h2 class="text-lg font-bold text-white uppercase tracking-widest mb-2">API Key Required</h2>
+            <p class="text-xs text-gray-400 mb-6 font-mono leading-relaxed">To use the AI Vision Scanner and CrewBot Assistant, please enter a valid Google Gemini API Key. Your key is securely stored in your device's local storage.</p>
+            <input type="password" id="input-api-key" placeholder="AIzaSy..." class="w-full bg-[#131A2A] border border-app-border rounded-lg p-3 text-sm text-white focus:border-app-accent outline-none text-center font-mono mb-4">
+            <div class="flex gap-3 w-full">
+                <button onclick="closeApiKeyModal()" class="flex-1 bg-app-card border border-app-border text-white p-3 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-[#1f2940] transition-colors">Cancel</button>
+                <button onclick="saveApiKey()" class="flex-1 bg-app-accent hover:bg-[#B58D22] text-[#0A0F1D] p-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors shadow-[0_0_15px_rgba(203,160,82,0.4)]">Save Key</button>
             </div>
         </div>
     </div>
@@ -1443,7 +1465,58 @@
         window.flightsData = [];
         window.accountsData = [];
         window.timetableData = [];
-        window.airportDatabase = {}; 
+        
+        // --- PRE-LOADED OFFLINE AIRPORT GPS DATABASE ---
+        // Guarantees the Map HUD and Flight Intel works even if external API is blocked
+        window.airportDatabase = {
+            "SIN": { lat: 1.3644, lon: 103.9915, name: "Changi Airport", country: "Singapore", tz: "Asia/Singapore" },
+            "LHR": { lat: 51.4700, lon: -0.4543, name: "Heathrow", country: "UK", tz: "Europe/London" },
+            "SYD": { lat: -33.9399, lon: 151.1753, name: "Sydney Kingsford Smith", country: "Australia", tz: "Australia/Sydney" },
+            "MEL": { lat: -37.6690, lon: 144.8410, name: "Melbourne Airport", country: "Australia", tz: "Australia/Melbourne" },
+            "JFK": { lat: 40.6413, lon: -73.7781, name: "John F. Kennedy", country: "USA", tz: "America/New_York" },
+            "LAX": { lat: 33.9416, lon: -118.4085, name: "Los Angeles", country: "USA", tz: "America/Los_Angeles" },
+            "SFO": { lat: 37.6213, lon: -122.3790, name: "San Francisco", country: "USA", tz: "America/Los_Angeles" },
+            "FRA": { lat: 50.0333, lon: 8.5705, name: "Frankfurt", country: "Germany", tz: "Europe/Berlin" },
+            "CDG": { lat: 49.0097, lon: 2.5479, name: "Charles de Gaulle", country: "France", tz: "Europe/Paris" },
+            "NRT": { lat: 35.7647, lon: 140.3863, name: "Narita", country: "Japan", tz: "Asia/Tokyo" },
+            "HND": { lat: 35.5494, lon: 139.7798, name: "Haneda", country: "Japan", tz: "Asia/Tokyo" },
+            "ICN": { lat: 37.4602, lon: 126.4407, name: "Incheon", country: "South Korea", tz: "Asia/Seoul" },
+            "HKG": { lat: 22.3080, lon: 113.9185, name: "Hong Kong Intl", country: "Hong Kong", tz: "Asia/Hong_Kong" },
+            "BOM": { lat: 19.0896, lon: 72.8656, name: "Chhatrapati Shivaji", country: "India", tz: "Asia/Kolkata" },
+            "DEL": { lat: 28.5562, lon: 77.1000, name: "Indira Gandhi", country: "India", tz: "Asia/Kolkata" },
+            "AKL": { lat: -37.0082, lon: 174.7915, name: "Auckland", country: "New Zealand", tz: "Pacific/Auckland" },
+            "AMS": { lat: 52.3105, lon: 4.7683, name: "Schiphol", country: "Netherlands", tz: "Europe/Amsterdam" },
+            "BCN": { lat: 41.2974, lon: 2.0833, name: "Barcelona", country: "Spain", tz: "Europe/Madrid" },
+            "CPH": { lat: 55.6180, lon: 12.6508, name: "Copenhagen", country: "Denmark", tz: "Europe/Copenhagen" },
+            "DME": { lat: 55.4086, lon: 37.9061, name: "Domodedovo", country: "Russia", tz: "Europe/Moscow" },
+            "DUS": { lat: 51.2895, lon: 6.7668, name: "Düsseldorf", country: "Germany", tz: "Europe/Berlin" },
+            "DXB": { lat: 25.2532, lon: 55.3657, name: "Dubai", country: "UAE", tz: "Asia/Dubai" },
+            "FCO": { lat: 41.7999, lon: 12.2462, name: "Leonardo da Vinci", country: "Italy", tz: "Europe/Rome" },
+            "FUK": { lat: 33.5859, lon: 130.4510, name: "Fukuoka", country: "Japan", tz: "Asia/Tokyo" },
+            "IAH": { lat: 29.9902, lon: -95.3368, name: "George Bush Intercontinental", country: "USA", tz: "America/Chicago" },
+            "IST": { lat: 41.2753, lon: 28.7519, name: "Istanbul", country: "Turkey", tz: "Europe/Istanbul" },
+            "JNB": { lat: -26.1367, lon: 28.2411, name: "O.R. Tambo", country: "South Africa", tz: "Africa/Johannesburg" },
+            "KIX": { lat: 34.4320, lon: 135.2304, name: "Kansai", country: "Japan", tz: "Asia/Tokyo" },
+            "MAN": { lat: 53.3625, lon: -2.2745, name: "Manchester", country: "UK", tz: "Europe/London" },
+            "MLE": { lat: 4.1918, lon: 73.5291, name: "Velana", country: "Maldives", tz: "Indian/Maldives" },
+            "MNL": { lat: 14.5090, lon: 121.0194, name: "Ninoy Aquino", country: "Philippines", tz: "Asia/Manila" },
+            "MUC": { lat: 48.3537, lon: 11.7860, name: "Munich", country: "Germany", tz: "Europe/Berlin" },
+            "MXP": { lat: 45.6301, lon: 8.7231, name: "Malpensa", country: "Italy", tz: "Europe/Rome" },
+            "NGO": { lat: 34.8584, lon: 136.8052, name: "Chubu Centrair", country: "Japan", tz: "Asia/Tokyo" },
+            "PEK": { lat: 40.0799, lon: 116.6031, name: "Beijing Capital", country: "China", tz: "Asia/Shanghai" },
+            "PVG": { lat: 31.1443, lon: 121.8083, name: "Pudong", country: "China", tz: "Asia/Shanghai" },
+            "TPE": { lat: 25.0797, lon: 121.2342, name: "Taoyuan", country: "Taiwan", tz: "Asia/Taipei" },
+            "ZRH": { lat: 47.4582, lon: 8.5555, name: "Zurich", country: "Switzerland", tz: "Europe/Zurich" },
+            "ADL": { lat: -34.9450, lon: 138.5306, name: "Adelaide", country: "Australia", tz: "Australia/Adelaide" },
+            "BNE": { lat: -27.3842, lon: 153.1175, name: "Brisbane", country: "Australia", tz: "Australia/Brisbane" },
+            "PER": { lat: -31.9403, lon: 115.9668, name: "Perth", country: "Australia", tz: "Australia/Perth" },
+            "CHC": { lat: -43.4894, lon: 172.5322, name: "Christchurch", country: "New Zealand", tz: "Pacific/Auckland" },
+            "CGK": { lat: -6.1256, lon: 106.6558, name: "Soekarno-Hatta", country: "Indonesia", tz: "Asia/Jakarta" },
+            "DPS": { lat: -8.7482, lon: 115.1672, name: "Ngurah Rai", country: "Indonesia", tz: "Asia/Makassar" },
+            "KUL": { lat: 2.7456, lon: 101.7099, name: "Kuala Lumpur", country: "Malaysia", tz: "Asia/Kuala_Lumpur" },
+            "BKK": { lat: 13.6900, lon: 100.7501, name: "Suvarnabhumi", country: "Thailand", tz: "Asia/Bangkok" }
+        }; 
+
         window.customDestIntel = {}; // Community overrides for hotel intel
         window.editingDocId = null; 
         window.lastUsedDate = null; 
@@ -2123,14 +2196,17 @@
 
             if (viewId === 'map') {
                 if (!window.hudMap) { renderMapHUD(); }
+                // Increased timeout to 250ms to ensure the browser has painted the display:flex block before forcing Leaflet to recalculate
                 setTimeout(() => { 
                     if (window.hudMap) {
-                        window.hudMap.invalidateSize(); 
+                        window.hudMap.invalidateSize(true); 
                         if (window.hudBounds && window.hudBounds.length > 0) {
                             window.hudMap.fitBounds(window.hudBounds, { padding: [50, 50], maxZoom: 6 });
+                        } else {
+                            window.hudMap.setView([20, 0], 2);
                         }
                     }
-                }, 100);
+                }, 250);
             }
         }
 
@@ -2602,6 +2678,26 @@
                     db = getFirestore(app);
                 }
                 
+                auth = getAuth(app);
+
+                // CRITICAL FIX: Authenticate BEFORE attaching any Firestore listeners!
+                // This prevents the "Db denial" (permission-denied) error from triggering.
+                try {
+                    const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                    if (!auth.currentUser) {
+                        if (token) await signInWithCustomToken(auth, token);
+                        else await signInAnonymously(auth);
+                    }
+                } catch (e) {
+                    console.warn("Firebase Auth bypassed due to domain restrictions.", e);
+                }
+
+                onAuthStateChanged(auth, async (user) => {
+                    currentUser = user;
+                    const syncStatus = document.getElementById('sync-status');
+                    if (syncStatus && !cloudSyncDisabled) syncStatus.innerText = "SYSTEM // LIVE";
+                });
+                
                 // 🚀 DECOUPLE DATABASE LISTENERS FROM AUTHENTICATION BLOCK
                 if (accountsUnsubscribe) accountsUnsubscribe();
                 accountsUnsubscribe = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), async (snapshot) => {
@@ -2671,22 +2767,6 @@
                      handleFirestoreError(error, "Accounts Sync");
                 });
                 
-                auth = getAuth(app);
-                onAuthStateChanged(auth, async (user) => {
-                    currentUser = user;
-                    const syncStatus = document.getElementById('sync-status');
-                    if (syncStatus) syncStatus.innerText = "SYSTEM // LIVE";
-                });
-
-                try {
-                    const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                    if (!auth.currentUser) {
-                        if (token) await signInWithCustomToken(auth, token);
-                        else await signInAnonymously(auth);
-                    }
-                } catch (e) {
-                    console.warn("Firebase Auth bypassed due to Vercel domain restrictions. App continuing via open database.", e);
-                }
             } catch (err) {
                 console.error("Initialization error:", err);
                 showToast("Connection Error");
@@ -2707,10 +2787,10 @@
                 speed: 'Mach 0.85',
                 oxygen: 'Chemical (Pax) / Gaseous (FD)',
                 exits: [
-                    { name: 'L1/R1', pos: 10, type: 'door', crewL: 'IFM, LS4', crewR: 'J4' },
-                    { name: 'L2/R2', pos: 35, type: 'door', crewL: 'J3', crewR: 'J2, CS1' },
-                    { name: 'L3/R3', pos: 65, type: 'door', crewL: 'C3, C5', crewR: 'C4, C6' },
-                    { name: 'L4/R4', pos: 90, type: 'door', crewL: 'LS6', crewR: 'C2' }
+                    { name: 'D1L/D1R', pos: 10, type: 'door', crewL: 'IFM, LS4', crewR: 'J4' },
+                    { name: 'D2L/D2R', pos: 35, type: 'door', crewL: 'J3', crewR: 'J2, CS1' },
+                    { name: 'D3L/D3R', pos: 65, type: 'door', crewL: 'C3, C5', crewR: 'C4, C6*' },
+                    { name: 'D4L/D4R', pos: 90, type: 'door', crewL: 'LS6', crewR: 'C2' }
                 ]
             },
             'A380': {
@@ -2725,11 +2805,11 @@
                 isDoubleDeck: true,
                 exits: [
                     // Main Deck
-                    { name: 'M1L/M1R', pos: 10, type: 'door', deck: 'main', crewL: 'IFS, LS2', crewR: 'LS1' },
-                    { name: 'M2L/M2R', pos: 30, type: 'door', deck: 'main', crewL: 'CS1', crewR: 'B2, B4' },
-                    { name: 'M3L/M3R', pos: 55, type: 'door', deck: 'main', crewL: 'LS5', crewR: 'C2' },
-                    { name: 'M4L/M4R', pos: 75, type: 'door', deck: 'main', crewL: 'B3, LS9/C5', crewR: 'C4' },
-                    { name: 'M5L/M5R', pos: 90, type: 'door', deck: 'main', crewL: 'LS6, C3', crewR: 'J8, J9' },
+                    { name: 'M1L/M1R', pos: 10, type: 'door', deck: 'main', crewL: 'CS1', crewR: 'IFS, LS2' },
+                    { name: 'M2L/M2R', pos: 30, type: 'door', deck: 'main', crewL: 'LS5', crewR: 'LS1' },
+                    { name: 'M3L/M3R', pos: 55, type: 'door', deck: 'main', crewL: 'B3, **LS9/C5', crewR: 'B4, B2' },
+                    { name: 'M4L/M4R', pos: 75, type: 'door', deck: 'main', crewL: 'LS6', crewR: 'C2' },
+                    { name: 'M5L/M5R', pos: 90, type: 'door', deck: 'main', crewL: 'C3, J9', crewR: 'C4, J8' },
                     // Upper Deck
                     { name: 'U1L/U1R', pos: 15, type: 'door', deck: 'upper', crewL: 'J3', crewR: 'J4' },
                     { name: 'U2L/U2R', pos: 40, type: 'door', deck: 'upper', crewL: 'LS4', crewR: 'J2, CS2' },
@@ -2747,10 +2827,10 @@
                 speed: 'Mach 0.82',
                 oxygen: 'Chemical (Pax) / Gaseous (FD)',
                 exits: [
-                    { name: 'L1/R1', pos: 10, type: 'door', crewL: 'IFS, LS4', crewR: 'J2' },
-                    { name: 'L2/R2', pos: 35, type: 'door', crewL: 'B2, J3', crewR: 'CS1, B3' },
-                    { name: 'L3/R3', pos: 65, type: 'door', crewL: 'C3', crewR: 'B4' },
-                    { name: 'L4/R4', pos: 90, type: 'door', crewL: 'LS6', crewR: 'C2' }
+                    { name: 'D1L/D1R', pos: 10, type: 'door', crewL: 'IFS, LS4', crewR: 'J2' },
+                    { name: 'D2L/D2R', pos: 35, type: 'door', crewL: 'B3, J3', crewR: 'CS1, B2' },
+                    { name: 'D3L/D3R', pos: 65, type: 'door', crewL: 'C3', crewR: 'B4' },
+                    { name: 'D4L/D4R', pos: 90, type: 'door', crewL: 'LS6', crewR: 'C2' }
                 ]
             },
             'B777': {
@@ -2763,11 +2843,11 @@
                 speed: 'Mach 0.84',
                 oxygen: 'Gaseous Cylinders (Pax & FD)',
                 exits: [
-                    { name: 'L1/R1', pos: 10, type: 'door', crewL: 'LS2, J5', crewR: 'J4, LS1' },
-                    { name: 'L2/R2', pos: 28, type: 'door', crewL: 'J3, IFS', crewR: 'J2, CS1' },
-                    { name: 'L3/R3', pos: 55, type: 'door', crewL: 'B3', crewR: 'J6' },
-                    { name: 'L4/R4', pos: 75, type: 'door', crewL: 'LS5', crewR: 'B2' },
-                    { name: 'L5/R5', pos: 92, type: 'door', crewL: 'LS6, C3', crewR: 'B4, C2' }
+                    { name: 'D1L/D1R', pos: 10, type: 'door', crewL: 'LS2, J5', crewR: 'LS1, J4' },
+                    { name: 'D2L/D2R', pos: 28, type: 'door', crewL: 'J3, IFS', crewR: 'J2, CS1' },
+                    { name: 'D3L/D3R', pos: 55, type: 'door', crewL: 'B3', crewR: 'J6' },
+                    { name: 'D4L/D4R', pos: 75, type: 'door', crewL: 'LS5', crewR: 'B2' },
+                    { name: 'D5L/D5R', pos: 92, type: 'door', crewL: 'LS6', crewR: 'B4*, C2, C3' }
                 ]
             },
             'B787': {
@@ -2780,10 +2860,10 @@
                 speed: 'Mach 0.85',
                 oxygen: 'Gaseous Pulse System (Pax)',
                 exits: [
-                    { name: 'L1/R1', pos: 10, type: 'door', crewL: 'LS4, J3', crewR: 'J2' },
-                    { name: 'L2/R2', pos: 35, type: 'door', crewL: 'B3, IFM', crewR: 'B2, CS1' },
-                    { name: 'L3/R3', pos: 70, type: 'door', crewL: 'C3', crewR: 'B4' },
-                    { name: 'L4/R4', pos: 92, type: 'door', crewL: 'LS6', crewR: 'C4, C2' }
+                    { name: 'D1L/D1R', pos: 10, type: 'door', crewL: 'LS4, J3', crewR: 'J2' },
+                    { name: 'D2L/D2R', pos: 35, type: 'door', crewL: 'B3, IFM', crewR: 'B2, CS1' },
+                    { name: 'D3L/D3R', pos: 70, type: 'door', crewL: 'C3', crewR: 'B4' },
+                    { name: 'D4L/D4R', pos: 92, type: 'door', crewL: 'LS6', crewR: 'C4, C2' }
                 ]
             },
             'B772': {
@@ -2796,10 +2876,10 @@
                 speed: 'Mach 0.84',
                 oxygen: 'Gaseous Cylinders (Pax & FD)',
                 exits: [
-                    { name: 'L1/R1', pos: 10, type: 'door', crewL: 'LS4, J3', crewR: 'J2' },
-                    { name: 'L2/R2', pos: 35, type: 'door', crewL: 'B3, IFS', crewR: 'B2, CS1' },
-                    { name: 'L3/R3', pos: 70, type: 'door', crewL: 'C3', crewR: 'B4' },
-                    { name: 'L4/R4', pos: 92, type: 'door', crewL: 'LS6', crewR: 'C2, C4' }
+                    { name: 'D1L/D1R', pos: 10, type: 'door', crewL: 'LS/LSS4, J3*', crewR: 'J2' },
+                    { name: 'D2L/D2R', pos: 35, type: 'door', crewL: 'B3, IFS', crewR: 'B2, CS/CSS1' },
+                    { name: 'D3L/D3R', pos: 70, type: 'door', crewL: 'C3', crewR: 'B4' },
+                    { name: 'D4L/D4R', pos: 92, type: 'door', crewL: 'LS/LSS6', crewR: 'C2, C4' }
                 ]
             },
             'B772ER': {
@@ -2812,10 +2892,10 @@
                 speed: 'Mach 0.84',
                 oxygen: 'Gaseous Cylinders (Pax & FD)',
                 exits: [
-                    { name: 'L1/R1', pos: 10, type: 'door', crewL: 'LS4', crewR: 'J2' },
-                    { name: 'L2/R2', pos: 35, type: 'door', crewL: 'B3, IFS', crewR: 'B2, CS1' },
-                    { name: 'L3/R3', pos: 70, type: 'door', crewL: 'C3', crewR: 'B4' },
-                    { name: 'L4/R4', pos: 92, type: 'door', crewL: 'LS6', crewR: 'C2, C4' }
+                    { name: 'D1L/D1R', pos: 10, type: 'door', crewL: 'LS/LSS4, J3*', crewR: 'J2' },
+                    { name: 'D2L/D2R', pos: 35, type: 'door', crewL: 'B3, IFS', crewR: 'B2, CS/CSS1' },
+                    { name: 'D3L/D3R', pos: 70, type: 'door', crewL: 'C3', crewR: 'B4' },
+                    { name: 'D4L/D4R', pos: 92, type: 'door', crewL: 'LS/LSS6', crewR: 'C2, C4' }
                 ]
             },
             'B772J': {
@@ -2828,10 +2908,10 @@
                 speed: 'Mach 0.84',
                 oxygen: 'Gaseous Cylinders (Pax & FD)',
                 exits: [
-                    { name: 'L1/R1', pos: 10, type: 'door', crewL: 'C7, LS4', crewR: 'J2' },
-                    { name: 'L2/R2', pos: 35, type: 'door', crewL: 'C3, IFS', crewR: 'C4, CS1' },
-                    { name: 'L3/R3', pos: 70, type: 'door', crewL: 'C5', crewR: 'C6' },
-                    { name: 'L4/R4', pos: 92, type: 'door', crewL: 'LS6', crewR: 'C2' }
+                    { name: 'D1L/D1R', pos: 10, type: 'door', crewL: 'LS4', crewR: 'C7, J2' },
+                    { name: 'D2L/D2R', pos: 35, type: 'door', crewL: 'C3, IFS', crewR: 'C4, CS1' },
+                    { name: 'D3L/D3R', pos: 70, type: 'door', crewL: 'C5', crewR: 'C6' },
+                    { name: 'D4L/D4R', pos: 92, type: 'door', crewL: 'LS6', crewR: 'C2' }
                 ]
             },
             'B737MAX': {
@@ -2844,10 +2924,10 @@
                 speed: 'Mach 0.79',
                 oxygen: 'Chemical (Pax) / Gaseous (FD)',
                 exits: [
-                    { name: 'L1/R1', pos: 10, type: 'door', crewL: 'IFM', crewR: 'LS4' },
+                    { name: 'D1L/D1R', pos: 10, type: 'door', crewL: 'LS1', crewR: 'LS2' },
                     { name: 'OWE 1', pos: 50, type: 'overwing', crewL: '', crewR: '' },
                     { name: 'OWE 2', pos: 56, type: 'overwing', crewL: '', crewR: '' },
-                    { name: 'L2/R2', pos: 90, type: 'door', crewL: 'CS1', crewR: 'J2' }
+                    { name: 'D2L/D2R', pos: 90, type: 'door', crewL: 'LS4', crewR: 'LS5' }
                 ]
             }
         };
@@ -2907,13 +2987,13 @@
                     html += `<line x1="${xPos}" y1="${yBase+5}" x2="${xPos}" y2="${yBase+fusHeight-5}" stroke="#4B5563" stroke-width="1" stroke-dasharray="2,2" opacity="0.4"/>`;
                 }
 
-                // RIGHT STATION (Starboard) -> Rendered at the TOP of the SVG when nose points Left
+                // RIGHT STATION (Starboard) -> Rendered at the UPPER (TOP) of the SVG per exact layout specifications
                 html += `<text x="${xPos}" y="${yBase-10}" fill="#9CA3AF" font-family="monospace" font-size="9" font-weight="bold" text-anchor="middle">${nameR}</text>`;
                 if (exit.crewR) {
                     html += `<text x="${xPos}" y="${yBase-18}" fill="#CBA052" font-family="monospace" font-size="9" font-weight="bold" text-anchor="middle">${exit.crewR}</text>`;
                 }
 
-                // LEFT STATION (Port) -> Rendered at the BOTTOM of the SVG when nose points Left
+                // LEFT STATION (Port) -> Rendered at the BOTTOM of the SVG per exact layout specifications
                 html += `<text x="${xPos}" y="${yBase+fusHeight+16}" fill="#9CA3AF" font-family="monospace" font-size="9" font-weight="bold" text-anchor="middle">${nameL}</text>`;
                 if (exit.crewL) {
                     html += `<text x="${xPos}" y="${yBase+fusHeight+25}" fill="#CBA052" font-family="monospace" font-size="9" font-weight="bold" text-anchor="middle">${exit.crewL}</text>`;
@@ -4811,6 +4891,40 @@
 
         // --- AI CREW ASSISTANT LOGIC ---
         window.aiChatHistory = [];
+
+        window.pendingApiCallback = null;
+
+        window.getGeminiKey = function() {
+            return localStorage.getItem('crew_gemini_key') || "";
+        };
+
+        window.promptGeminiKey = function(callback) {
+            window.pendingApiCallback = callback;
+            document.getElementById('input-api-key').value = window.getGeminiKey();
+            document.getElementById('modal-api-key').classList.remove('hidden-view');
+        };
+
+        window.closeApiKeyModal = function() {
+            document.getElementById('modal-api-key').classList.add('hidden-view');
+            window.pendingApiCallback = null;
+        };
+
+        window.saveApiKey = function() {
+            const key = document.getElementById('input-api-key').value.trim();
+            if (key) {
+                localStorage.setItem('crew_gemini_key', key);
+                document.getElementById('modal-api-key').classList.add('hidden-view');
+                showToast("API Key Saved Successfully!");
+                if (window.pendingApiCallback) {
+                    const cb = window.pendingApiCallback;
+                    window.pendingApiCallback = null;
+                    cb(key);
+                }
+            } else {
+                showToast("Please enter a valid API key.");
+            }
+        };
+
         window.toggleAIChat = function() {
             const panel = document.getElementById('ai-chat-panel');
             if (panel.classList.contains('hidden-view')) {
@@ -4881,9 +4995,21 @@
         };
 
         window.__processAIAssistantCall = async function(text) {
+            const apiKey = window.getGeminiKey();
+            if (!apiKey) {
+                removeChatTyping();
+                window.aiChatHistory.pop(); // Remove the user message from history so they can try again
+                const chatContainer = document.getElementById('ai-chat-messages');
+                chatContainer.removeChild(chatContainer.lastChild); // Remove visually
+                window.promptGeminiKey((newKey) => {
+                    document.getElementById('ai-chat-input').value = text;
+                    window.sendAIChat();
+                });
+                return;
+            }
+
             try {
-                const apiKey = ""; // Secure background proxy injection
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
                 // 1. Define Function Calling Tools (Allow AI to execute actions)
                 const logFlightDeclaration = {
@@ -5662,7 +5788,13 @@ Tone: Professional, helpful, concise, and friendly.`
         function renderMapHUD() {
             if (!window.hudMap) {
                 window.hudMap = L.map('map-container', { zoomControl: true, attributionControl: false }).setView([20, 0], 2);
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(window.hudMap);
+                
+                // Removed the {r} retina parameter to prevent CartoDB 404 tile loading errors
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', { 
+                    subdomains: 'abcd', 
+                    maxZoom: 19,
+                    className: 'navy-map-tiles'
+                }).addTo(window.hudMap);
                 
                 // Bulletproof Resize Observer to fix Leaflet map shrinking
                 new ResizeObserver(() => {
@@ -5696,7 +5828,7 @@ Tone: Professional, helpful, concise, and friendly.`
                 const airport = window.airportDatabase[city];
                 if (airport && airport.lat && airport.lon) {
                     const m = L.circleMarker([airport.lat, airport.lon], {
-                        radius: 5, color: '#CBA052', fillColor: '#CBA052', fillOpacity: 0.8, weight: 2
+                        radius: 4, color: '#CBA052', fillColor: '#0A0F1D', fillOpacity: 1, weight: 2
                     }).bindPopup(`<b>${city}</b><br>${airport.name}`).addTo(window.hudMap);
                     window.hudMarkers.push(m);
                     window.hudBounds.push([airport.lat, airport.lon]);
@@ -5708,12 +5840,49 @@ Tone: Professional, helpful, concise, and friendly.`
                 const a1 = window.airportDatabase[parts[0]];
                 const a2 = window.airportDatabase[parts[1]];
                 if (a1 && a2 && a1.lat && a1.lon && a2.lat && a2.lon) {
-                    const weight = Math.min(count * 1.5, 5);
-                    const opacity = Math.min(count * 0.2, 0.8);
-                    const l = L.polyline([[a1.lat, a1.lon], [a2.lat, a2.lon]], {
-                        color: '#8A6B32', weight: weight, opacity: opacity, dashArray: '5, 10'
+                    
+                    // Mathematical Bezier Curve Generator for Organic Flight Paths
+                    const getCurvePoints = (lat1, lon1, lat2, lon2) => {
+                        let l1 = lon1, l2 = lon2;
+                        // Handle Date Line crossing gracefully
+                        if (Math.abs(l1 - l2) > 180) {
+                            if (l1 > l2) l2 += 360;
+                            else l1 += 360;
+                        }
+                        const midLat = (lat1 + lat2) / 2;
+                        const midLon = (l1 + l2) / 2;
+                        
+                        // Curve arcs towards the pole to mimic global great circle paths
+                        const isNorthern = lat1 + lat2 > 0;
+                        const distLon = Math.abs(l2 - l1);
+                        const curveOffset = Math.min(distLon * 0.25, 30); // Prevent extreme loops
+                        const cpLat = midLat + (isNorthern ? curveOffset : -curveOffset);
+                        const cpLon = midLon;
+
+                        let points = [];
+                        for (let t = 0; t <= 1; t += 0.02) {
+                            const lat = (1-t)*(1-t)*lat1 + 2*(1-t)*t*cpLat + t*t*lat2;
+                            const lon = (1-t)*(1-t)*l1 + 2*(1-t)*t*cpLon + t*t*l2;
+                            points.push([lat, lon]);
+                        }
+                        return points;
+                    };
+
+                    const curvePoints = getCurvePoints(a1.lat, a1.lon, a2.lat, a2.lon);
+                    const weight = Math.min(count * 1.0 + 1, 3.5);
+                    const opacity = Math.min(count * 0.15 + 0.35, 0.9);
+                    
+                    // Add background golden glow to the flight path
+                    const glow = L.polyline(curvePoints, {
+                        color: '#8A6B32', weight: weight + 3, opacity: opacity * 0.25
                     }).addTo(window.hudMap);
-                    window.hudLines.push(l);
+
+                    // Add primary bright gold curve
+                    const line = L.polyline(curvePoints, {
+                        color: '#F2D06B', weight: weight, opacity: opacity
+                    }).addTo(window.hudMap);
+                    
+                    window.hudLines.push(glow, line);
                 }
             });
             
@@ -5967,13 +6136,13 @@ Tone: Professional, helpful, concise, and friendly.`
             
             window.pendingScanFiles = Array.from(files);
             
-            executeScan(""); 
+            executeScan(); // Call executeScan directly without API key prompt
             e.target.value = ''; 
         });
 
-        async function executeScan(apiKey) {
+        async function executeScan() {
             if (!window.pendingScanFiles || window.pendingScanFiles.length === 0) return;
-            showToast(`AI analyzing ${window.pendingScanFiles.length} image(s)... please wait.`, 8000);
+            showToast(`AI analyzing ${window.pendingScanFiles.length} document(s)... please wait.`, 8000);
             
             const base64Files = [];
             for (let i = 0; i < window.pendingScanFiles.length; i++) {
@@ -5992,30 +6161,34 @@ Tone: Professional, helpful, concise, and friendly.`
             }
             
             try {
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=`; // Changed model and removed key
                 
                 const prompt = `You are an expert flight logbook data extractor specialized in Singapore Airlines crew rosters.
-Analyze the provided images of crew rosters.
+Analyze the provided images or PDF documents of crew rosters.
 Extract ALL valid flight sectors into a strictly formatted JSON array.
 
-CRITICAL INSTRUCTIONS:
-1. ONLY extract flights where Duty is "FLY" or "TVL". Ignore "LO" (Layover), "SSSB", "EBT", "ATDO", etc.
-2. SPLIT ROWS (CROSS-MIDNIGHT): Some flights span across TWO consecutive rows. 
-   - Example: Row 1 has Date (10Jul26), Flight (SQ231), Sector (SIN-SYD), Duty Time (9:10).
-   - Row 2 has Date (11Jul26), Flight (SQ231), Sector (SIN-SYD), STD (0045), STA (1025).
-   - You MUST combine these into ONE single JSON object. Use the Date from the row that contains the STD (e.g., "2026-07-11").
-3. Date Format: Convert dates like "11Jul26" to "YYYY-MM-DD" (e.g., "2026-07-11").
-4. Sector: Split "SIN-MEL" into Origin "SIN" and Dest "MEL".
-5. Aircraft (A/C): Map "38R" to "A380", "359" to "A350", "77W" to "B777", "7810" to "B787". If unknown, use the raw value.
-6. Times: Format STD and STA from "0145" to "01:45".
-7. Hours: Calculate Duty Time mathematically into a decimal (e.g., "8:45" = 8.75).
-8. Respond ONLY with the raw JSON array. Do not wrap in markdown blocks.
+CRITICAL INSTRUCTIONS FOR ROSTER FORMAT:
+1.  **FILTER:** ONLY extract rows where the "Duty" column is exactly "FLY" or "TVL". Ignore all other rows like "LO" (Layover), "SSSB", "EBT", "ATDO", "AALV", etc.
+2.  **CROSS-MIDNIGHT FLIGHTS (SPLIT ROWS):** This is the most important rule. Flights are often split across TWO consecutive rows if the Report Time is before midnight, but the STD (Departure) is after midnight. 
+    *   *Example from image:*
+        *   Row A: "10Jul26 SQ231 SIN-SYD 38R FLY Rpt 2345 FltTime 07:40 Duty 9:10"
+        *   Row B: "11Jul26 SQ231 SIN-SYD 38R FLY STD 0045 STA 1025"
+    *   **ACTION:** You MUST recognize this pattern (same Flight Number and Sector on consecutive dates) and MERGE them into ONE single flight record.
+    *   **DATE RULE FOR SPLIT FLIGHTS:** Use the Date from the row that contains the actual departure time (STD). In the example above, use "2026-07-11".
+    *   Combine the Duty Time from Row A with the STD and STA from Row B.
+3.  **FLIGHT NUMBERS (3 OR 4 DIGITS):** Extract exactly as written. Flight numbers can contain 3 or 4 digits (e.g., SQ322, SQ830, SQ231, SQ3008, TR1234). DO NOT truncate 4-digit flight numbers.
+4.  **SECTOR:** Split the "Sector" column (e.g., "SIN-MEL") into separate "origin" ("SIN") and "dest" ("MEL") fields.
+5.  **AIRCRAFT (A/C):** Map the code in the "A/C" column. "38R" = "A380", "359" = "A350", "77W" = "B777", "7810" = "B787". If unknown, output the raw string.
+6.  **TIMES:** Extract STD as "depTime" and STA as "arrTime". Format them as "HH:MM" (e.g., "0145" becomes "01:45"). If missing from a single-row flight, output "".
+7.  **HOURS:** Convert the "Duty Time" column (e.g., "9:10") into a decimal number (e.g., 9.16). If missing, output 0.
+8.  **DATES:** Convert "Start Date" (e.g., "04Jul26") to ISO format "YYYY-MM-DD" (e.g., "2026-07-04").
+9.  **OUTPUT:** Respond ONLY with the raw JSON array. Absolutely no introductory text, no markdown formatting (\`\`\`json), just the array itself.
 
-JSON Format:
+JSON Format Example:
 [
   {
     "date": "2026-07-04",
-    "flightNo": "SQ237",
+    "flightNo": "SQ3008",
     "acType": "A380",
     "acReg": "",
     "gate": "",
