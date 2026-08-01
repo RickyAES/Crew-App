@@ -48,6 +48,18 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         
+        /* BULLETPROOF MOBILE LAYOUT CONSTRAINTS */
+        html, body {
+            height: 100%;
+            height: 100dvh;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden !important;
+            display: flex;
+            flex-direction: column;
+        }
+
         /* Batik Pattern for Dashboard Cards */
         .batik-card-bg::before {
             content: "";
@@ -95,6 +107,7 @@
         input { background: transparent; border: none; color: white; width: 100%; outline: none; }
         input:focus { border-bottom: 1px solid #CBA052; }
         input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+        input[type="month"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
         input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
 
         .glass-panel {
@@ -129,7 +142,7 @@
         .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #131A2A; color: white; border: 1px solid #8A6B32; }
     </style>
 </head>
-<body class="h-screen flex flex-col font-sans overflow-hidden text-gray-100 relative z-0">
+<body class="font-sans text-gray-100 relative z-0 bg-[#0A0F1D]">
 
     <!-- LOGIN & REGISTRATION PORTAL -->
     <div id="view-login" class="fixed inset-0 z-[100] bg-[#0A0F1D] flex flex-col items-center justify-center p-4 transition-opacity duration-500">
@@ -223,7 +236,7 @@
         <div class="absolute inset-0" style="background-image: url('IMG_4861_6.webp'); background-size: cover; background-position: left center; opacity: 0.3; mix-blend-mode: lighten;"></div>
     </div>
 
-    <header class="flex-none p-4 md:p-6 flex justify-between items-center z-10 border-b border-app-border/70 bg-[#0A0F1D]/80 backdrop-blur-md sticky top-0 relative">
+    <header class="flex-none shrink-0 p-4 md:p-6 flex justify-between items-center z-50 border-b border-app-border/70 bg-[#0A0F1D]/95 backdrop-blur-md relative">
         <div class="flex items-center gap-3 md:gap-4 relative z-10">
             
             <!-- Custom Batik + SVG Singapore Airlines Logo -->
@@ -260,7 +273,7 @@
             </div>
         </div>
         
-        <div class="flex items-center gap-2">
+        <div class="flex items-center justify-end gap-2 flex-wrap mt-2 md:mt-0">
             <label class="cursor-pointer bg-[#0A0F1D] hover:bg-[#1a233a] border border-app-accent px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2 text-app-accent shadow-[0_0_15px_rgba(203,160,82,0.2)]" title="AI Monthly Roster Scanner">
                 <i class="ph-fill ph-sparkle"></i>
                 <span class="hidden md:inline">AI Roster Scan</span>
@@ -290,10 +303,10 @@
         </div>
     </header>
 
-    <main class="flex-1 overflow-y-auto px-4 md:px-6 pb-28 relative z-10" id="main-scroll">
+    <main class="flex-1 shrink min-h-0 overflow-y-auto overflow-x-hidden px-4 md:px-6 pt-4 pb-6 relative z-10 flex flex-col w-full" id="main-scroll">
         
         <!-- VIEW: DASHBOARD OVERVIEW -->
-        <div id="view-overview" class="flex flex-col gap-6 max-w-5xl mx-auto">
+        <div id="view-overview" class="flex flex-col gap-6 max-w-5xl mx-auto w-full">
             
             <!-- DASHBOARD UPCOMING FLIGHT ALERT BANNER -->
             <div id="dashboard-flight-alert" class="hidden bg-red-900/30 border border-red-500/50 rounded-xl p-4 flex items-center shadow-[0_0_15px_rgba(220,38,38,0.2)] animate-[pulse_2s_ease-in-out_infinite] batik-card-bg relative overflow-hidden">
@@ -432,7 +445,7 @@
         </div>
 
         <!-- VIEW: GEOGRAPHIC HUD (MAP) -->
-        <div id="view-map" class="hidden-view flex flex-col gap-4 max-w-5xl mx-auto h-full min-h-[400px]">
+        <div id="view-map" class="hidden-view flex flex-col gap-4 max-w-5xl mx-auto w-full flex-1 min-h-[400px]">
             <div class="flex items-center gap-2 px-2">
                 <i class="ph ph-map-pin text-app-accent"></i>
                 <h3 class="text-sm font-bold tracking-widest uppercase text-white">Geographic Deployment HUD</h3>
@@ -450,29 +463,51 @@
         </div>
 
         <!-- VIEW: LOGS (DATA ENTRY) -->
-        <div id="view-logs" class="hidden-view flex flex-col max-w-7xl mx-auto">
-            <div class="bg-app-card border border-app-border rounded-xl overflow-hidden flex flex-col shadow-[0_0_20px_rgba(203,160,82,0.05)] relative batik-card-bg">
+        <div id="view-logs" class="hidden-view flex flex-col max-w-7xl mx-auto flex-1 min-h-0 w-full">
+            <div class="bg-app-card border border-app-border rounded-xl overflow-hidden flex flex-col flex-1 min-h-0 shadow-[0_0_20px_rgba(203,160,82,0.05)] relative batik-card-bg">
                 
-                <div class="p-4 border-b border-app-border flex flex-col md:flex-row justify-between items-start md:items-center bg-[#131A2A]/90 backdrop-blur-md gap-3 relative z-10">
-                    <div class="flex items-center gap-3">
-                        <i class="ph ph-list-dashes text-app-accent"></i>
-                        <h3 class="text-sm font-bold tracking-widest uppercase text-white">Flight Logbook</h3>
-                        <span id="log-counter" class="text-xs font-mono bg-[#0A0F1D] border border-app-border text-app-accent px-2 py-0.5 rounded-full">0 entries</span>
+                <div class="p-4 border-b border-app-border flex flex-col xl:flex-row justify-between items-start xl:items-center bg-[#131A2A]/90 backdrop-blur-md gap-4 relative z-10 shrink-0">
+                    <div class="flex items-center gap-3 shrink-0">
+                        <i class="ph ph-calendar text-app-accent"></i>
+                        <h3 class="text-sm font-bold tracking-widest uppercase text-white">Roster</h3>
+                        <span id="log-counter" class="text-xs font-mono bg-[#0A0F1D] border border-app-border text-app-accent px-2 py-0.5 rounded-full hidden md:inline">0 entries</span>
                     </div>
-                    <div class="flex items-center gap-3 w-full md:w-auto">
+                    <div class="flex items-center justify-start xl:justify-end gap-2 w-full flex-wrap">
+                        
+                        <!-- Roster View Toggle -->
+                        <div class="flex bg-[#0A0F1D] border border-app-border rounded-md p-0.5 shrink-0">
+                            <button id="btn-view-cal" onclick="toggleLogView('calendar')" class="bg-app-accent text-[#0A0F1D] px-2 py-1 rounded text-xs font-bold transition-colors shadow-sm" title="Calendar View">
+                                <i class="ph-bold ph-calendar text-base"></i>
+                            </button>
+                            <button id="btn-view-list" onclick="toggleLogView('list')" class="text-app-text hover:text-white px-2 py-1 rounded text-xs font-bold transition-colors" title="List View">
+                                <i class="ph-bold ph-list-dashes text-base"></i>
+                            </button>
+                        </div>
+
                         <!-- Search / Filter Bar -->
-                        <div class="relative flex-1 md:w-72 flex items-center">
+                        <div class="relative flex-1 min-w-[150px] md:w-64 flex items-center">
                             <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-app-text"></i>
-                            <input type="text" id="log-search" oninput="setLogFilter(this.value)" placeholder="Search flt, A/C reg, gate, city, date..." class="w-full bg-[#0A0F1D] border border-app-border rounded-md py-1.5 pl-9 pr-8 text-xs text-white focus:border-app-accent outline-none transition-colors shadow-inner">
+                            <input type="text" id="log-search" oninput="setLogFilter(this.value)" placeholder="Search flt, A/C, date..." class="w-full bg-[#0A0F1D] border border-app-border rounded-md py-1.5 pl-9 pr-8 text-xs text-white focus:border-app-accent outline-none transition-colors shadow-inner">
                             <button id="clear-search-btn" onclick="clearLogFilter()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors" title="Clear filter">
                                 <i class="ph-bold ph-x text-xs"></i>
                             </button>
                         </div>
+                        
+                        <!-- Undo / Redo -->
+                        <div class="flex gap-1 shrink-0 bg-[#0A0F1D] border border-app-border rounded-md p-0.5">
+                            <button id="btn-undo" onclick="undoAction()" class="text-gray-600 px-2 py-1 rounded text-xs font-bold transition-colors cursor-not-allowed" disabled title="Undo">
+                                <i class="ph-bold ph-arrow-u-up-left text-base"></i>
+                            </button>
+                            <button id="btn-redo" onclick="redoAction()" class="text-gray-600 px-2 py-1 rounded text-xs font-bold transition-colors cursor-not-allowed" disabled title="Redo">
+                                <i class="ph-bold ph-arrow-u-up-right text-base"></i>
+                            </button>
+                        </div>
+
                         <button onclick="confirmPurgeData()" class="shrink-0 bg-red-900/20 hover:bg-red-900/40 border border-red-900/50 text-red-400 hover:text-red-300 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1" title="Purge All Data">
                             <i class="ph-bold ph-trash"></i> <span class="hidden md:inline">Purge</span>
                         </button>
                         <button onclick="openQuickAddModal()" class="shrink-0 bg-green-900/20 hover:bg-green-900/40 border border-green-500/50 text-green-400 hover:text-green-300 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors shadow-[0_0_10px_rgba(34,197,94,0.1)] flex items-center gap-1" title="Instantly log flight and turnaround from Timetable">
-                            <i class="ph-bold ph-lightning"></i> <span class="hidden md:inline">Quick Auto-Log</span>
+                            <i class="ph-bold ph-lightning"></i> <span class="hidden lg:inline">Quick Auto-Log</span>
                         </button>
                         <button onclick="openAddForm()" class="shrink-0 bg-[#0A0F1D] hover:bg-[#1a233a] border border-app-accent text-app-accent hover:text-white px-4 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors shadow-[0_0_10px_rgba(203,160,82,0.2)] flex items-center gap-1">
                             <i class="ph-bold ph-plus"></i> Add New
@@ -480,7 +515,31 @@
                     </div>
                 </div>
 
-                <div class="overflow-x-auto relative z-10">
+                <!-- CALENDAR VIEW -->
+                <div id="log-calendar-view" class="p-3 md:p-5 relative z-10 block flex-1 overflow-y-auto min-h-0">
+                    <div class="flex justify-between items-center mb-4 bg-[#0A0F1D] rounded-xl border border-app-border p-2 shadow-inner shrink-0">
+                        <button onclick="changeMonth(-1)" class="p-2 bg-[#131A2A] border border-app-border rounded-lg text-app-accent hover:text-white hover:bg-app-accent/20 transition-colors shrink-0"><i class="ph-bold ph-caret-left text-lg"></i></button>
+                        <input type="month" id="cal-month-picker" onchange="jumpToMonth(this.value)" class="bg-transparent text-sm md:text-base font-bold tracking-widest uppercase text-white text-center outline-none cursor-pointer border-none focus:ring-0 flex-1 mx-2">
+                        <button onclick="changeMonth(1)" class="p-2 bg-[#131A2A] border border-app-border rounded-lg text-app-accent hover:text-white hover:bg-app-accent/20 transition-colors shrink-0"><i class="ph-bold ph-caret-right text-lg"></i></button>
+                    </div>
+                    
+                    <div class="grid grid-cols-7 gap-1 md:gap-2 mb-2 text-center shrink-0">
+                        <div class="text-[9px] md:text-xs font-bold text-gray-500 uppercase">Sun</div>
+                        <div class="text-[9px] md:text-xs font-bold text-gray-500 uppercase">Mon</div>
+                        <div class="text-[9px] md:text-xs font-bold text-gray-500 uppercase">Tue</div>
+                        <div class="text-[9px] md:text-xs font-bold text-gray-500 uppercase">Wed</div>
+                        <div class="text-[9px] md:text-xs font-bold text-gray-500 uppercase">Thu</div>
+                        <div class="text-[9px] md:text-xs font-bold text-gray-500 uppercase">Fri</div>
+                        <div class="text-[9px] md:text-xs font-bold text-gray-500 uppercase">Sat</div>
+                    </div>
+                    
+                    <div id="cal-grid" class="grid grid-cols-7 gap-1 md:gap-2">
+                        <!-- Calendar Days Injected Here -->
+                    </div>
+                </div>
+
+                <!-- LIST VIEW (TABLE) -->
+                <div id="log-list-view" class="hidden overflow-x-auto relative z-10 flex-1 min-h-0">
                     <table class="w-full text-left border-collapse min-w-[1100px]">
                         <thead>
                             <tr class="bg-[#0A0F1D]/80 backdrop-blur-sm text-[10px] uppercase tracking-wider text-app-accent border-b border-app-border">
@@ -734,6 +793,56 @@
             </div>
         </div>
 
+        <!-- VIEW: AIRCRAFT & FLEET INTEL -->
+        <div id="view-fleet" class="hidden-view flex flex-col max-w-5xl mx-auto w-full pb-8">
+            <div class="bg-app-card border border-app-border rounded-xl p-5 shadow-[0_0_20px_rgba(203,160,82,0.1)] relative overflow-hidden batik-card-bg">
+                
+                <div class="flex justify-between items-center mb-6 border-b border-app-border pb-4 relative z-10">
+                    <h2 class="text-lg font-bold tracking-widest uppercase text-white flex items-center gap-2">
+                        <i class="ph-fill ph-airplane-tilt text-app-accent"></i> Fleet Intel
+                    </h2>
+                </div>
+
+                <div class="relative z-10 flex flex-col gap-6">
+                    
+                    <!-- Fleet Selector -->
+                    <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide shrink-0" id="fleet-tabs">
+                        <button onclick="renderFleetData('A350')" id="fleet-tab-A350" class="fleet-tab-btn active bg-app-accent text-[#0A0F1D] px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors shadow-[0_0_10px_rgba(203,160,82,0.4)] shrink-0">A350-900</button>
+                        <button onclick="renderFleetData('A380')" id="fleet-tab-A380" class="fleet-tab-btn bg-[#131A2A] border border-app-border text-gray-400 hover:text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors shrink-0">A380-800</button>
+                        <button onclick="renderFleetData('A330')" id="fleet-tab-A330" class="fleet-tab-btn bg-[#131A2A] border border-app-border text-gray-400 hover:text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors shrink-0">A330-300</button>
+                        <button onclick="renderFleetData('B777')" id="fleet-tab-B777" class="fleet-tab-btn bg-[#131A2A] border border-app-border text-gray-400 hover:text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors shrink-0">B777-300ER</button>
+                        <button onclick="renderFleetData('B787')" id="fleet-tab-B787" class="fleet-tab-btn bg-[#131A2A] border border-app-border text-gray-400 hover:text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors shrink-0">B787-10</button>
+                        <button onclick="renderFleetData('B772')" id="fleet-tab-B772" class="fleet-tab-btn bg-[#131A2A] border border-app-border text-gray-400 hover:text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors shrink-0">B772</button>
+                        <button onclick="renderFleetData('B772ER')" id="fleet-tab-B772ER" class="fleet-tab-btn bg-[#131A2A] border border-app-border text-gray-400 hover:text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors shrink-0">B772ER</button>
+                        <button onclick="renderFleetData('B772J')" id="fleet-tab-B772J" class="fleet-tab-btn bg-[#131A2A] border border-app-border text-gray-400 hover:text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors shrink-0">B772J</button>
+                        <button onclick="renderFleetData('B737MAX')" id="fleet-tab-B737MAX" class="fleet-tab-btn bg-[#131A2A] border border-app-border text-gray-400 hover:text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors shrink-0">B737-MAX</button>
+                    </div>
+
+                    <!-- Fleet Stats Area -->
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="fleet-stats">
+                        <!-- Injected by JS -->
+                    </div>
+
+                    <!-- Visual Floor Plan -->
+                    <div class="bg-[#0A0F1D] border border-app-border rounded-xl p-4 md:p-6 mt-2 relative">
+                        <h3 class="text-xs font-bold tracking-widest uppercase text-app-text mb-6">Emergency Exit Blueprint</h3>
+                        
+                        <div class="w-full flex items-center justify-center overflow-x-auto" id="fleet-blueprint-container">
+                            <!-- SVG Blueprint Injected by JS -->
+                        </div>
+                        
+                        <!-- Legend -->
+                        <div class="mt-6 flex flex-wrap justify-center gap-4 border-t border-app-border/50 pt-4">
+                            <div class="flex items-center gap-2"><div class="w-3 h-3 bg-red-500 rounded-sm"></div><span class="text-[10px] font-mono text-gray-400 uppercase tracking-widest">Main Exit Door</span></div>
+                            <div class="flex items-center gap-2"><div class="w-3 h-3 border-2 border-red-500 rounded-sm"></div><span class="text-[10px] font-mono text-gray-400 uppercase tracking-widest">Overwing Exit</span></div>
+                            <div class="flex items-center gap-2"><span class="text-xs font-bold text-[#CBA052]">STA</span><span class="text-[10px] font-mono text-gray-400 uppercase tracking-widest ml-1">Crew Station</span></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
         <!-- VIEW: CREW CHAT (COMMS) -->
         <div id="view-chat" class="hidden-view flex flex-col gap-4 max-w-5xl mx-auto h-[75vh] w-full">
             <div class="bg-app-card border border-app-border rounded-xl flex overflow-hidden shadow-[0_0_20px_rgba(203,160,82,0.05)] relative batik-card-bg h-full">
@@ -758,7 +867,7 @@
                         <!-- Messages injected here -->
                         <div class="m-auto text-[10px] text-app-accent font-mono border border-app-accent/30 px-3 py-1 rounded-full bg-[#0A0F1D]/50 mt-4 mb-2">End-to-End Encrypted Crew Comms</div>
                     </div>
-                    <div class="p-3 border-t border-app-border bg-[#131A2A] flex items-center gap-2">
+                    <div class="p-3 border-t border-app-border bg-[#131A2A] flex items-center gap-2 shrink-0">
                         <button id="chat-share-btn" onclick="openShareRosterModal()" class="bg-[#0A0F1D] border border-app-border text-app-accent w-10 h-10 rounded-md flex items-center justify-center hover:bg-[#1a233a] transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed" disabled title="Share Roster">
                             <i class="ph-bold ph-calendar-plus text-lg"></i>
                         </button>
@@ -767,30 +876,32 @@
                             <i class="ph-bold ph-paper-plane-right text-lg"></i>
                         </button>
                     </div>
-                </div>
-            </div>
-        </div>
+    </main>
 
     <!-- BOTTOM NAVIGATION -->
-    <nav class="fixed bottom-0 w-full glass-panel border-t border-app-border px-2 py-3 z-50">
-        <div class="max-w-md mx-auto flex justify-between items-center px-4">
-            <button onclick="switchView('overview')" id="nav-overview" class="flex flex-col items-center gap-1 text-app-accent w-16 transition-colors">
+    <nav class="flex-none shrink-0 w-full glass-panel border-t border-app-border z-50 bg-[#131A2A]/95 backdrop-blur-lg pb-[env(safe-area-inset-bottom)] relative">
+        <div class="max-w-md mx-auto flex justify-between items-stretch px-2 h-16">
+            <button onclick="switchView('overview')" id="nav-overview" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-accent transition-colors">
                 <i class="ph-fill ph-house text-2xl"></i>
                 <span class="text-[10px] font-bold uppercase tracking-wider">Overview</span>
             </button>
-            <button onclick="switchView('map')" id="nav-map" class="flex flex-col items-center gap-1 text-app-text hover:text-white w-16 transition-colors">
+            <button onclick="switchView('map')" id="nav-map" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-text hover:text-white transition-colors hidden sm:flex">
                 <i class="ph ph-globe text-2xl"></i>
                 <span class="text-[10px] font-bold uppercase tracking-wider">HUD</span>
             </button>
-            <button onclick="switchView('logs')" id="nav-logs" class="flex flex-col items-center gap-1 text-app-text hover:text-white w-16 transition-colors">
+            <button onclick="switchView('logs')" id="nav-logs" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-text hover:text-white transition-colors">
                 <i class="ph ph-books text-2xl"></i>
                 <span class="text-[10px] font-bold uppercase tracking-wider">Logs</span>
             </button>
-            <button onclick="switchView('chat')" id="nav-chat" class="flex flex-col items-center gap-1 text-app-text hover:text-white w-16 transition-colors">
+            <button onclick="switchView('fleet')" id="nav-fleet" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-text hover:text-white transition-colors">
+                <i class="ph ph-airplane-tilt text-2xl"></i>
+                <span class="text-[10px] font-bold uppercase tracking-wider">Fleet</span>
+            </button>
+            <button onclick="switchView('chat')" id="nav-chat" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-text hover:text-white transition-colors">
                 <i class="ph ph-chats text-2xl"></i>
                 <span class="text-[10px] font-bold uppercase tracking-wider">Comms</span>
             </button>
-            <button onclick="switchView('admin')" id="nav-admin" class="hidden flex flex-col items-center gap-1 text-app-text hover:text-white w-16 transition-colors">
+            <button onclick="switchView('admin')" id="nav-admin" class="hidden flex-1 flex flex-col items-center justify-center gap-1 text-app-text hover:text-white transition-colors">
                 <i class="ph ph-shield-check text-2xl"></i>
                 <span class="text-[10px] font-bold uppercase tracking-wider">Admin</span>
             </button>
@@ -866,6 +977,21 @@
             <div class="flex gap-3 w-full">
                 <button onclick="closePurgeModal()" class="flex-1 bg-app-card border border-app-border text-white p-3 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-[#1f2940] transition-colors">Cancel</button>
                 <button onclick="executeDataPurge()" class="flex-1 bg-red-600 hover:bg-red-700 text-white p-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors shadow-[0_0_15px_rgba(220,38,38,0.4)]">Yes, Purge</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DELETE CONFIRMATION MODAL -->
+    <div id="modal-delete-confirm" class="hidden-view fixed inset-0 z-[200] bg-[#0A0F1D]/90 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-sm p-6 rounded-2xl shadow-2xl relative z-10 flex flex-col items-center border border-red-500/50 text-center">
+            <div class="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mb-4 border border-red-500 mx-auto">
+                <i class="ph-fill ph-trash text-3xl text-red-500"></i>
+            </div>
+            <h2 class="text-lg font-bold text-white uppercase tracking-widest mb-2">Confirm Deletion</h2>
+            <p class="text-xs text-gray-400 mb-6 font-mono">Delete flight <span id="del-confirm-flt" class="font-bold text-app-accent"></span>?</p>
+            <div class="flex gap-3 w-full">
+                <button onclick="closeDeleteConfirmModal()" class="flex-1 bg-app-card border border-app-border text-white p-3 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-[#1f2940] transition-colors">Cancel</button>
+                <button onclick="executeDeleteEntry()" class="flex-1 bg-red-600 hover:bg-red-700 text-white p-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors shadow-[0_0_15px_rgba(220,38,38,0.4)]">Delete</button>
             </div>
         </div>
     </div>
@@ -1085,9 +1211,12 @@
         <div class="glass-panel w-full md:max-w-md p-6 rounded-t-3xl md:rounded-2xl shadow-2xl relative z-10 flex flex-col border-t md:border border-app-accent/50 max-h-[90vh] overflow-y-auto">
             
             <!-- Header -->
-            <div class="flex justify-between items-start mb-6 border-b border-app-border pb-4">
+            <div class="flex justify-between items-start mb-6 border-b border-app-border pb-4 shrink-0">
                 <div>
-                    <h2 id="fd-title" class="text-xl font-bold text-white uppercase tracking-widest">SQ...</h2>
+                    <div class="flex items-center gap-2 mb-1">
+                        <h2 id="fd-title" class="text-xl font-bold text-white uppercase tracking-widest">SQ...</h2>
+                        <span id="fd-date" class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-[#0A0F1D] text-gray-300 border border-app-border/50">--/--/----</span>
+                    </div>
                     <p id="fd-route" class="text-sm text-app-accent font-mono mt-0.5">... ✈ ...</p>
                 </div>
                 <button onclick="closeFlightDetails()" class="bg-[#0A0F1D] border border-app-border p-2 rounded-full text-gray-400 hover:text-white transition-colors">
@@ -1095,8 +1224,27 @@
                 </button>
             </div>
 
+            <!-- Flight Schedule (NEW BLOCK) -->
+            <div class="mb-5 shrink-0">
+                <h3 class="text-[10px] font-bold text-app-text uppercase tracking-widest mb-2 flex items-center gap-1"><i class="ph-fill ph-clock text-app-text text-sm"></i> Flight Schedule</h3>
+                <div class="bg-[#0A0F1D] border border-app-border rounded-xl p-4 flex justify-between items-center text-center shadow-inner">
+                    <div>
+                        <p class="text-[9px] text-gray-500 font-mono uppercase mb-0.5 tracking-widest">Departs</p>
+                        <p id="fd-dep-time" class="text-2xl font-bold text-white">--:--</p>
+                    </div>
+                    <div class="flex-1 px-3 relative flex flex-col items-center justify-center">
+                        <p id="fd-total-time" class="text-[10px] font-bold text-[#0A0F1D] bg-app-accent px-2 py-0.5 rounded-full shadow-[0_0_10px_rgba(203,160,82,0.4)] z-10">-- HRS</p>
+                        <div class="h-px w-full bg-app-border/50 absolute top-1/2 left-0 -translate-y-1/2 z-0"></div>
+                    </div>
+                    <div>
+                        <p class="text-[9px] text-gray-500 font-mono uppercase mb-0.5 tracking-widest">Arrives</p>
+                        <p id="fd-arr-time" class="text-2xl font-bold text-white">--:--</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Risk Intel -->
-            <div class="mb-5">
+            <div class="mb-5 shrink-0">
                 <h3 class="text-[10px] font-bold text-app-text uppercase tracking-widest mb-2 flex items-center gap-1"><i class="ph-fill ph-shield-warning text-app-text text-sm"></i> Station Risk Level</h3>
                 <div class="bg-[#0A0F1D] border border-app-border rounded-xl p-4">
                     <div class="flex items-center gap-3 mb-2">
@@ -1121,9 +1269,41 @@
                 </div>
             </div>
 
+            <!-- Aircraft & Seat Intel (NEW BLOCK) -->
+            <div class="mb-5 shrink-0" id="fd-aircraft-intel-container" style="display: none;">
+                <h3 class="text-[10px] font-bold text-app-text uppercase tracking-widest mb-2 flex items-center gap-1"><i class="ph-fill ph-airplane-in-flight text-app-text text-sm"></i> Aircraft & Load Factor</h3>
+                <div class="bg-[#0A0F1D] border border-app-border rounded-xl p-4">
+                    <div class="flex justify-between items-center mb-3 border-b border-app-border/50 pb-2">
+                        <div>
+                            <h4 id="fd-ac-name" class="text-sm font-bold text-white uppercase tracking-widest">A350-900</h4>
+                            <p id="fd-ac-reg" class="text-[10px] text-gray-400 font-mono">REG: --</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] text-gray-500 font-mono uppercase mb-0.5 tracking-widest flex items-center gap-1 justify-end"><i class="ph-fill ph-sparkle text-app-accent"></i> AI Predicted Load</p>
+                            <p id="fd-load-factor" class="text-lg font-bold text-green-400">--%</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Dynamic Class Breakdown -->
+                    <div class="flex gap-1.5 mb-4 overflow-x-auto pb-1 scrollbar-hide" id="fd-class-breakdown">
+                        <!-- Injected by JS -->
+                    </div>
+
+                    <!-- Blueprint -->
+                    <div class="w-full flex items-center justify-center overflow-x-auto bg-[#131A2A] rounded-lg p-2 border border-app-border/50" id="fd-blueprint-container">
+                        <!-- SVG Injected here -->
+                    </div>
+                </div>
+            </div>
+
             <!-- Hotel Info -->
             <div class="mb-6">
-                <h3 class="text-[10px] font-bold text-app-text uppercase tracking-widest mb-2 flex items-center gap-1"><i class="ph-fill ph-bed text-app-text text-sm"></i> Crew Accommodation</h3>
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-[10px] font-bold text-app-text uppercase tracking-widest flex items-center gap-1"><i class="ph-fill ph-bed text-app-text text-sm"></i> Crew Accommodation</h3>
+                    <button onclick="openEditDestModal()" class="text-[9px] text-app-accent hover:text-white transition-colors border border-app-accent/30 px-2 py-0.5 rounded flex items-center gap-1">
+                        <i class="ph-bold ph-pencil-simple"></i> Edit Intel
+                    </button>
+                </div>
                 <div class="bg-[#0A0F1D] border border-app-border rounded-xl p-4">
                     <h4 id="fd-hotel-name" class="text-sm font-bold text-white mb-1">Retrieving Hotel...</h4>
                     <p id="fd-hotel-address" class="text-xs text-gray-400 font-mono mb-4 leading-relaxed">...</p>
@@ -1133,6 +1313,84 @@
                 </div>
             </div>
             
+        </div>
+    </div>
+
+    <!-- DIARY / ITINERARY MODAL (NEW) -->
+    <div id="modal-diary" class="hidden-view fixed inset-0 z-[350] bg-[#0A0F1D]/90 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-sm p-6 rounded-2xl shadow-2xl relative z-10 flex flex-col border border-app-accent/50">
+            <div class="flex justify-between items-start mb-4 border-b border-app-border pb-3 shrink-0">
+                <div>
+                    <h2 id="diary-title" class="text-lg font-bold text-white uppercase tracking-widest flex items-center gap-2">
+                        <i class="ph-fill ph-book-open text-app-accent"></i> <span>Planner</span>
+                    </h2>
+                    <p id="diary-date" class="text-[10px] text-gray-400 font-mono mt-0.5"></p>
+                </div>
+                <button onclick="closeDiary()" class="bg-[#0A0F1D] border border-app-border p-1.5 rounded-full text-gray-400 hover:text-white transition-colors">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+            <div class="flex-1 flex flex-col gap-3">
+                <textarea id="diary-input" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white focus:border-app-accent outline-none resize-none h-40 font-mono placeholder-gray-600" placeholder="Type grocery list, itinerary, or notes here..."></textarea>
+                <button onclick="saveDiary()" class="w-full bg-app-accent hover:bg-[#B58D22] text-[#0A0F1D] p-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors shadow-[0_0_15px_rgba(203,160,82,0.4)] flex justify-center items-center gap-2">
+                    <i class="ph-bold ph-floppy-disk text-lg"></i> Save Notes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT DESTINATION INTEL MODAL (NEW) -->
+    <div id="modal-edit-dest" class="hidden-view fixed inset-0 z-[400] bg-[#0A0F1D]/95 backdrop-blur-md flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-md p-6 rounded-2xl shadow-2xl relative z-10 flex flex-col border border-app-accent/50 max-h-[95vh] overflow-y-auto">
+            
+            <div class="flex justify-between items-start mb-6 border-b border-app-border pb-4 shrink-0">
+                <div>
+                    <h2 class="text-lg font-bold text-white uppercase tracking-widest flex items-center gap-2">
+                        <i class="ph-fill ph-map-pin text-app-accent"></i> Update Station
+                    </h2>
+                    <p id="edit-dest-title" class="text-[10px] text-gray-400 font-mono mt-1">Destination: <span class="text-app-accent font-bold text-sm ml-1" id="edit-dest-code">---</span></p>
+                </div>
+                <button onclick="closeEditDestModal()" class="bg-[#0A0F1D] border border-app-border p-2 rounded-full text-gray-400 hover:text-white transition-colors">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+
+            <div class="flex flex-col gap-4 mb-6">
+                <!-- Hotel Name -->
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-bold text-app-text uppercase tracking-widest">Crew Hotel Name</label>
+                    <input type="text" id="edit-dest-hotel" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white focus:border-app-accent outline-none">
+                </div>
+                
+                <!-- Address -->
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-bold text-app-text uppercase tracking-widest">Hotel Address</label>
+                    <input type="text" id="edit-dest-address" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white focus:border-app-accent outline-none">
+                </div>
+                
+                <!-- Risk Level -->
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-bold text-app-text uppercase tracking-widest">Station Risk Level</label>
+                    <select id="edit-dest-risk" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white focus:border-app-accent outline-none cursor-pointer">
+                        <option value="Green">GREEN (Standard Precautions)</option>
+                        <option value="Yellow">YELLOW (Moderate Risk/Vigilance)</option>
+                        <option value="Red">RED (High Risk/Severe Crime)</option>
+                    </select>
+                </div>
+
+                <!-- Tips & Intel -->
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-bold text-app-text uppercase tracking-widest">Layover Tips & Alerts (Max 150 chars)</label>
+                    <textarea id="edit-dest-msg" maxlength="150" rows="3" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white focus:border-app-accent outline-none resize-none font-mono"></textarea>
+                </div>
+            </div>
+
+            <div class="flex gap-3 w-full mt-auto shrink-0">
+                <button onclick="closeEditDestModal()" class="flex-1 bg-app-card border border-app-border text-white p-3 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-[#1f2940] transition-colors">Cancel</button>
+                <button onclick="saveDestIntel()" class="flex-1 bg-app-accent hover:bg-[#B58D22] text-[#0A0F1D] p-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors shadow-[0_0_15px_rgba(203,160,82,0.4)] flex justify-center items-center gap-2">
+                    <i class="ph-bold ph-floppy-disk text-lg"></i> Update Intel
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1186,6 +1444,7 @@
         window.accountsData = [];
         window.timetableData = [];
         window.airportDatabase = {}; 
+        window.customDestIntel = {}; // Community overrides for hotel intel
         window.editingDocId = null; 
         window.lastUsedDate = null; 
         
@@ -1207,20 +1466,151 @@
             return window.rankWeights[role] || 99;
         };
 
+        // --- UNDO / REDO ENGINE ---
+        window.undoStack = [];
+        window.redoStack = [];
+
+        window.pushToUndoStack = function(action, currentData, previousData = null) {
+            if (window.undoStack.length >= 20) window.undoStack.shift();
+            window.undoStack.push({ action, current: JSON.parse(JSON.stringify(currentData)), previous: previousData ? JSON.parse(JSON.stringify(previousData)) : null });
+            window.redoStack = [];
+            window.updateUndoRedoUI();
+        };
+
+        window.updateUndoRedoUI = function() {
+            const btnUndo = document.getElementById('btn-undo');
+            const btnRedo = document.getElementById('btn-redo');
+            
+            if(btnUndo) {
+                btnUndo.disabled = window.undoStack.length === 0;
+                btnUndo.className = window.undoStack.length === 0 
+                    ? "text-gray-600 px-2 py-1 rounded text-xs font-bold transition-colors cursor-not-allowed" 
+                    : "text-app-accent hover:text-white hover:bg-app-accent/20 px-2 py-1 rounded text-xs font-bold transition-colors cursor-pointer shadow-sm";
+            }
+            if(btnRedo) {
+                btnRedo.disabled = window.redoStack.length === 0;
+                btnRedo.className = window.redoStack.length === 0 
+                    ? "text-gray-600 px-2 py-1 rounded text-xs font-bold transition-colors cursor-not-allowed" 
+                    : "text-app-accent hover:text-white hover:bg-app-accent/20 px-2 py-1 rounded text-xs font-bold transition-colors cursor-pointer shadow-sm";
+            }
+        };
+
+        window.performAction = async function(action, data) {
+             const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+             if (cloudSyncDisabled) {
+                 if (action === 'ADD' || action === 'EDIT') {
+                     const idx = window.flightsData.findIndex(f => f.id === data.id);
+                     if (idx > -1) window.flightsData[idx] = data;
+                     else window.flightsData.push(data);
+                 } else if (action === 'DELETE') {
+                     window.flightsData = window.flightsData.filter(f => f.id !== data.id);
+                 }
+                 localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+                 renderUI();
+             } else {
+                 if (action === 'ADD' || action === 'EDIT') {
+                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'flights', data.id), data);
+                 } else if (action === 'DELETE') {
+                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'flights', data.id));
+                 }
+             }
+        };
+
+        window.undoAction = async function() {
+            if (window.undoStack.length === 0) return;
+            const item = window.undoStack.pop();
+            window.redoStack.push(item);
+            window.updateUndoRedoUI();
+
+            try {
+                if (item.action === 'ADD') {
+                    await window.performAction('DELETE', item.current);
+                } else if (item.action === 'DELETE') {
+                    await window.performAction('ADD', item.current);
+                } else if (item.action === 'EDIT') {
+                    await window.performAction('EDIT', item.previous);
+                }
+                showToast("Action undone.");
+            } catch(e) { console.error(e); showToast("Undo failed"); }
+        };
+
+        window.redoAction = async function() {
+            if (window.redoStack.length === 0) return;
+            const item = window.redoStack.pop();
+            window.undoStack.push(item);
+            window.updateUndoRedoUI();
+
+            try {
+                if (item.action === 'ADD') {
+                    await window.performAction('ADD', item.current);
+                } else if (item.action === 'DELETE') {
+                    await window.performAction('DELETE', item.current);
+                } else if (item.action === 'EDIT') {
+                    await window.performAction('EDIT', item.current);
+                }
+                showToast("Action redone.");
+            } catch(e) { console.error(e); showToast("Redo failed"); }
+        };
+
         // --- DESTINATION INTEL DICTIONARY ---
         window.destIntel = {
-            'LHR': { hotel: 'Copthorne Tara Hotel London Kensington', address: 'Scarsdale Pl, Kensington, London W8 5SY', risk: 'Yellow', riskMsg: 'Moderate risk: High pickpocketing activity in tourist zones.' },
-            'SYD': { hotel: 'Rydges Sydney Airport', address: '8 Arrival Ct, Sydney International Airport', risk: 'Green', riskMsg: 'Low risk: Standard safety precautions.' },
-            'MEL': { hotel: 'Pan Pacific Melbourne', address: '2 Convention Centre Pl, South Wharf VIC 3006', risk: 'Green', riskMsg: 'Low risk: Standard safety precautions.' },
-            'LAX': { hotel: 'Hilton Los Angeles Airport', address: '5711 W Century Blvd, Los Angeles, CA 90045', risk: 'Yellow', riskMsg: 'Moderate risk: Maintain vigilance at night near airport.' },
-            'JFK': { hotel: 'Sheraton JFK Airport', address: '132-26 South Conduit Ave, Jamaica, NY 11430', risk: 'Yellow', riskMsg: 'Moderate risk: Situational awareness required.' },
-            'JNB': { hotel: 'InterContinental Johannesburg', address: 'O.R. Tambo Airport, Johannesburg', risk: 'Red', riskMsg: 'HIGH RISK: Severe crime levels. Do not leave hotel unescorted at night.' },
-            'CDG': { hotel: 'Pullman Paris Roissy CDG', address: '3 B Rue de La Haye, 95700 Roissy', risk: 'Yellow', riskMsg: 'Moderate risk: Watch for pickpockets on public transit.' },
-            'FRA': { hotel: 'Sheraton Frankfurt Airport', address: 'Hugo-Eckener-Ring 15, 60549 Frankfurt', risk: 'Green', riskMsg: 'Low risk: Standard safety precautions.' },
-            'NRT': { hotel: 'Narita Excel Hotel Tokyu', address: '31 Oyama, Narita, Chiba', risk: 'Green', riskMsg: 'Low risk: Standard safety precautions.' },
-            'SFO': { hotel: 'Westin St. Francis', address: '335 Powell St, San Francisco, CA', risk: 'Yellow', riskMsg: 'Moderate risk: Avoid Tenderloin district unescorted.' },
+            'SIN': { hotel: 'Home Sweet Home 🇸🇬', address: 'Welcome back! Wishing you a safe flight back to Singapore and a well-deserved rest.', risk: 'Green', riskMsg: 'Home base. Standard operating safety precautions apply.' },
+            
+            // Australia & New Zealand
+            'ADL': { hotel: 'InterContinental Adelaide', address: 'North Terrace, Adelaide SA 5000', risk: 'Green', riskMsg: 'Low risk. $20 Breakfast. $10 Crew Menu available.' },
+            'AKL': { hotel: 'SQ285: Rydges Auckland | SQ281: M Social', address: 'Rydges: 59 Federal St | M Social: 196-200 Quay St', risk: 'Green', riskMsg: 'Low risk. M Social: Washer/Dryer 4th flr. Rydges: Rm Svc +$5.' },
+            'BNE': { hotel: 'Pullman Brisbane King George Square', address: 'Corner Ann And, Roma St, Brisbane City QLD 4000', risk: 'Green', riskMsg: 'Low risk. $12.50 Breakfast. 50% F&B off.' },
+            'CHC': { hotel: 'Peppers Clearwater Resort', address: 'Clearwater Avenue, Harewood, Christchurch', risk: 'Green', riskMsg: 'Low risk. Special Menu available.' },
+            'MEL': { hotel: 'SQ217/247: Rendezvous | SQ227/237: Four Points | SQ207: Mantra Southbank', address: 'Rendezvous: 328 Flinders St | Four Points: 22 Pearl River Rd | Mantra: 31 City Rd', risk: 'Green', riskMsg: 'Low risk. Mantra: Kitchenette & Washer/Dryer available.' },
+            'PER': { hotel: 'Pan Pacific Perth', address: '207 Adelaide Terrace, Perth WA 6000', risk: 'Green', riskMsg: 'Low risk. 50% off Buffet.' },
+            'SYD': { hotel: 'SQ241/288: Four Points | SQ211: Boulevard | SQ221/231: Tank Stream', address: 'Four Points: 89-113 Sussex St | Boulevard: 90 William St | Tank: 97 Pitt St', risk: 'Green', riskMsg: 'Low risk. Standard safety precautions.' },
+            
+            // Asia
+            'AMD': { hotel: 'Courtyard by Marriott Ahmedabad', address: 'Ramdev Nagar Cross Road, Satellite, Ahmedabad', risk: 'Yellow', riskMsg: 'Moderate risk. Complimentary Breakfast.' },
+            'BOM': { hotel: 'SQ424: ITC Maratha | SQ422/426: Westin Mumbai', address: 'ITC: Sahar Airport Rd | Westin: Oberoi Garden City', risk: 'Yellow', riskMsg: 'Moderate risk. ITC: Crew Room on 11th Floor.' },
+            'CGK': { hotel: 'Pullman Jakarta Central Park', address: 'Podomoro City, Letjen S. Parman, Jakarta', risk: 'Yellow', riskMsg: 'Moderate risk. 50% F&B off.' },
+            'DEL': { hotel: 'The Leela Ambience Gurgaon', address: 'Ambience Island, National Highway 8, Gurugram', risk: 'Yellow', riskMsg: 'Moderate risk. Crew room lobby (residence lift).' },
+            'FUK': { hotel: 'Hilton Fukuoka Sea Hawk', address: '2 Chome-2-3 Jigyohama, Chuo Ward, Fukuoka', risk: 'Green', riskMsg: 'Low risk. JPY 1,525 Breakfast.' },
+            'HKG': { hotel: 'The Kowloon Hotel', address: '19-21 Nathan Rd, Tsim Sha Tsui, Hong Kong', risk: 'Green', riskMsg: 'Low risk. HK$100 Breakfast.' },
+            'HND': { hotel: 'SQ634/636: Grand Prince New Takanawa | SQ632: InterContinental Yokohama', address: 'Prince: 3-13-1 Takanawa | IC: 1-1-1 Minatomirai', risk: 'Green', riskMsg: 'Low risk. Grand Prince: No breakfast offer.' },
+            'ICN': { hotel: 'SQ600/602/608: Millennium Hilton | SQ612: Sheraton D Cube City', address: 'Hilton: 50 Sowol-ro, Jung-gu | Sheraton: 662 Gyeongin-ro', risk: 'Green', riskMsg: 'Low risk. Standard precautions.' },
+            'KIX': { hotel: 'Sheraton Miyako Hotel Osaka', address: '6-1-55 Uehommachi, Tennoji Ward, Osaka', risk: 'Green', riskMsg: 'Low risk. Crew Rm 1226 (key 98765E). Aeon 24hrs.' },
+            'MLE': { hotel: 'Kurumba Maldives', address: 'Vihamanafushi, North Male Atoll', risk: 'Green', riskMsg: 'Low risk. Special rate applies.' },
+            'MNL': { hotel: 'Diamond Hotel Philippines', address: 'Roxas Boulevard, Manila', risk: 'Yellow', riskMsg: 'Moderate risk. Security vigilance required.' },
+            'NGO': { hotel: 'Hilton Nagoya', address: '1 Chome-3-3 Sakae, Naka Ward, Nagoya', risk: 'Green', riskMsg: 'Low risk. JPY 1,850 Breakfast.' },
+            'NRT': { hotel: 'SQ12/638: Int\'l Garden Hotel | SQ11: Grand Prince New Takanawa', address: 'Garden: 241-1 Yoshikura, Narita', risk: 'Green', riskMsg: 'Low risk. Garden: Crew Rm 2nd flr (7591*).' },
+            'PEK': { hotel: 'SQ800/806: Crowne Plaza Sun Palace | SQ802: Crowne Plaza Lido', address: 'Sun Palace: Yunnan Dasha | Lido: 6 Jiangtai Rd', risk: 'Green', riskMsg: 'Low risk. Sun Palace: RM 100 Breakfast.' },
+            'PVG': { hotel: 'Grand Millennium Shanghai Hongqiao', address: '2588 Yan\'an W Rd, Changning Qu, Shanghai', risk: 'Green', riskMsg: 'Low risk. 50% F&B off.' },
+            'TPE': { hotel: 'Sheraton Grand Taipei', address: 'No. 12, Section 1, Zhongxiao East Road', risk: 'Green', riskMsg: 'Low risk. TWD 500 Breakfast. Top 06 crew comp breakfast.' },
+            
+            // Europe
+            'AMS': { hotel: 'Amsterdam Marriott Hotel', address: 'Stadhouderskade 12, 1054 ES Amsterdam', risk: 'Yellow', riskMsg: 'Moderate risk. €14 Breakfast. Midtown Grill.' },
+            'BCN': { hotel: 'Renaissance Barcelona Fira', address: 'Plaza Europa, 50-52, L\'Hospitalet de Llobregat', risk: 'Yellow', riskMsg: 'Moderate risk. €11 Breakfast. Free coffee Oasis lobby 7-9am.' },
+            'CDG': { hotel: 'Le Meridien Paris Etoile', address: '81 Boulevard Gouvion-Saint-Cyr, 75017 Paris', risk: 'Yellow', riskMsg: 'Moderate risk. Microwave 7th Flr.' },
+            'CPH': { hotel: 'Crowne Plaza Copenhagen Towers', address: 'Orestads Blvd. 114-118, 2300 Copenhagen', risk: 'Green', riskMsg: 'Low risk. Free drinks/fruits outside lift 11th flr.' },
+            'DME': { hotel: 'Azimut Moscow Olympic', address: 'Olimpiyskiy Prospekt, 18/1, Moscow', risk: 'Yellow', riskMsg: 'Moderate risk. 50% F&B off.' },
+            'DUS': { hotel: 'Radisson Blu Scandinavia Hotel', address: 'Karl-Arnold-Platz 5, 40474 Düsseldorf', risk: 'Green', riskMsg: 'Low risk. €12 Breakfast. Nespresso in room.' },
+            'FCO': { hotel: 'Sheraton Parco De\'Medici', address: 'Viale Salvatore Rebecchini, 39, Rome', risk: 'Yellow', riskMsg: 'Moderate risk. Complimentary Breakfast.' },
+            'FRA': { hotel: 'SQ26: Marriott | SQ25: NH Collection | SQ325/326: Westin Grand', address: 'Marriott: Hamburger Allee 2 | NH: Vilbeler Str. 2', risk: 'Green', riskMsg: 'Low risk. Marriott: Microwave @ lobby.' },
+            'IST': { hotel: 'Sheraton Istanbul Atakoy', address: 'Sahilyolu Bakirkoy, Istanbul', risk: 'Yellow', riskMsg: 'Moderate risk. Free laundry 2/3 piece uniform.' },
+            'LON': { hotel: 'SQ308/322: Holiday Inn Forum | SQ306: Dorsett | SQ318: Millennium Gloucester', address: 'HI: 97 Cromwell Rd | Dorsett: 58 Shepherd\'s Bush Green', risk: 'Yellow', riskMsg: 'Moderate risk. 25% F&B off.' },
+            'MAN': { hotel: 'The Midland Hotel', address: '16 Peter St, Manchester M60 2DS', risk: 'Yellow', riskMsg: 'Moderate risk. Try Wrights Fish & Chips.' },
+            'MUC': { hotel: 'Pullman Munich', address: 'Theodor-Dombart-Straße 4, Munich', risk: 'Green', riskMsg: 'Low risk. Special Menu.' },
+            'MXP': { hotel: 'Milan Marriott Hotel', address: 'Via Washington, 66, 20146 Milano', risk: 'Yellow', riskMsg: 'Moderate risk. €9 Breakfast. Coffee machine in crew room.' },
+            'ZRH': { hotel: 'Kameha Grand Zurich', address: 'Dufaux-Strasse 1, 8152 Glattpark', risk: 'Green', riskMsg: 'Low risk. CHF 19 Breakfast. Nespresso in room.' },
+            
+            // Americas & Middle East/Africa
+            'DXB': { hotel: 'Crowne Plaza Dubai Deira', address: 'Salahuddin Road, Deira, Dubai', risk: 'Green', riskMsg: 'Low risk. Shuttle to malls available.' },
+            'IAH': { hotel: 'Royal Sonesta Houston', address: '2222 W Loop S, Houston, TX 77027', risk: 'Green', riskMsg: 'Low risk. US$8 Breakfast.' },
+            'JFK': { hotel: 'Row NYC Hotel', address: '700 8th Ave, New York, NY 10036', risk: 'Yellow', riskMsg: 'Moderate risk. Crew Rm 1929: Fridge, Microwave.' },
+            'JNB': { hotel: 'Holiday Inn Sandton', address: '123 Rivonia Rd, Sandton, Johannesburg', risk: 'Red', riskMsg: 'HIGH RISK: Severe crime levels. Crew Rm 1226.' },
+            'LAX': { hotel: 'SQ12/36/38: Hilton LAX', address: '5711 W Century Blvd, Los Angeles, CA', risk: 'Yellow', riskMsg: 'Moderate risk. Crew Rm #1972. Microwave 25th flr.' },
+            'SFO': { hotel: 'Parc 55 San Francisco', address: '55 Cyril Magnin St, San Francisco, CA', risk: 'Yellow', riskMsg: 'Moderate risk. US$13 Breakfast. Avoid Tenderloin at night.' },
+
             'default': { hotel: 'SIA Partner Hotel', address: 'City Center / Airport Proximity', risk: 'Green', riskMsg: 'Low risk: Standard operating precautions.' }
         };
+
+        window.currentViewingDest = null;
 
         window.openFlightDetails = async function(docId) {
             const flight = window.flightsData.find(f => f.id === docId);
@@ -1229,8 +1619,29 @@
             document.getElementById('fd-title').innerText = `Flight ${flight.flightNo}`;
             document.getElementById('fd-route').innerText = `${flight.origin} ✈ ${flight.dest}`;
             
+            // Format and populate the date
+            let displayDate = flight.date || 'Unknown Date';
+            if (flight.date) {
+                try {
+                    const dParts = flight.date.split('-');
+                    if (dParts.length === 3) {
+                        const d = new Date(parseInt(dParts[0]), parseInt(dParts[1]) - 1, parseInt(dParts[2]));
+                        displayDate = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+                    }
+                } catch(e) {}
+            }
+            document.getElementById('fd-date').innerText = displayDate;
+            
+            // Populate New Schedule Data
+            document.getElementById('fd-dep-time').innerText = flight.depTime || '--:--';
+            document.getElementById('fd-arr-time').innerText = flight.arrTime || '--:--';
+            document.getElementById('fd-total-time').innerText = flight.hours ? window.formatFlightHours(flight.hours) + ' HRS' : '-- HRS';
+            
             const destCode = flight.dest;
-            const intel = window.destIntel[destCode] || window.destIntel['default'];
+            window.currentViewingDest = destCode; // Save for editing
+            
+            // Prioritize custom community intel over default hardcoded intel
+            const intel = window.customDestIntel[destCode] || window.destIntel[destCode] || window.destIntel['default'];
             
             // 1. Risk Color Mapping
             const riskBadge = document.getElementById('fd-risk-badge');
@@ -1253,13 +1664,136 @@
             document.getElementById('fd-risk-level').innerText = `${intel.risk} RISK`;
             riskMsg.innerText = intel.riskMsg;
             
+            // Aircraft & Seat Intel Logic
+            const acIntelContainer = document.getElementById('fd-aircraft-intel-container');
+            let typeStr = (flight.acType || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+            let fleetKey = null;
+            
+            // Match recorded A/C string to the master Fleet Database keys
+            if (typeStr.includes('737') || typeStr.includes('MAX')) fleetKey = 'B737MAX';
+            else if (typeStr.includes('380') || typeStr.includes('38R')) fleetKey = 'A380';
+            else if (typeStr.includes('350') || typeStr.includes('359')) fleetKey = 'A350';
+            else if (typeStr.includes('330')) fleetKey = 'A330';
+            else if (typeStr.includes('787') || typeStr.includes('781')) fleetKey = 'B787';
+            else if (typeStr.includes('77W') || typeStr.includes('777')) fleetKey = 'B777';
+            else if (typeStr.includes('772E')) fleetKey = 'B772ER';
+            else if (typeStr.includes('772J')) fleetKey = 'B772J';
+            else if (typeStr.includes('772')) fleetKey = 'B772';
+
+            if (fleetKey && window.fleetDatabase[fleetKey] && window.generateBlueprintSVG) {
+                const fleetData = window.fleetDatabase[fleetKey];
+                acIntelContainer.style.display = 'block';
+                
+                document.getElementById('fd-ac-name').innerText = fleetData.name;
+                document.getElementById('fd-ac-reg').innerText = `REG: ${flight.acReg || 'TBA'}`;
+                
+                // Deterministic pseudo-random load factor based on flight ID (keeps it consistent per flight)
+                let hash = 0;
+                const seedStr = (flight.id || '') + (flight.date || '');
+                for (let i = 0; i < seedStr.length; i++) hash = Math.imul(31, hash) + seedStr.charCodeAt(i) | 0;
+                
+                // --- AI PREDICTIVE LOAD ALGORITHM ---
+                let baseLoadFactor = 0.65; // Baseline 65% capacity
+                
+                // 1. Route Modifier (High-demand routes)
+                const premiumRoutes = ['LHR', 'JFK', 'LAX', 'SYD', 'MEL', 'NRT', 'CDG', 'FRA', 'SFO', 'ICN'];
+                if (premiumRoutes.includes(destCode) || premiumRoutes.includes(flight.origin)) {
+                    baseLoadFactor += 0.15; // +15% for premium hubs
+                }
+
+                if (flight.date) {
+                    try {
+                        const fDate = new Date(flight.date);
+                        // 2. Day of Week Modifier (Weekends are busier)
+                        const day = fDate.getDay();
+                        if (day === 0 || day === 5 || day === 6) baseLoadFactor += 0.10; // Fri, Sat, Sun
+
+                        // 3. Seasonality (Summer & Winter holidays)
+                        const month = fDate.getMonth();
+                        if ([5, 6, 7, 10, 11, 0].includes(month)) baseLoadFactor += 0.08; 
+                    } catch(e) {}
+                }
+
+                // 4. Final Variance (+/- 5%) using the hash
+                const variance = ((Math.abs(hash) % 10) - 5) / 100;
+                baseLoadFactor = Math.min(0.99, Math.max(0.30, baseLoadFactor + variance));
+                // --------------------------------------
+                
+                // Parse the specific paxClasses configuration (e.g., "6R | 78J | 44W | 343Y")
+                const paxClassesStr = fleetData.paxClasses || '';
+                const classesArray = paxClassesStr.split('|').map(s => s.trim()).filter(s => s);
+                
+                let totalCap = 0;
+                let totalOcc = 0;
+                let classesHtml = '';
+                
+                const classColors = {
+                    'R': { name: 'Suites', border: 'border-yellow-500/50', bg: 'bg-yellow-900/20', text: 'text-yellow-400' },
+                    'F': { name: 'First', border: 'border-purple-500/50', bg: 'bg-purple-900/20', text: 'text-purple-400' },
+                    'J': { name: 'Business', border: 'border-blue-500/50', bg: 'bg-blue-900/20', text: 'text-blue-400' },
+                    'W': { name: 'Prem Econ', border: 'border-teal-500/50', bg: 'bg-teal-900/20', text: 'text-teal-400' },
+                    'Y': { name: 'Economy', border: 'border-gray-500/50', bg: 'bg-[#131A2A]', text: 'text-gray-300' }
+                };
+
+                classesArray.forEach((cls, idx) => {
+                    const match = cls.match(/(\d+)([A-Z])/);
+                    if(match) {
+                        const cap = parseInt(match[1]);
+                        const type = match[2];
+                        const style = classColors[type] || classColors['Y'];
+                        
+                        // Add slight variance per class so they aren't completely uniform
+                        let classMod = ((Math.abs(hash) + idx * 13) % 30) / 100;
+                        let classLoad = Math.min(0.99, Math.max(0.10, baseLoadFactor + (classMod - 0.15)));
+                        
+                        const occ = Math.floor(cap * classLoad);
+                        totalCap += cap;
+                        totalOcc += occ;
+                        
+                        classesHtml += `
+                            <div class="flex-1 ${style.bg} border ${style.border} rounded p-2 text-center flex flex-col justify-between min-w-[60px]">
+                                <p class="text-[9px] ${style.text} font-bold tracking-widest uppercase mb-1 leading-tight">${style.name}</p>
+                                <div>
+                                    <p class="text-sm font-bold text-white leading-none">${occ}</p>
+                                    <p class="text-[8px] text-gray-500 font-mono mt-0.5 border-t border-app-border/50 pt-0.5">/ ${cap}</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+                
+                // Overall load calculation across all parsed classes
+                const percent = totalCap > 0 ? Math.round((totalOcc / totalCap) * 100) : 0;
+                
+                const loadEl = document.getElementById('fd-load-factor');
+                loadEl.innerText = `${percent}%`;
+                
+                // Color formatting based on overall load stress
+                if (percent >= 90) loadEl.className = 'text-lg font-bold text-red-400';
+                else if (percent >= 75) loadEl.className = 'text-lg font-bold text-yellow-400';
+                else loadEl.className = 'text-lg font-bold text-green-400';
+                
+                document.getElementById('fd-class-breakdown').innerHTML = classesHtml;
+                
+                // Generate and inject the Blueprint specific to this flight
+                document.getElementById('fd-blueprint-container').innerHTML = window.generateBlueprintSVG(fleetKey);
+            } else {
+                acIntelContainer.style.display = 'none';
+            }
+
             // 2. Hotel Intel
             document.getElementById('fd-hotel-name').innerText = intel.hotel;
             document.getElementById('fd-hotel-address').innerText = intel.address;
             
-            document.getElementById('fd-hotel-map').onclick = () => {
-                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(intel.hotel + ' ' + intel.address)}`, '_blank');
-            };
+            const mapBtn = document.getElementById('fd-hotel-map');
+            if (destCode === 'SIN') {
+                mapBtn.style.display = 'none'; // Hide map button for flights returning home
+            } else {
+                mapBtn.style.display = 'flex';
+                mapBtn.onclick = () => {
+                    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(intel.hotel + ' ' + intel.address)}`, '_blank');
+                };
+            }
             
             // 3. Reset Weather Display
             document.getElementById('fd-weather-temp').innerText = '--°C';
@@ -1303,6 +1837,82 @@
             document.getElementById('modal-flight-details').classList.add('hidden-view');
         };
         
+        // --- DESTINATION INTEL EDITOR (COMMUNITY DATABASE) ---
+        window.openEditDestModal = function() {
+            if (!window.currentStaffId) {
+                showToast("Please login to edit station intel.");
+                return;
+            }
+            if (!window.currentViewingDest) return;
+
+            const destCode = window.currentViewingDest;
+            document.getElementById('edit-dest-code').innerText = destCode;
+            
+            const intel = window.customDestIntel[destCode] || window.destIntel[destCode] || window.destIntel['default'];
+            
+            document.getElementById('edit-dest-hotel').value = intel.hotel || '';
+            document.getElementById('edit-dest-address').value = intel.address || '';
+            document.getElementById('edit-dest-risk').value = intel.risk || 'Green';
+            document.getElementById('edit-dest-msg').value = intel.riskMsg || '';
+
+            document.getElementById('modal-flight-details').classList.add('hidden-view');
+            document.getElementById('modal-edit-dest').classList.remove('hidden-view');
+        };
+
+        window.closeEditDestModal = function() {
+            document.getElementById('modal-edit-dest').classList.add('hidden-view');
+            // Re-open flight details if we came from there
+            if (window.currentViewingDest) {
+                document.getElementById('modal-flight-details').classList.remove('hidden-view');
+            }
+        };
+
+        window.saveDestIntel = async function() {
+            if (!window.currentStaffId || !window.currentViewingDest) return;
+            
+            const destCode = window.currentViewingDest;
+            const payload = {
+                hotel: document.getElementById('edit-dest-hotel').value.trim(),
+                address: document.getElementById('edit-dest-address').value.trim(),
+                risk: document.getElementById('edit-dest-risk').value,
+                riskMsg: document.getElementById('edit-dest-msg').value.trim(),
+                updatedBy: window.currentName,
+                updatedAt: Date.now()
+            };
+
+            if (!payload.hotel || !payload.address) {
+                showToast("Hotel Name and Address are required.");
+                return;
+            }
+
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+
+            if (cloudSyncDisabled || !db) {
+                // Save locally
+                window.customDestIntel[destCode] = payload;
+                localStorage.setItem('crew_offline_destinations', JSON.stringify(window.customDestIntel));
+                showToast(`Local Intel Updated for ${destCode}!`);
+                
+                // Immediately refresh the flight details view behind the scenes
+                const activeFlt = window.flightsData.find(f => f.dest === destCode);
+                if (activeFlt) window.openFlightDetails(activeFlt.id);
+                
+                window.closeEditDestModal();
+                return;
+            }
+
+            try {
+                // Save to Firebase globally
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'destinations', destCode), payload);
+                showToast(`Global Intel Updated for ${destCode}!`);
+                
+                window.closeEditDestModal();
+            } catch (e) {
+                if (e.code === 'permission-denied') handleFirestoreError(e, "Save Dest Intel");
+                else showToast("Error saving destination intel.");
+            }
+        };
+        
         let currentUser = null;
         let db, auth;
         let dbUnsubscribe = null;
@@ -1336,6 +1946,9 @@
                 // Force load from local storage
                 const savedFlights = localStorage.getItem('crew_offline_flights');
                 if (savedFlights) window.flightsData = JSON.parse(savedFlights);
+                
+                const savedDest = localStorage.getItem('crew_offline_destinations');
+                if (savedDest) window.customDestIntel = JSON.parse(savedDest);
                 
                 const savedAccounts = localStorage.getItem('crew_offline_accounts');
                 if (savedAccounts) window.accountsData = JSON.parse(savedAccounts);
@@ -1465,13 +2078,14 @@
             document.getElementById('view-overview').classList.add('hidden-view');
             document.getElementById('view-map').classList.add('hidden-view');
             document.getElementById('view-logs').classList.add('hidden-view');
+            document.getElementById('view-fleet').classList.add('hidden-view');
             document.getElementById('view-chat').classList.add('hidden-view');
             const viewAddNew = document.getElementById('view-add-new');
             const viewAdmin = document.getElementById('view-admin');
             if (viewAddNew) viewAddNew.classList.add('hidden-view');
             if (viewAdmin) viewAdmin.classList.add('hidden-view');
             
-            ['overview', 'map', 'logs', 'chat', 'admin'].forEach(v => {
+            ['overview', 'map', 'logs', 'fleet', 'chat', 'admin'].forEach(v => {
                 const btn = document.getElementById(`nav-${v}`);
                 if (btn) {
                     btn.classList.remove('text-app-accent');
@@ -1494,6 +2108,13 @@
             
             if (viewId === 'chat') {
                 renderChatList();
+            }
+
+            if (viewId === 'fleet') {
+                // Render default A350 if none selected
+                if(document.getElementById('fleet-stats').innerHTML.trim() === '') {
+                    window.renderFleetData('A350');
+                }
             }
 
             if (viewId === 'admin') {
@@ -1626,14 +2247,12 @@
                     account = { id: 'local-master-id-' + staffId, ...payload };
                     window.accountsData.push(account);
                     
-                    // 2. Quietly attempt to save it to the database in the background
+                    // 2. Quietly attempt to save it to the database ONLY IF NO OTHER DOC EXISTS
                     if (db && !cloudSyncDisabled) {
                         try {
-                            addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), payload)
-                                .then(docRef => { account.id = docRef.id; })
+                            setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', 'master-account-' + staffId), payload)
                                 .catch(e => {
                                      console.warn("Background sync paused");
-                                     if(e.code === 'permission-denied') handleFirestoreError(e, "Master Init");
                                 });
                         } catch (e) { console.warn("Background sync paused"); }
                     }
@@ -1956,6 +2575,9 @@
                     window.accountsData = JSON.parse(savedAccounts);
                 }
                 
+                const savedDest = localStorage.getItem('crew_offline_destinations');
+                if (savedDest) window.customDestIntel = JSON.parse(savedDest);
+                
                 // VERCEL AUTO-LOGIN RECOVERY
                 const savedId = localStorage.getItem('crew_offline_session');
                 if (savedId) {
@@ -1983,8 +2605,18 @@
                 // 🚀 DECOUPLE DATABASE LISTENERS FROM AUTHENTICATION BLOCK
                 if (accountsUnsubscribe) accountsUnsubscribe();
                 accountsUnsubscribe = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'accounts'), async (snapshot) => {
-                    window.accountsData = [];
-                    snapshot.forEach(d => window.accountsData.push({ id: d.id, ...d.data() }));
+                    const uniqueAccounts = new Map();
+                    snapshot.forEach(d => {
+                        const data = d.data();
+                        // Deduplicate accounts securely by Staff ID
+                        if (!uniqueAccounts.has(data.staffId)) {
+                            uniqueAccounts.set(data.staffId, { id: d.id, ...data });
+                        } else if (d.id === 'master-account-' + data.staffId) {
+                            // Override with the true canonical document if multiple exist
+                            uniqueAccounts.set(data.staffId, { id: d.id, ...data });
+                        }
+                    });
+                    window.accountsData = Array.from(uniqueAccounts.values());
                     
                     // --- MASTER ADMIN AUTO-INJECTION (PREVENTS EMPTY ADMIN TAB BUG) ---
                     if (window.currentStaffId && MASTER_ADMINS.includes(window.currentStaffId)) {
@@ -2062,6 +2694,309 @@
         }
 
         // --- MULTI-USER FLIGHT DATA SYSTEM ---
+        
+        // --- FLEET INTEL ENGINE ---
+        window.fleetDatabase = {
+            'A350': {
+                name: 'Airbus A350-900',
+                variants: 'Long Haul / Medium Haul / ULR',
+                crew: '2 Pilots + 11-13 Cabin Crew',
+                pax: '253 (Long Haul)',
+                paxClasses: '42J | 24W | 187Y',
+                engines: 'Rolls-Royce Trent XWB',
+                speed: 'Mach 0.85',
+                oxygen: 'Chemical (Pax) / Gaseous (FD)',
+                exits: [
+                    { name: 'L1/R1', pos: 10, type: 'door', crewL: 'IFM, LS4', crewR: 'J4' },
+                    { name: 'L2/R2', pos: 35, type: 'door', crewL: 'J3', crewR: 'J2, CS1' },
+                    { name: 'L3/R3', pos: 65, type: 'door', crewL: 'C3, C5', crewR: 'C4, C6' },
+                    { name: 'L4/R4', pos: 90, type: 'door', crewL: 'LS6', crewR: 'C2' }
+                ]
+            },
+            'A380': {
+                name: 'Airbus A380-800',
+                variants: 'V3 (New Suites)',
+                crew: '2-4 Pilots + 21-23 Cabin Crew',
+                pax: '471',
+                paxClasses: '6R | 78J | 44W | 343Y',
+                engines: 'Rolls-Royce Trent 900',
+                speed: 'Mach 0.85',
+                oxygen: 'Chemical (Pax) / Gaseous (FD)',
+                isDoubleDeck: true,
+                exits: [
+                    // Main Deck
+                    { name: 'M1L/M1R', pos: 10, type: 'door', deck: 'main', crewL: 'IFS, LS2', crewR: 'LS1' },
+                    { name: 'M2L/M2R', pos: 30, type: 'door', deck: 'main', crewL: 'CS1', crewR: 'B2, B4' },
+                    { name: 'M3L/M3R', pos: 55, type: 'door', deck: 'main', crewL: 'LS5', crewR: 'C2' },
+                    { name: 'M4L/M4R', pos: 75, type: 'door', deck: 'main', crewL: 'B3, LS9/C5', crewR: 'C4' },
+                    { name: 'M5L/M5R', pos: 90, type: 'door', deck: 'main', crewL: 'LS6, C3', crewR: 'J8, J9' },
+                    // Upper Deck
+                    { name: 'U1L/U1R', pos: 15, type: 'door', deck: 'upper', crewL: 'J3', crewR: 'J4' },
+                    { name: 'U2L/U2R', pos: 40, type: 'door', deck: 'upper', crewL: 'LS4', crewR: 'J2, CS2' },
+                    { name: 'U3L/U3R', pos: 65, type: 'door', deck: 'upper', crewL: 'J5', crewR: 'J6' },
+                    { name: 'U4L/U4R', pos: 85, type: 'door', deck: 'upper', crewL: 'J7', crewR: 'LS8' }
+                ]
+            },
+            'A330': {
+                name: 'Airbus A330-300',
+                variants: 'Regional / Medium Haul',
+                crew: '2 Pilots + 10-11 Cabin Crew',
+                pax: '285',
+                paxClasses: '30J | 255Y',
+                engines: 'Rolls-Royce Trent 700',
+                speed: 'Mach 0.82',
+                oxygen: 'Chemical (Pax) / Gaseous (FD)',
+                exits: [
+                    { name: 'L1/R1', pos: 10, type: 'door', crewL: 'IFS, LS4', crewR: 'J2' },
+                    { name: 'L2/R2', pos: 35, type: 'door', crewL: 'B2, J3', crewR: 'CS1, B3' },
+                    { name: 'L3/R3', pos: 65, type: 'door', crewL: 'C3', crewR: 'B4' },
+                    { name: 'L4/R4', pos: 90, type: 'door', crewL: 'LS6', crewR: 'C2' }
+                ]
+            },
+            'B777': {
+                name: 'Boeing 777-300ER',
+                variants: 'Long Haul',
+                crew: '2-4 Pilots + 13-14 Cabin Crew',
+                pax: '264',
+                paxClasses: '4F | 48J | 28W | 184Y',
+                engines: 'GE90-115B',
+                speed: 'Mach 0.84',
+                oxygen: 'Gaseous Cylinders (Pax & FD)',
+                exits: [
+                    { name: 'L1/R1', pos: 10, type: 'door', crewL: 'LS2, J5', crewR: 'J4, LS1' },
+                    { name: 'L2/R2', pos: 28, type: 'door', crewL: 'J3, IFS', crewR: 'J2, CS1' },
+                    { name: 'L3/R3', pos: 55, type: 'door', crewL: 'B3', crewR: 'J6' },
+                    { name: 'L4/R4', pos: 75, type: 'door', crewL: 'LS5', crewR: 'B2' },
+                    { name: 'L5/R5', pos: 92, type: 'door', crewL: 'LS6, C3', crewR: 'B4, C2' }
+                ]
+            },
+            'B787': {
+                name: 'Boeing 787-10',
+                variants: 'Regional / Medium Haul',
+                crew: '2 Pilots + 11 Cabin Crew',
+                pax: '337',
+                paxClasses: '36J | 301Y',
+                engines: 'Rolls-Royce Trent 1000',
+                speed: 'Mach 0.85',
+                oxygen: 'Gaseous Pulse System (Pax)',
+                exits: [
+                    { name: 'L1/R1', pos: 10, type: 'door', crewL: 'LS4, J3', crewR: 'J2' },
+                    { name: 'L2/R2', pos: 35, type: 'door', crewL: 'B3, IFM', crewR: 'B2, CS1' },
+                    { name: 'L3/R3', pos: 70, type: 'door', crewL: 'C3', crewR: 'B4' },
+                    { name: 'L4/R4', pos: 92, type: 'door', crewL: 'LS6', crewR: 'C4, C2' }
+                ]
+            },
+            'B772': {
+                name: 'Boeing 777-200',
+                variants: 'Regional (Classic SQ Config)',
+                crew: '2 Pilots + 10 Cabin Crew',
+                pax: '323',
+                paxClasses: '30J | 293Y',
+                engines: 'Rolls-Royce Trent 892',
+                speed: 'Mach 0.84',
+                oxygen: 'Gaseous Cylinders (Pax & FD)',
+                exits: [
+                    { name: 'L1/R1', pos: 10, type: 'door', crewL: 'LS4, J3', crewR: 'J2' },
+                    { name: 'L2/R2', pos: 35, type: 'door', crewL: 'B3, IFS', crewR: 'B2, CS1' },
+                    { name: 'L3/R3', pos: 70, type: 'door', crewL: 'C3', crewR: 'B4' },
+                    { name: 'L4/R4', pos: 92, type: 'door', crewL: 'LS6', crewR: 'C2, C4' }
+                ]
+            },
+            'B772ER': {
+                name: 'Boeing 777-200ER',
+                variants: 'Medium / Long Haul',
+                crew: '2 Pilots + 10-12 Cabin Crew',
+                pax: '271',
+                paxClasses: '26J | 245Y',
+                engines: 'Rolls-Royce Trent 892',
+                speed: 'Mach 0.84',
+                oxygen: 'Gaseous Cylinders (Pax & FD)',
+                exits: [
+                    { name: 'L1/R1', pos: 10, type: 'door', crewL: 'LS4', crewR: 'J2' },
+                    { name: 'L2/R2', pos: 35, type: 'door', crewL: 'B3, IFS', crewR: 'B2, CS1' },
+                    { name: 'L3/R3', pos: 70, type: 'door', crewL: 'C3', crewR: 'B4' },
+                    { name: 'L4/R4', pos: 92, type: 'door', crewL: 'LS6', crewR: 'C2, C4' }
+                ]
+            },
+            'B772J': {
+                name: 'Boeing 777-200 (J-Series)',
+                variants: 'Regional Refit',
+                crew: '2 Pilots + 10 Cabin Crew',
+                pax: '266',
+                paxClasses: '38J | 228Y',
+                engines: 'Rolls-Royce Trent 892',
+                speed: 'Mach 0.84',
+                oxygen: 'Gaseous Cylinders (Pax & FD)',
+                exits: [
+                    { name: 'L1/R1', pos: 10, type: 'door', crewL: 'C7, LS4', crewR: 'J2' },
+                    { name: 'L2/R2', pos: 35, type: 'door', crewL: 'C3, IFS', crewR: 'C4, CS1' },
+                    { name: 'L3/R3', pos: 70, type: 'door', crewL: 'C5', crewR: 'C6' },
+                    { name: 'L4/R4', pos: 92, type: 'door', crewL: 'LS6', crewR: 'C2' }
+                ]
+            },
+            'B737MAX': {
+                name: 'Boeing 737-8 MAX',
+                variants: 'Narrowbody / Short Haul',
+                crew: '2 Pilots + 4-5 Cabin Crew',
+                pax: '154',
+                paxClasses: '10J | 144Y',
+                engines: 'CFM LEAP-1B',
+                speed: 'Mach 0.79',
+                oxygen: 'Chemical (Pax) / Gaseous (FD)',
+                exits: [
+                    { name: 'L1/R1', pos: 10, type: 'door', crewL: 'IFM', crewR: 'LS4' },
+                    { name: 'OWE 1', pos: 50, type: 'overwing', crewL: '', crewR: '' },
+                    { name: 'OWE 2', pos: 56, type: 'overwing', crewL: '', crewR: '' },
+                    { name: 'L2/R2', pos: 90, type: 'door', crewL: 'CS1', crewR: 'J2' }
+                ]
+            }
+        };
+
+        // HELPER FUNCTION: Generates the SVG blueprint string for a given fleet ID
+        window.generateBlueprintSVG = function(fleetId) {
+            const data = window.fleetDatabase[fleetId];
+            if(!data) return '';
+
+            const svgWidth = 800;
+            const svgHeight = data.isDoubleDeck ? 300 : 150;
+            const fusWidth = 700;
+            const fusHeight = 60;
+            const startX = 50;
+            const startY = data.isDoubleDeck ? 180 : 45; // Bottom deck for A380, center for others
+
+            let svgContent = `<svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" class="max-w-full h-auto drop-shadow-[0_0_15px_rgba(0,0,0,0.5)]">`;
+            
+            // Cockpit
+            svgContent += `<path d="M ${startX} ${startY} C ${startX-40} ${startY}, ${startX-40} ${startY+fusHeight}, ${startX} ${startY+fusHeight} Z" fill="#0A0F1D" stroke="#374151" stroke-width="2"/>`;
+            svgContent += `<rect x="${startX-20}" y="${startY+15}" width="15" height="${fusHeight-30}" rx="4" fill="rgba(59,130,246,0.2)" stroke="#3B82F6" stroke-width="1"/>`; // Flight Deck Windows
+
+            // Main Fuselage
+            svgContent += `<rect x="${startX}" y="${startY}" width="${fusWidth}" height="${fusHeight}" fill="#131A2A" stroke="#374151" stroke-width="2" />`;
+            
+            // Tail Cone
+            svgContent += `<path d="M ${startX+fusWidth} ${startY} C ${startX+fusWidth+50} ${startY}, ${startX+fusWidth+30} ${startY+fusHeight}, ${startX+fusWidth} ${startY+fusHeight} Z" fill="#131A2A" stroke="#374151" stroke-width="2"/>`;
+            svgContent += `<path d="M ${startX+fusWidth-20} ${startY+fusHeight/2} L ${startX+fusWidth+60} ${startY+fusHeight/2-70} L ${startX+fusWidth+80} ${startY+fusHeight/2-70} L ${startX+fusWidth+20} ${startY+fusHeight/2} Z" fill="#131A2A" stroke="#374151" stroke-width="2"/>`; // Vertical Stabilizer outline
+
+            // Wings (Abstract representation)
+            svgContent += `<path d="M ${startX+fusWidth*0.3} ${startY+fusHeight} L ${startX+fusWidth*0.6} ${startY+fusHeight+60} L ${startX+fusWidth*0.7} ${startY+fusHeight+60} L ${startX+fusWidth*0.55} ${startY+fusHeight} Z" fill="#1f2940" stroke="#374151" stroke-width="1"/>`;
+            svgContent += `<path d="M ${startX+fusWidth*0.3} ${startY} L ${startX+fusWidth*0.6} ${startY-60} L ${startX+fusWidth*0.7} ${startY-60} L ${startX+fusWidth*0.55} ${startY} Z" fill="#1f2940" stroke="#374151" stroke-width="1"/>`;
+
+            // Render Exits
+            const renderExit = (exit, yBase, isDouble = false) => {
+                const xPos = startX + (fusWidth * (exit.pos / 100));
+                let html = '';
+                
+                let nameL = exit.name;
+                let nameR = exit.name;
+                if (exit.name.includes('/')) {
+                    const parts = exit.name.split('/');
+                    nameL = parts[0];
+                    nameR = parts[1];
+                }
+
+                if (exit.type === 'overwing') {
+                    // Small red outline
+                    html += `<rect x="${xPos-5}" y="${yBase-3}" width="10" height="6" fill="transparent" stroke="#EF4444" stroke-width="2"/>`;
+                    html += `<rect x="${xPos-5}" y="${yBase+fusHeight-3}" width="10" height="6" fill="transparent" stroke="#EF4444" stroke-width="2"/>`;
+                } else {
+                    // Solid red door
+                    html += `<rect x="${xPos-4}" y="${yBase-5}" width="8" height="10" fill="#EF4444" rx="1"/>`;
+                    html += `<rect x="${xPos-4}" y="${yBase+fusHeight-5}" width="8" height="10" fill="#EF4444" rx="1"/>`;
+                    
+                    // Faint connecting line across the aisle
+                    html += `<line x1="${xPos}" y1="${yBase+5}" x2="${xPos}" y2="${yBase+fusHeight-5}" stroke="#4B5563" stroke-width="1" stroke-dasharray="2,2" opacity="0.4"/>`;
+                }
+
+                // RIGHT STATION (Starboard) -> Rendered at the TOP of the SVG when nose points Left
+                html += `<text x="${xPos}" y="${yBase-10}" fill="#9CA3AF" font-family="monospace" font-size="9" font-weight="bold" text-anchor="middle">${nameR}</text>`;
+                if (exit.crewR) {
+                    html += `<text x="${xPos}" y="${yBase-18}" fill="#CBA052" font-family="monospace" font-size="9" font-weight="bold" text-anchor="middle">${exit.crewR}</text>`;
+                }
+
+                // LEFT STATION (Port) -> Rendered at the BOTTOM of the SVG when nose points Left
+                html += `<text x="${xPos}" y="${yBase+fusHeight+16}" fill="#9CA3AF" font-family="monospace" font-size="9" font-weight="bold" text-anchor="middle">${nameL}</text>`;
+                if (exit.crewL) {
+                    html += `<text x="${xPos}" y="${yBase+fusHeight+25}" fill="#CBA052" font-family="monospace" font-size="9" font-weight="bold" text-anchor="middle">${exit.crewL}</text>`;
+                }
+
+                return html;
+            };
+
+            if (data.isDoubleDeck) {
+                // Render Upper Deck for A380
+                const upperY = 60;
+                // Cockpit (Upper)
+                svgContent += `<path d="M ${startX+20} ${upperY} C ${startX-20} ${upperY}, ${startX-20} ${upperY+fusHeight}, ${startX+20} ${upperY+fusHeight} Z" fill="#131A2A" stroke="#374151" stroke-width="2"/>`;
+                // Main Upper Fuselage
+                svgContent += `<rect x="${startX+20}" y="${upperY}" width="${fusWidth-40}" height="${fusHeight}" fill="#131A2A" stroke="#374151" stroke-width="2" />`;
+                // Tail connection
+                svgContent += `<path d="M ${startX+fusWidth-20} ${upperY} C ${startX+fusWidth+20} ${upperY}, ${startX+fusWidth+20} ${upperY+fusHeight}, ${startX+fusWidth-20} ${upperY+fusHeight} Z" fill="#131A2A" stroke="#374151" stroke-width="2"/>`;
+
+                // Add Deck Labels
+                svgContent += `<text x="${startX+fusWidth/2}" y="${upperY+fusHeight/2+4}" fill="#4B5563" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle" letter-spacing="4">UPPER DECK</text>`;
+                svgContent += `<text x="${startX+fusWidth/2}" y="${startY+fusHeight/2+4}" fill="#4B5563" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle" letter-spacing="4">MAIN DECK</text>`;
+
+                data.exits.forEach(exit => {
+                    svgContent += renderExit(exit, exit.deck === 'upper' ? upperY : startY, true);
+                });
+            } else {
+                // Add Deck Label
+                svgContent += `<text x="${startX+fusWidth/2}" y="${startY+fusHeight/2+4}" fill="#4B5563" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle" letter-spacing="4">MAIN CABIN</text>`;
+                
+                data.exits.forEach(exit => {
+                    svgContent += renderExit(exit, startY);
+                });
+            }
+
+            svgContent += `</svg>`;
+            return svgContent;
+        };
+
+        window.renderFleetData = function(fleetId) {
+            // Update Tabs UI
+            document.querySelectorAll('.fleet-tab-btn').forEach(btn => {
+                btn.className = "fleet-tab-btn bg-[#131A2A] border border-app-border text-gray-400 hover:text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors shrink-0";
+            });
+            const activeBtn = document.getElementById(`fleet-tab-${fleetId}`);
+            if(activeBtn) activeBtn.className = "fleet-tab-btn active bg-app-accent text-[#0A0F1D] px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors shadow-[0_0_10px_rgba(203,160,82,0.4)] shrink-0";
+
+            const data = window.fleetDatabase[fleetId];
+            if(!data) return;
+
+            // Render Stats
+            const statsHtml = `
+                <div class="bg-[#131A2A] border border-app-border rounded-lg p-3">
+                    <p class="text-[9px] font-mono text-gray-500 uppercase">Passenger Cap</p>
+                    <p class="text-lg font-bold text-white leading-tight">${data.pax}</p>
+                    <p class="text-[9px] font-mono text-app-accent mt-0.5">${data.paxClasses}</p>
+                </div>
+                <div class="bg-[#131A2A] border border-app-border rounded-lg p-3">
+                    <p class="text-[9px] font-mono text-gray-500 uppercase">Standard Crew</p>
+                    <p class="text-[11px] font-bold text-white mt-1 leading-tight">${data.crew}</p>
+                </div>
+                <div class="bg-[#131A2A] border border-app-border rounded-lg p-3">
+                    <p class="text-[9px] font-mono text-gray-500 uppercase">Config Variants</p>
+                    <p class="text-[11px] font-bold text-white mt-1 leading-tight">${data.variants}</p>
+                </div>
+                <div class="bg-[#131A2A] border border-app-border rounded-lg p-3">
+                    <p class="text-[9px] font-mono text-gray-500 uppercase">Cruising Speed</p>
+                    <p class="text-[11px] font-bold text-white mt-1 leading-tight">${data.speed}</p>
+                </div>
+                <div class="bg-[#131A2A] border border-app-border rounded-lg p-3">
+                    <p class="text-[9px] font-mono text-gray-500 uppercase">Engines</p>
+                    <p class="text-[11px] font-bold text-white mt-1 leading-tight">${data.engines}</p>
+                </div>
+                <div class="bg-[#131A2A] border border-app-border rounded-lg p-3">
+                    <p class="text-[9px] font-mono text-gray-500 uppercase">Oxygen System</p>
+                    <p class="text-[11px] font-bold text-white mt-1 leading-tight">${data.oxygen}</p>
+                </div>
+            `;
+            document.getElementById('fleet-stats').innerHTML = statsHtml;
+
+            // Render Blueprint SVG using the new helper
+            document.getElementById('fleet-blueprint-container').innerHTML = window.generateBlueprintSVG(fleetId);
+        };
+
 
         function loadData() {
             if (!db || cloudSyncDisabled) {
@@ -2072,6 +3007,9 @@
                 // Load saved local data
                 const savedFlights = localStorage.getItem('crew_offline_flights');
                 if (savedFlights) window.flightsData = JSON.parse(savedFlights);
+                
+                const savedDest = localStorage.getItem('crew_offline_destinations');
+                if (savedDest) window.customDestIntel = JSON.parse(savedDest);
                 
                 const savedTimetable = localStorage.getItem('crew_offline_timetable');
                 if (savedTimetable) window.timetableData = JSON.parse(savedTimetable);
@@ -2085,6 +3023,21 @@
             if (msgUnsubscribe) msgUnsubscribe();
             
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+            
+            // Sync Community Destination Intel
+            const destQ = query(collection(db, 'artifacts', appId, 'public', 'data', 'destinations'));
+            onSnapshot(destQ, (snapshot) => {
+                window.customDestIntel = {};
+                snapshot.forEach(doc => window.customDestIntel[doc.id] = doc.data());
+                
+                // If viewing a flight currently, dynamically refresh the hotel data
+                if (window.currentViewingDest && !document.getElementById('modal-flight-details').classList.contains('hidden-view')) {
+                     const intel = window.customDestIntel[window.currentViewingDest] || window.destIntel[window.currentViewingDest] || window.destIntel['default'];
+                     document.getElementById('fd-hotel-name').innerText = intel.hotel || 'Retrieving...';
+                     document.getElementById('fd-hotel-address').innerText = intel.address || '...';
+                     document.getElementById('fd-risk-msg').innerText = intel.riskMsg || '';
+                }
+            }, (error) => { console.warn("Destinations Sync Error:", error); });
             
             // Sync Master Timetable Database
             const ttQ = query(collection(db, 'artifacts', appId, 'public', 'data', 'timetable'));
@@ -2524,14 +3477,18 @@
                 if (window.editingDocId) {
                      const idx = window.flightsData.findIndex(f => f.id === window.editingDocId);
                      if (idx !== -1) {
-                         window.flightsData[idx] = { ...window.flightsData[idx], ...payload };
+                         const oldFlight = window.flightsData[idx];
+                         payload.id = window.editingDocId;
+                         window.flightsData[idx] = { ...oldFlight, ...payload };
                          localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+                         window.pushToUndoStack('EDIT', window.flightsData[idx], oldFlight);
                          showToast("Flight Updated Locally!");
                      }
                 } else {
                      payload.id = 'local_flt_' + Date.now();
                      payload.createdAt = Date.now();
                      window.flightsData.push(payload);
+                     window.pushToUndoStack('ADD', payload);
                      let toastMsg = "Flight Logged Locally!";
                      
                      if (isTurnaround) {
@@ -2564,6 +3521,7 @@
                                  hours: retHrs, createdAt: Date.now() + 1000 
                              };
                              window.flightsData.push(retPayload);
+                             window.pushToUndoStack('ADD', retPayload);
                              toastMsg = "Outbound & Return Flights Logged Locally!";
                          }
                      }
@@ -2573,6 +3531,7 @@
                 
                 window.lastUsedDate = date;
                 window.editingDocId = null;
+                // clear form
                 ['mobile-flt', 'mobile-actype', 'mobile-reg', 'mobile-gate', 'mobile-org', 'mobile-dst', 'mobile-dep', 'mobile-arr', 'mobile-hrs', 'mobile-return-flt', 'mobile-return-dep', 'mobile-return-arr', 'mobile-return-hrs'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.value = '';
@@ -2588,11 +3547,17 @@
 
             try {
                 if (window.editingDocId) {
+                    const oldFlight = window.flightsData.find(f => f.id === window.editingDocId);
                     await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'flights', window.editingDocId), payload);
+                    payload.id = window.editingDocId;
+                    window.pushToUndoStack('EDIT', payload, oldFlight);
                     showToast("Flight Updated Successfully!");
                 } else {
                     payload.createdAt = Date.now();
-                    await addDoc(flightRef, payload);
+                    const newRef = doc(flightRef);
+                    await setDoc(newRef, payload);
+                    payload.id = newRef.id;
+                    window.pushToUndoStack('ADD', payload);
                     let toastMsg = "Flight Logged Successfully!";
                     
                     if (isTurnaround) {
@@ -2621,11 +3586,14 @@
                                 staffId: window.currentStaffId,
                                 date: returnDate, 
                                 flightNo: retFlt, acType: acType, acReg: reg, 
-                                gate: '', // FIX: Return flights depart from different airports, gate is unknown
+                                gate: '',
                                 origin: dst, dest: org, depTime: retDep, arrTime: retArr,
                                 hours: retHrs, createdAt: Date.now() + 1000 
                             };
-                            await addDoc(flightRef, retPayload);
+                            const retRef = doc(flightRef);
+                            await setDoc(retRef, retPayload);
+                            retPayload.id = retRef.id;
+                            window.pushToUndoStack('ADD', retPayload);
                             toastMsg = "Outbound & Return Flights Logged!";
                         }
                     }
@@ -2634,6 +3602,7 @@
                 
                 window.lastUsedDate = date;
                 window.editingDocId = null;
+                // clear form
                 ['mobile-flt', 'mobile-actype', 'mobile-reg', 'mobile-gate', 'mobile-org', 'mobile-dst', 'mobile-dep', 'mobile-arr', 'mobile-hrs', 'mobile-return-flt', 'mobile-return-dep', 'mobile-return-arr', 'mobile-return-hrs'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.value = '';
@@ -2676,20 +3645,42 @@
             switchView('add-new');
         }
 
-        window.deleteEntry = async function(docId) {
+        window.flightToDelete = null;
+
+        window.deleteEntry = function(docId) {
+            window.flightToDelete = docId;
+            const flight = window.flightsData.find(f => f.id === docId);
+            if(flight) {
+                document.getElementById('del-confirm-flt').innerText = flight.flightNo + ' (' + flight.origin + '-' + flight.dest + ')';
+                document.getElementById('modal-delete-confirm').classList.remove('hidden-view');
+            }
+        };
+
+        window.closeDeleteConfirmModal = function() {
+            window.flightToDelete = null;
+            document.getElementById('modal-delete-confirm').classList.add('hidden-view');
+        };
+
+        window.executeDeleteEntry = async function() {
+            if (!window.flightToDelete) return;
+            const docId = window.flightToDelete;
+            closeDeleteConfirmModal();
+            
+            const flight = window.flightsData.find(f => f.id === docId);
+            if (!flight) return;
+
             if (!db) return;
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
             
-            if (cloudSyncDisabled) {
-                 window.flightsData = window.flightsData.filter(f => f.id !== docId);
-                 localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
-                 renderUI();
-                 showToast("Entry Deleted Locally");
-                 return;
-            }
-
             try {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'flights', docId));
+                if (cloudSyncDisabled) {
+                     window.flightsData = window.flightsData.filter(f => f.id !== docId);
+                     localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+                     renderUI();
+                } else {
+                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'flights', docId));
+                }
+                window.pushToUndoStack('DELETE', flight);
                 showToast("Entry Deleted");
             } catch(e) { 
                 if(e.code === 'permission-denied') handleFirestoreError(e, "Delete Entry");
@@ -3351,13 +4342,12 @@
                 const isActive = window.chatTarget === c.staffId ? 'bg-[#1f2940]' : 'hover:bg-[#1f2940]';
                 
                 // If the current user is admin, provide a delete button for duplicates/cleanups
-                const adminControls = window.isAdmin && c.staffId !== window.currentStaffId ? 
-                    `<button onclick="event.stopPropagation(); adminDeleteAccount('${c.id}')" class="ml-auto text-red-500 hover:text-red-400 p-2 opacity-50 hover:opacity-100 transition-opacity" title="Remove Account"><i class="ph-bold ph-trash"></i></button>` : '';
+                const adminControls = window.isAdmin ? `<button onclick="event.stopPropagation(); adminDeleteAccount('${c.id}')" class="text-red-500 hover:text-red-400 p-1 rounded transition-colors"><i class="ph-bold ph-trash"></i></button>` : '';
 
                 html += `
-                    <div onclick="openChat('${c.staffId}')" class="p-3 border-b border-app-border cursor-pointer transition-colors flex items-center gap-3 ${isActive} group">
-                        <div class="relative">
-                            <div class="w-10 h-10 rounded-full border border-app-border flex items-center justify-center shadow-sm overflow-hidden shrink-0 bg-[#0A0F1D]">
+                    <div onclick="openChat('${c.staffId}')" class="flex items-center gap-3 p-3 border-b border-app-border cursor-pointer transition-colors ${isActive}">
+                        <div class="relative shrink-0">
+                            <div class="w-10 h-10 rounded-full border border-app-border overflow-hidden bg-[#0A0F1D] flex items-center justify-center">
                                 ${window.getAvatarSVG(c.role)}
                             </div>
                             <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border border-[#131A2A] ${statusColor}"></div>
@@ -3580,6 +4570,7 @@
                     arrTime: outbound.arrTime, hours: outbound.hours || 0, createdAt: Date.now()
                  };
                  window.flightsData.push(outPayload);
+                 window.pushToUndoStack('ADD', outPayload);
                  let msg = `Success! Auto-Logged ${outbound.flightNo} Locally!`;
                  
                  // Predict Return Flight
@@ -3609,6 +4600,7 @@
                           arrTime: returnFlt.arrTime, hours: returnFlt.hours || 0, createdAt: Date.now() + 1000
                       };
                       window.flightsData.push(retPayload);
+                      window.pushToUndoStack('ADD', retPayload);
                       msg = `Success! Auto-Logged ${outbound.flightNo} AND Return ${returnFlt.flightNo} Locally!`;
                  }
                  
@@ -3638,7 +4630,10 @@
                     hours: outbound.hours || 0,
                     createdAt: Date.now()
                 };
-                await addDoc(flightRef, outPayload);
+                const outRef = doc(flightRef);
+                await setDoc(outRef, outPayload);
+                outPayload.id = outRef.id;
+                window.pushToUndoStack('ADD', outPayload);
 
                 // Smart Turnaround Detection (e.g. SQ322 -> SQ321)
                 let returnFlt = null;
@@ -3686,7 +4681,10 @@
                         hours: returnFlt.hours || 0,
                         createdAt: Date.now() + 1000
                     };
-                    await addDoc(flightRef, retPayload);
+                    const retRef = doc(flightRef);
+                    await setDoc(retRef, retPayload);
+                    retPayload.id = retRef.id;
+                    window.pushToUndoStack('ADD', retPayload);
                     showToast(`Success! Auto-Logged ${outbound.flightNo} AND Return ${returnFlt.flightNo}!`);
                 } else {
                     showToast(`Success! Auto-Logged ${outbound.flightNo}! (No return found)`);
@@ -4033,6 +5031,222 @@ Tone: Professional, helpful, concise, and friendly.`
         window.logSort = { col: 'date', asc: false };
         window.logFilterText = '';
 
+        window.currentCalDate = new Date();
+        window.logViewMode = 'calendar'; // Default to calendar view
+        
+        // --- DIARY SYSTEM ---
+        window.currentDiaryDate = null;
+
+        window.openDiary = function(dateStr, type, loc) {
+            window.currentDiaryDate = dateStr;
+            const titleSpan = document.querySelector('#diary-title span');
+            if (titleSpan) {
+                if (type === 'LAYOVER') titleSpan.innerText = `Layover (${loc})`;
+                else if (type === 'DUTY') titleSpan.innerText = 'Flight Notes';
+                else titleSpan.innerText = 'Off Day';
+            }
+            document.getElementById('diary-date').innerText = dateStr;
+            
+            const savedNotes = JSON.parse(localStorage.getItem('crewDiaryNotes') || '{}');
+            document.getElementById('diary-input').value = savedNotes[dateStr] || '';
+            
+            document.getElementById('modal-diary').classList.remove('hidden-view');
+        };
+
+        window.closeDiary = function() {
+            document.getElementById('modal-diary').classList.add('hidden-view');
+            window.currentDiaryDate = null;
+        };
+
+        window.saveDiary = function() {
+            if (!window.currentDiaryDate) return;
+            const content = document.getElementById('diary-input').value.trim();
+            const savedNotes = JSON.parse(localStorage.getItem('crewDiaryNotes') || '{}');
+            
+            if (content === '') {
+                delete savedNotes[window.currentDiaryDate];
+            } else {
+                savedNotes[window.currentDiaryDate] = content;
+            }
+            
+            localStorage.setItem('crewDiaryNotes', JSON.stringify(savedNotes));
+            window.closeDiary();
+            
+            if (typeof window.renderCalendar === 'function') {
+                window.renderCalendar();
+            }
+            window.showToast("Notes saved!");
+        };
+
+        window.toggleLogView = function(mode) {
+            window.logViewMode = mode;
+            const btnCal = document.getElementById('btn-view-cal');
+            const btnList = document.getElementById('btn-view-list');
+            
+            if (mode === 'calendar') {
+                document.getElementById('log-list-view').classList.add('hidden');
+                document.getElementById('log-calendar-view').classList.remove('hidden');
+                document.getElementById('log-calendar-view').classList.add('block');
+                btnCal.className = "bg-app-accent text-[#0A0F1D] px-2 py-1 rounded text-xs font-bold transition-colors shadow-sm";
+                btnList.className = "text-app-text hover:text-white px-2 py-1 rounded text-xs font-bold transition-colors";
+                if (typeof window.renderCalendar === 'function') window.renderCalendar();
+            } else {
+                document.getElementById('log-calendar-view').classList.add('hidden');
+                document.getElementById('log-calendar-view').classList.remove('block');
+                document.getElementById('log-list-view').classList.remove('hidden');
+                btnList.className = "bg-app-accent text-[#0A0F1D] px-2 py-1 rounded text-xs font-bold transition-colors shadow-sm";
+                btnCal.className = "text-app-text hover:text-white px-2 py-1 rounded text-xs font-bold transition-colors";
+            }
+        };
+
+        window.changeMonth = function(delta) {
+            window.currentCalDate.setMonth(window.currentCalDate.getMonth() + delta);
+            if (typeof window.renderCalendar === 'function') window.renderCalendar();
+        };
+
+        window.jumpToMonth = function(val) {
+            if(!val) return;
+            const parts = val.split('-');
+            if (parts.length === 2) {
+                window.currentCalDate.setFullYear(parseInt(parts[0]));
+                window.currentCalDate.setMonth(parseInt(parts[1]) - 1);
+                if (typeof window.renderCalendar === 'function') window.renderCalendar();
+            }
+        };
+
+        window.renderCalendar = function() {
+            const year = window.currentCalDate.getFullYear();
+            const month = window.currentCalDate.getMonth(); // 0-11
+            
+            const picker = document.getElementById('cal-month-picker');
+            if (picker) {
+                picker.value = `${year}-${String(month+1).padStart(2,'0')}`;
+            }
+            
+            const firstDay = new Date(year, month, 1).getDay(); // 0 (Sun) to 6 (Sat)
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            const grid = document.getElementById('cal-grid');
+            if(!grid) return;
+            grid.innerHTML = '';
+            
+            // Blank cells for alignment
+            for(let i=0; i<firstDay; i++) {
+                grid.innerHTML += `<div class="bg-[#0A0F1D]/30 border border-transparent p-1 rounded-md opacity-50"></div>`;
+            }
+            
+            // Render actual days
+            for(let day=1; day<=daysInMonth; day++) {
+                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                
+                const savedNotes = JSON.parse(localStorage.getItem('crewDiaryNotes') || '{}');
+                const hasNote = !!savedNotes[dateStr];
+                
+                // Get flights for this date (Factoring in Reporting Time shifts)
+                const dayFlights = window.flightsData.filter(f => {
+                    let rDateStr = f.date;
+                    if (f.date && f.depTime) {
+                        const [h, m] = f.depTime.split(':').map(Number);
+                        // If Departure is before 02:00, Report Time (-2h) falls on the previous day
+                        if (h - 2 < 0) {
+                            const d = new Date(f.date + 'T12:00:00');
+                            d.setDate(d.getDate() - 1);
+                            rDateStr = d.toISOString().split('T')[0];
+                        }
+                    }
+                    return rDateStr === dateStr;
+                });
+                
+                let contentHtml = '';
+                let isOff = true;
+                let lastDest = 'SIN'; // Default home base
+                
+                if(dayFlights.length > 0) {
+                    isOff = false;
+                    dayFlights.forEach(f => {
+                        let rTimeStr = '--:--';
+                        let isNextDayDep = false;
+                        
+                        // Calculate exact Reporting Time (-2 Hours)
+                        if (f.depTime) {
+                            let [h, m] = f.depTime.split(':').map(Number);
+                            let rH = h - 2;
+                            if (rH < 0) {
+                                rH += 24;
+                                isNextDayDep = true; // Flag if the actual departure is the next calendar day
+                            }
+                            rTimeStr = `${String(rH).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+                        }
+
+                        // UI Badge if departure is technically the next day
+                        let depFlag = isNextDayDep ? `<span class="text-[7px] bg-red-900/50 text-red-400 px-1 py-0.5 rounded ml-1 border border-red-500/50 font-bold">+1d DEP</span>` : '';
+
+                        contentHtml += `
+                            <div class="bg-[#131A2A] hover:bg-app-accent border border-app-accent/50 hover:border-app-accent rounded p-1 mb-1 shadow-[0_2px_4px_rgba(0,0,0,0.4)] cursor-pointer transition-all group/card active:scale-95" onclick="openFlightDetails('${f.id}')">
+                                <p class="text-[9px] md:text-[10px] font-bold text-white group-hover/card:text-[#0A0F1D] leading-tight truncate flex items-center justify-between">
+                                    <span>${f.flightNo || '?'}</span>
+                                    <span class="text-app-accent group-hover/card:text-[#0A0F1D] ml-1">✈ ${f.dest || '?'}</span>
+                                </p>
+                                <p class="text-[8px] md:text-[9px] text-gray-400 group-hover/card:text-[#0A0F1D]/80 font-mono truncate mt-0.5 flex items-center">
+                                    RPT: ${rTimeStr} ${depFlag}
+                                </p>
+                            </div>
+                        `;
+                    });
+                } else {
+                    // SMART LAYOVER DETECTION & NOTES
+                    const pastFlights = window.flightsData.filter(f => f.date < dateStr);
+                    if (pastFlights.length > 0) {
+                        pastFlights.sort((a, b) => {
+                            if (a.date !== b.date) return a.date > b.date ? -1 : 1;
+                            return (a.depTime || '') > (b.depTime || '') ? -1 : 1;
+                        });
+                        lastDest = pastFlights[0].dest || 'SIN';
+                    }
+
+                    if (lastDest.toUpperCase() !== 'SIN') {
+                        contentHtml = `
+                            <div onclick="openDiary('${dateStr}', 'LAYOVER', '${lastDest}')" class="flex-1 flex flex-col items-center justify-center pt-2 cursor-pointer hover:bg-[#1f2940] rounded transition-colors group/off relative">
+                                <i class="ph-fill ph-suitcase text-[#CBA052] mb-0.5 text-lg md:text-xl group-hover/off:scale-110 transition-transform drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"></i>
+                                <span class="text-[9px] md:text-[10px] font-bold text-[#CBA052] uppercase tracking-widest leading-tight">Layover</span>
+                                <span class="text-[8px] text-gray-400 font-mono">${lastDest}</span>
+                            </div>
+                        `;
+                    } else {
+                        contentHtml = `
+                            <div onclick="openDiary('${dateStr}', 'OFF', 'SIN')" class="flex-1 flex items-center justify-center pt-2 cursor-pointer hover:bg-[#1f2940] rounded transition-colors relative group/off">
+                                <span class="text-[10px] md:text-sm font-bold text-gray-600/60 uppercase tracking-widest group-hover/off:text-white transition-colors">OFF</span>
+                            </div>
+                        `;
+                    }
+                }
+                
+                // Highlight today's date uniquely
+                const todayStr = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+                const isToday = dateStr === todayStr;
+                const borderClass = isToday ? 'border-app-accent shadow-[0_0_10px_rgba(203,160,82,0.3)]' : 'border-app-border/30';
+                
+                let dayTypeForNotes = isOff ? (lastDest.toUpperCase() !== 'SIN' ? 'LAYOVER' : 'OFF') : 'DUTY';
+                let locForNotes = isOff ? lastDest : (dayFlights.length > 0 ? dayFlights[0].origin : 'SIN');
+
+                const noteTriggerHtml = `
+                    <div class="absolute top-0.5 left-0.5 p-1 cursor-pointer z-20" onclick="openDiary('${dateStr}', '${dayTypeForNotes}', '${locForNotes}')">
+                        ${hasNote ? '<i class="ph-fill ph-book-bookmark text-app-accent text-[10px] md:text-xs drop-shadow-[0_0_5px_rgba(203,160,82,0.8)]"></i>' : '<i class="ph-bold ph-pencil-simple text-gray-500 hover:text-app-accent text-[10px] md:text-xs opacity-50 md:opacity-0 md:group-hover/cell:opacity-100 transition-opacity"></i>'}
+                    </div>
+                `;
+                
+                grid.innerHTML += `
+                    <div class="group/cell bg-[#131A2A] border ${borderClass} rounded-lg p-1 md:p-1.5 min-h-[70px] md:min-h-[100px] relative flex flex-col transition-all hover:border-app-accent/50">
+                        ${noteTriggerHtml}
+                        <span class="absolute top-1 right-1.5 text-[9px] md:text-xs font-mono ${isOff ? 'text-gray-500' : 'text-white'}">${day}</span>
+                        <div class="mt-4 md:mt-5 flex-1 flex flex-col gap-0.5 overflow-hidden">
+                            ${contentHtml}
+                        </div>
+                    </div>
+                `;
+            }
+        };
+
         window.setLogFilter = function(val) {
             window.logFilterText = val.toLowerCase().trim();
             const clearBtn = document.getElementById('clear-search-btn');
@@ -4062,6 +5276,7 @@ Tone: Professional, helpful, concise, and friendly.`
 
         function renderUI() {
             renderTable();
+            if (typeof window.renderCalendar === 'function') window.renderCalendar();
             renderDashboard();
             if(!document.getElementById('view-map').classList.contains('hidden-view')) {
                 renderMapHUD();
@@ -4448,6 +5663,13 @@ Tone: Professional, helpful, concise, and friendly.`
             if (!window.hudMap) {
                 window.hudMap = L.map('map-container', { zoomControl: true, attributionControl: false }).setView([20, 0], 2);
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19 }).addTo(window.hudMap);
+                
+                // Bulletproof Resize Observer to fix Leaflet map shrinking
+                new ResizeObserver(() => {
+                    if (window.hudMap) {
+                        window.hudMap.invalidateSize();
+                    }
+                }).observe(document.getElementById('map-container'));
             }
 
             window.hudMarkers.forEach(m => window.hudMap.removeLayer(m));
