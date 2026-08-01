@@ -790,8 +790,13 @@
                             </div>
                             
                             <h4 class="text-[10px] font-bold tracking-widest uppercase text-gray-500 mb-2 border-b border-app-border/50 pb-2">Active Crew Directory</h4>
-                            <div id="admin-active-list" class="space-y-2 min-h-[40px]">
+                            <div id="admin-active-list" class="space-y-2 min-h-[40px] mb-4">
                                 <p class="text-xs font-mono text-gray-500 py-2">No active crew.</p>
+                            </div>
+
+                            <h4 class="text-[10px] font-bold tracking-widest uppercase text-gray-500 mb-2 border-b border-app-border/50 pb-2">Suspended Accounts</h4>
+                            <div id="admin-suspended-list" class="space-y-2 min-h-[40px]">
+                                <p class="text-xs font-mono text-gray-500 py-2">No suspended crew.</p>
                             </div>
                         </div>
                     </div>
@@ -2326,6 +2331,7 @@
             if (!account) { showToast("Invalid Staff ID or PIN"); return; }
             if (account.status === 'pending') { showToast("Account is awaiting Admin approval."); return; }
             if (account.status === 'rejected') { showToast("Account access has been rejected."); return; }
+            if (account.status === 'suspended') { showToast("Account has been suspended by Admin."); return; }
 
             completeLogin(account);
         };
@@ -2524,10 +2530,12 @@
         window.renderAdminList = function() {
             const pendingContainer = document.getElementById('admin-pending-list');
             const activeContainer = document.getElementById('admin-active-list');
-            if (!pendingContainer || !activeContainer) return;
+            const suspendedContainer = document.getElementById('admin-suspended-list');
+            if (!pendingContainer || !activeContainer || !suspendedContainer) return;
 
             let pendingHtml = '';
             let activeHtml = '';
+            let suspendedHtml = '';
 
             window.accountsData.forEach(acc => {
                 if (MASTER_ADMINS.includes(acc.staffId) && acc.id.startsWith('local-master-id')) return; // Hide mock master
@@ -2547,8 +2555,23 @@
                             </div>
                         </div>
                     `;
+                } else if (acc.status === 'suspended') {
+                    suspendedHtml += `
+                        <div class="flex justify-between items-center bg-[#131A2A] p-2 rounded border border-red-900/50 mb-2 opacity-75">
+                            <div>
+                                <p class="text-xs font-bold text-white line-through decoration-red-500">${acc.name} <span class="text-app-accent ml-1 no-underline">${acc.role}</span></p>
+                                <p class="text-[10px] font-mono text-red-400">SUSPENDED - ${acc.staffId}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="adminApproveAccount('${acc.id}')" class="${btnClass} bg-green-900/30 text-green-400 hover:bg-green-900/60 border border-green-500/50">Reactivate</button>
+                                <button onclick="adminDeleteAccount('${acc.id}')" class="${btnClass} bg-red-900/30 text-red-400 hover:bg-red-900/60 border border-red-500/50">Delete</button>
+                            </div>
+                        </div>
+                    `;
                 } else {
                     const deleteBtn = MASTER_ADMINS.includes(acc.staffId) ? '' : `<button onclick="adminDeleteAccount('${acc.id}')" class="${btnClass} bg-red-900/30 text-red-400 hover:bg-red-900/60 border border-red-500/50">Delete</button>`;
+                    const suspendBtn = MASTER_ADMINS.includes(acc.staffId) ? '' : `<button onclick="adminSuspendAccount('${acc.id}')" class="${btnClass} bg-yellow-900/30 text-yellow-400 hover:bg-yellow-900/60 border border-yellow-500/50">Suspend</button>`;
+                    
                     activeHtml += `
                         <div class="flex justify-between items-center bg-[#131A2A] p-2 rounded border border-app-border mb-2">
                             <div>
@@ -2556,6 +2579,7 @@
                                 <p class="text-[10px] font-mono text-gray-400">${acc.staffId}</p>
                             </div>
                             <div class="flex gap-2">
+                                ${suspendBtn}
                                 ${deleteBtn}
                             </div>
                         </div>
@@ -2565,6 +2589,7 @@
 
             pendingContainer.innerHTML = pendingHtml || '<p class="text-xs font-mono text-gray-500 py-2">No pending requests.</p>';
             activeContainer.innerHTML = activeHtml || '<p class="text-xs font-mono text-gray-500 py-2">No active crew.</p>';
+            suspendedContainer.innerHTML = suspendedHtml || '<p class="text-xs font-mono text-gray-500 py-2">No suspended crew.</p>';
         };
 
         window.adminApproveAccount = async function(docId) {
@@ -2577,15 +2602,38 @@
                         acc.status = 'approved';
                         localStorage.setItem('crew_offline_accounts', JSON.stringify(window.accountsData));
                         renderAdminList();
-                        showToast("Account Approved Locally");
+                        showToast("Account Activated Locally");
                     }
                 } else {
                     await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', docId), { status: 'approved' });
-                    showToast("Account Approved");
+                    showToast("Account Activated");
                 }
             } catch(e) {
                 console.error(e);
-                showToast("Failed to approve");
+                showToast("Failed to process");
+            }
+        };
+
+        window.adminSuspendAccount = async function(docId) {
+            if (!window.isAdmin) return;
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+            try {
+                if (cloudSyncDisabled) {
+                    const acc = window.accountsData.find(a => a.id === docId);
+                    if (acc) {
+                        acc.status = 'suspended';
+                        acc.isOnline = false;
+                        localStorage.setItem('crew_offline_accounts', JSON.stringify(window.accountsData));
+                        renderAdminList();
+                        showToast("Account Suspended Locally");
+                    }
+                } else {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'accounts', docId), { status: 'suspended', isOnline: false });
+                    showToast("Account Suspended");
+                }
+            } catch(e) {
+                console.error(e);
+                showToast("Failed to suspend account");
             }
         };
 
