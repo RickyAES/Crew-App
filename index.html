@@ -1002,22 +1002,6 @@
         </div>
     </div>
 
-    <!-- API KEY PROMPT MODAL -->
-    <div id="modal-api-key" class="hidden-view fixed inset-0 z-[500] bg-[#0A0F1D]/90 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-300">
-        <div class="glass-panel w-full max-w-sm p-6 rounded-2xl shadow-2xl relative z-10 flex flex-col items-center border border-app-accent/50 text-center">
-            <div class="w-16 h-16 rounded-full bg-app-accent/20 flex items-center justify-center mb-4 border border-app-accent mx-auto">
-                <i class="ph-fill ph-key text-3xl text-app-accent"></i>
-            </div>
-            <h2 class="text-lg font-bold text-white uppercase tracking-widest mb-2">API Key Required</h2>
-            <p class="text-xs text-gray-400 mb-6 font-mono leading-relaxed">To use the AI Vision Scanner and CrewBot Assistant, please enter a valid Google Gemini API Key. Your key is securely stored in your device's local storage.</p>
-            <input type="password" id="input-api-key" placeholder="AIzaSy..." class="w-full bg-[#131A2A] border border-app-border rounded-lg p-3 text-sm text-white focus:border-app-accent outline-none text-center font-mono mb-4">
-            <div class="flex gap-3 w-full">
-                <button onclick="closeApiKeyModal()" class="flex-1 bg-app-card border border-app-border text-white p-3 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-[#1f2940] transition-colors">Cancel</button>
-                <button onclick="saveApiKey()" class="flex-1 bg-app-accent hover:bg-[#B58D22] text-[#0A0F1D] p-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors shadow-[0_0_15px_rgba(203,160,82,0.4)]">Save Key</button>
-            </div>
-        </div>
-    </div>
-
     <!-- PROFILE EDIT MODAL -->
     <div id="modal-profile" class="hidden-view fixed inset-0 z-[200] bg-[#0A0F1D]/90 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-300">
         <div class="glass-panel w-full max-w-md p-6 rounded-2xl shadow-2xl relative z-10 flex flex-col border border-app-accent/50 max-h-[90vh] overflow-y-auto">
@@ -1423,8 +1407,6 @@
 
         // ==========================================
         // 🚀 VERCEL DEPLOYMENT CONFIGURATION 🚀
-        // To make the database work on Vercel, replace 'null' below with your own Firebase Config object!
-        // Example: const VERCEL_FIREBASE_CONFIG = { apiKey: "AIza...", authDomain: "...", projectId: "..." };
         // ==========================================
         const VERCEL_FIREBASE_CONFIG = {
             apiKey: "AIzaSyCi1nqoeyvLp476HVww4scLwcYrQ7Mb1qI",
@@ -1435,6 +1417,9 @@
             appId: "1:857333430184:web:76b3b0dd7d3997010b0f9d",
             measurementId: "G-8SZ2WB0MHP"
         };
+        
+        // PASTE YOUR GOOGLE GEMINI API KEY HERE FOR LIVE VERCEL DEPLOYMENT
+        const VERCEL_GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE";
 
         // --- DATABASE ROUTING FIXED ---
         // Restoring original paths to comply strictly with the backend security rules 
@@ -4892,39 +4877,6 @@
         // --- AI CREW ASSISTANT LOGIC ---
         window.aiChatHistory = [];
 
-        window.pendingApiCallback = null;
-
-        window.getGeminiKey = function() {
-            return localStorage.getItem('crew_gemini_key') || "";
-        };
-
-        window.promptGeminiKey = function(callback) {
-            window.pendingApiCallback = callback;
-            document.getElementById('input-api-key').value = window.getGeminiKey();
-            document.getElementById('modal-api-key').classList.remove('hidden-view');
-        };
-
-        window.closeApiKeyModal = function() {
-            document.getElementById('modal-api-key').classList.add('hidden-view');
-            window.pendingApiCallback = null;
-        };
-
-        window.saveApiKey = function() {
-            const key = document.getElementById('input-api-key').value.trim();
-            if (key) {
-                localStorage.setItem('crew_gemini_key', key);
-                document.getElementById('modal-api-key').classList.add('hidden-view');
-                showToast("API Key Saved Successfully!");
-                if (window.pendingApiCallback) {
-                    const cb = window.pendingApiCallback;
-                    window.pendingApiCallback = null;
-                    cb(key);
-                }
-            } else {
-                showToast("Please enter a valid API key.");
-            }
-        };
-
         window.toggleAIChat = function() {
             const panel = document.getElementById('ai-chat-panel');
             if (panel.classList.contains('hidden-view')) {
@@ -4995,21 +4947,10 @@
         };
 
         window.__processAIAssistantCall = async function(text) {
-            const apiKey = window.getGeminiKey();
-            if (!apiKey) {
-                removeChatTyping();
-                window.aiChatHistory.pop(); // Remove the user message from history so they can try again
-                const chatContainer = document.getElementById('ai-chat-messages');
-                chatContainer.removeChild(chatContainer.lastChild); // Remove visually
-                window.promptGeminiKey((newKey) => {
-                    document.getElementById('ai-chat-input').value = text;
-                    window.sendAIChat();
-                });
-                return;
-            }
+            const apiKey = "";
 
             try {
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
                 // 1. Define Function Calling Tools (Allow AI to execute actions)
                 const logFlightDeclaration = {
@@ -6136,12 +6077,16 @@ Tone: Professional, helpful, concise, and friendly.`
             
             window.pendingScanFiles = Array.from(files);
             
-            executeScan(); // Call executeScan directly without API key prompt
+            executeScan(); // Call executeScan directly
             e.target.value = ''; 
         });
 
         async function executeScan() {
             if (!window.pendingScanFiles || window.pendingScanFiles.length === 0) return;
+
+            // Leave blank so Canvas injects the key automatically
+            const apiKey = "";
+
             showToast(`AI analyzing ${window.pendingScanFiles.length} document(s)... please wait.`, 8000);
             
             const base64Files = [];
@@ -6161,7 +6106,8 @@ Tone: Professional, helpful, concise, and friendly.`
             }
             
             try {
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=`; // Changed model and removed key
+                // Use gemini-3-flash-preview which supports complex PDF and image parsing
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`; 
                 
                 const prompt = `You are an expert flight logbook data extractor specialized in Singapore Airlines crew rosters.
 Analyze the provided images or PDF documents of crew rosters.
