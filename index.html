@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Crew Dashboard | FS Ricky Law 00230747 - 2010-2022</title>
     
     <!-- LINK THE MANIFEST -->
@@ -293,6 +293,10 @@
             <button onclick="forceSync()" id="sync-btn" class="cursor-pointer bg-app-card hover:bg-[#1f2940] border border-app-border px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2 text-[#60A5FA]">
                 <i class="ph-bold ph-arrows-clockwise" id="sync-icon"></i>
                 <span class="hidden md:inline">Sync</span>
+            </button>
+            <button onclick="openViewSettingsModal()" class="cursor-pointer bg-app-card hover:bg-[#1f2940] border border-app-border px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2 text-yellow-400">
+                <i class="ph-bold ph-monitor"></i>
+                <span class="hidden md:inline">Display</span>
             </button>
             <button onclick="openExportModal()" class="cursor-pointer bg-app-card hover:bg-[#1f2940] border border-app-border px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2 text-green-400">
                 <i class="ph ph-download-simple"></i>
@@ -1402,6 +1406,44 @@
         </div>
     </div>
 
+    <!-- DISPLAY SETTINGS MODAL (NEW) -->
+    <div id="modal-view-settings" class="hidden-view fixed inset-0 z-[500] bg-[#0A0F1D]/90 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-sm p-6 rounded-2xl shadow-2xl relative z-10 flex flex-col border border-app-accent/50">
+            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-app-border">
+                <div class="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center border border-yellow-500 shrink-0">
+                    <i class="ph-fill ph-monitor text-xl text-yellow-400"></i>
+                </div>
+                <div>
+                    <h2 class="text-sm font-bold text-white uppercase tracking-widest">Display Settings</h2>
+                    <p class="text-[10px] text-gray-400 font-mono">Zoom and Fullscreen</p>
+                </div>
+            </div>
+            
+            <div class="flex flex-col gap-6 mb-6">
+                <!-- Fullscreen Toggle -->
+                <div>
+                    <h3 class="text-[10px] font-bold text-app-text uppercase tracking-widest mb-3">Screen Mode</h3>
+                    <button onclick="toggleFullScreen()" class="w-full bg-[#131A2A] border border-app-border hover:border-app-accent text-white p-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2">
+                        <i class="ph-bold ph-corners-out text-lg"></i> Toggle Full Screen
+                    </button>
+                </div>
+
+                <!-- Interface Scale -->
+                <div>
+                    <h3 class="text-[10px] font-bold text-app-text uppercase tracking-widest mb-3">Interface Scale</h3>
+                    <div class="flex gap-2 bg-[#0A0F1D] border border-app-border rounded-lg p-1">
+                        <button id="scale-small" onclick="setTextScale('small')" class="flex-1 p-2 rounded text-xs font-bold uppercase tracking-widest transition-colors bg-[#131A2A] text-white">Small</button>
+                        <button id="scale-default" onclick="setTextScale('default')" class="flex-1 p-2 rounded text-xs font-bold uppercase tracking-widest transition-colors bg-app-accent text-[#0A0F1D]">Default</button>
+                        <button id="scale-large" onclick="setTextScale('large')" class="flex-1 p-2 rounded text-xs font-bold uppercase tracking-widest transition-colors bg-[#131A2A] text-white">Large</button>
+                    </div>
+                    <p class="text-[9px] text-gray-500 font-mono mt-2 text-center leading-relaxed">You can also use standard pinch-to-zoom gestures directly on your screen.</p>
+                </div>
+            </div>
+
+            <button onclick="closeViewSettingsModal()" class="w-full bg-app-card border border-app-border text-white p-3 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-[#1f2940] transition-colors">Close</button>
+        </div>
+    </div>
+
         <script type="module">
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -1510,6 +1552,57 @@
         window.customDestIntel = {}; // Community overrides for hotel intel
         window.editingDocId = null; 
         window.lastUsedDate = null; 
+        
+        // --- DISPLAY & ACCESSIBILITY SETTINGS ---
+        window.openViewSettingsModal = function() {
+            document.getElementById('modal-view-settings').classList.remove('hidden-view');
+        };
+
+        window.closeViewSettingsModal = function() {
+            document.getElementById('modal-view-settings').classList.add('hidden-view');
+        };
+
+        window.toggleFullScreen = function() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    window.showToast(`Error: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+            window.closeViewSettingsModal();
+        };
+
+        window.setTextScale = function(scale) {
+            const root = document.documentElement;
+            // Dynamically override the base font-size rem. 
+            // Tailwind scales the entire UI padding, margins, and fonts from this root value!
+            if (scale === 'small') {
+                root.style.fontSize = '13px'; 
+            } else if (scale === 'large') {
+                root.style.fontSize = '19px'; 
+            } else {
+                root.style.fontSize = '16px'; // Default Tailwind base
+            }
+
+            // Update Active Buttons visually
+            ['scale-small', 'scale-default', 'scale-large'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) {
+                    el.classList.remove('bg-app-accent', 'text-[#0A0F1D]');
+                    el.classList.add('bg-[#131A2A]', 'text-white');
+                }
+            });
+            const activeEl = document.getElementById('scale-' + scale);
+            if(activeEl) {
+                activeEl.classList.add('bg-app-accent', 'text-[#0A0F1D]');
+                activeEl.classList.remove('bg-[#131A2A]', 'text-white');
+            }
+
+            localStorage.setItem('crew_display_scale', scale);
+        };
         
         // Multi-User Secure Variables
         window.currentStaffId = null;
@@ -6251,6 +6344,11 @@ JSON Format Example:
 
         document.addEventListener('DOMContentLoaded', async () => {
             initMobileForm();
+            
+            // Load saved display settings
+            const savedScale = localStorage.getItem('crew_display_scale') || 'default';
+            window.setTextScale(savedScale);
+
             await fetchAirportData(); 
             initApp();
             
