@@ -1007,8 +1007,26 @@
                     </div>
                     <div class="flex flex-col gap-1.5 w-1/2">
                         <label class="text-[10px] font-bold text-app-text uppercase tracking-widest">6-Digit PIN</label>
-                        <input type="password" id="edit-profile-pin" maxlength="6" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white focus:border-app-accent outline-none text-center tracking-[0.5em]">
+                        <div class="relative flex items-center">
+                            <input type="password" id="edit-profile-pin" maxlength="6" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 pr-10 text-sm text-white focus:border-app-accent outline-none text-center tracking-[0.5em] font-mono">
+                            <button type="button" onclick="toggleProfilePin()" class="absolute right-3 text-gray-500 hover:text-white transition-colors flex items-center justify-center">
+                                <i id="profile-pin-icon" class="ph-bold ph-eye text-lg"></i>
+                            </button>
+                        </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Emergency Contact Section -->
+            <h3 class="text-[10px] font-bold text-app-accent uppercase tracking-widest mt-4 mb-3 border-b border-app-border pb-1"><i class="ph-fill ph-phone"></i> Emergency Contact</h3>
+            <div class="grid grid-cols-2 gap-3 mb-2">
+                <div class="flex flex-col gap-1">
+                    <label class="text-[9px] font-bold text-app-text uppercase tracking-widest">Name & Number</label>
+                    <input type="text" id="edit-profile-emer-contact" placeholder="John Doe +65..." class="w-full bg-[#0A0F1D] border border-app-border rounded-md p-2 text-xs text-white focus:border-app-accent outline-none">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[9px] font-bold text-app-text uppercase tracking-widest">Relationship</label>
+                    <input type="text" id="edit-profile-emer-relation" placeholder="e.g. Spouse" class="w-full bg-[#0A0F1D] border border-app-border rounded-md p-2 text-xs text-white focus:border-app-accent outline-none">
                 </div>
             </div>
 
@@ -1018,6 +1036,14 @@
                 <div class="flex flex-col gap-1">
                     <label class="text-[9px] font-bold text-app-text uppercase tracking-widest">Passport</label>
                     <input type="date" id="edit-wallet-passport" class="w-full bg-[#0A0F1D] border border-app-border rounded-md p-2 text-xs text-white focus:border-app-accent outline-none cursor-pointer">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[9px] font-bold text-app-text uppercase tracking-widest">Staff Pass / ID</label>
+                    <input type="date" id="edit-wallet-staffpass" class="w-full bg-[#0A0F1D] border border-app-border rounded-md p-2 text-xs text-white focus:border-app-accent outline-none cursor-pointer">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[9px] font-bold text-app-text uppercase tracking-widest">SEP Recurrent</label>
+                    <input type="date" id="edit-wallet-sep" class="w-full bg-[#0A0F1D] border border-app-border rounded-md p-2 text-xs text-white focus:border-app-accent outline-none cursor-pointer">
                 </div>
                 <div class="flex flex-col gap-1">
                     <label class="text-[9px] font-bold text-app-text uppercase tracking-widest">Medical Cert</label>
@@ -2395,7 +2421,12 @@
             document.getElementById('edit-profile-role').value = myAcc.role || 'FS';
             document.getElementById('edit-profile-pin').value = myAcc.pin || '';
             
+            document.getElementById('edit-profile-emer-contact').value = myAcc.emerContact || '';
+            document.getElementById('edit-profile-emer-relation').value = myAcc.emerRelation || '';
+            
             document.getElementById('edit-wallet-passport').value = myAcc.passport || '';
+            document.getElementById('edit-wallet-staffpass').value = myAcc.staffPass || '';
+            document.getElementById('edit-wallet-sep').value = myAcc.sep || '';
             document.getElementById('edit-wallet-medical').value = myAcc.medical || '';
             document.getElementById('edit-wallet-visa').value = myAcc.visa || '';
             document.getElementById('edit-wallet-esta').value = myAcc.esta || '';
@@ -2407,6 +2438,24 @@
             document.getElementById('modal-profile').classList.add('hidden-view');
         };
 
+        window.toggleProfilePin = function() {
+            const input = document.getElementById('edit-profile-pin');
+            const icon = document.getElementById('profile-pin-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                input.classList.remove('tracking-[0.5em]');
+                input.classList.add('tracking-widest');
+                icon.classList.remove('ph-eye');
+                icon.classList.add('ph-eye-slash');
+            } else {
+                input.type = 'password';
+                input.classList.remove('tracking-widest');
+                input.classList.add('tracking-[0.5em]');
+                icon.classList.remove('ph-eye-slash');
+                icon.classList.add('ph-eye');
+            }
+        };
+
         window.saveProfile = async function() {
             if (!window.currentStaffId) return;
             const myAcc = window.accountsData.find(a => a.staffId === window.currentStaffId);
@@ -2416,7 +2465,12 @@
             const role = document.getElementById('edit-profile-role').value;
             const pin = document.getElementById('edit-profile-pin').value.trim();
             
+            const emerContact = document.getElementById('edit-profile-emer-contact').value.trim();
+            const emerRelation = document.getElementById('edit-profile-emer-relation').value.trim();
+
             const passport = document.getElementById('edit-wallet-passport').value;
+            const staffPass = document.getElementById('edit-wallet-staffpass').value;
+            const sep = document.getElementById('edit-wallet-sep').value;
             const medical = document.getElementById('edit-wallet-medical').value;
             const visa = document.getElementById('edit-wallet-visa').value;
             const esta = document.getElementById('edit-wallet-esta').value;
@@ -2426,7 +2480,7 @@
                 return;
             }
 
-            const updates = { name, role, pin, passport, medical, visa, esta };
+            const updates = { name, role, pin, emerContact, emerRelation, passport, staffPass, sep, medical, visa, esta };
 
             if (cloudSyncDisabled || myAcc.id.startsWith('local-master-id')) {
                 Object.assign(myAcc, updates);
@@ -5305,6 +5359,8 @@
             if (myAcc && docAlert) {
                 const docs = [
                     {name: 'Passport', date: myAcc.passport},
+                    {name: 'Staff Pass', date: myAcc.staffPass},
+                    {name: 'SEP', date: myAcc.sep},
                     {name: 'Medical', date: myAcc.medical},
                     {name: 'US Visa', date: myAcc.visa},
                     {name: 'ESTA', date: myAcc.esta}
