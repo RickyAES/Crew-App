@@ -1502,7 +1502,29 @@
                 </div>
             </div>
 
-            <button onclick="closeViewSettingsModal()" class="w-full bg-app-card border border-app-border text-white p-3 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-[#1f2940] transition-colors">Close</button>
+            <button onclick="closeViewSettingsModal()" class="w-full bg-app-card border border-app-border text-white p-3 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-[#1f2940] transition-colors mb-3">Close</button>
+            <button onclick="openApiSetupModal()" class="w-full bg-red-900/20 border border-red-500/50 text-red-400 p-3 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-red-900/40 transition-colors flex items-center justify-center gap-2"><i class="ph-bold ph-key"></i> Reset AI API Key</button>
+        </div>
+    </div>
+
+    <!-- SECURE API KEY SETUP MODAL (NEW) -->
+    <div id="modal-api-setup" class="hidden-view fixed inset-0 z-[600] bg-[#0A0F1D]/95 backdrop-blur-md flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-md p-6 rounded-2xl shadow-2xl relative z-10 flex flex-col border border-blue-500/50 text-center">
+            <div class="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center mb-4 border border-blue-500 mx-auto">
+                <i class="ph-fill ph-robot text-3xl text-blue-400"></i>
+            </div>
+            <h2 class="text-lg font-bold text-white uppercase tracking-widest mb-2">Connect AI Scanner</h2>
+            <p class="text-xs text-gray-400 mb-6 font-mono leading-relaxed">To power the Vision AI scanner on Vercel, please enter your secure Gemini API Key. This key is saved locally to your device and never touches our servers.</p>
+            
+            <div class="w-full mb-6">
+                <input type="password" id="input-api-key" placeholder="AIzaSy..." class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none text-center font-mono">
+                <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] text-blue-400 hover:text-blue-300 mt-2 inline-block underline underline-offset-2">Get a free key from Google AI Studio</a>
+            </div>
+
+            <div class="flex gap-3 w-full">
+                <button onclick="closeApiSetupModal()" class="flex-1 bg-app-card border border-app-border text-white p-3 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-[#1f2940] transition-colors">Cancel</button>
+                <button onclick="saveApiKey()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors shadow-[0_0_15px_rgba(59,130,246,0.4)] flex items-center justify-center gap-2"><i class="ph-bold ph-floppy-disk"></i> Save Key</button>
+            </div>
         </div>
     </div>
 
@@ -1524,8 +1546,37 @@
             measurementId: "G-8SZ2WB0MHP"
         };
         
-        // LEAVE BLANK: Canvas environment automatically injects the key during runtime
-        const VERCEL_GEMINI_API_KEY = "";
+        // --- API KEY MANAGER ---
+        window.getSecureApiKey = function() {
+            // First, try the proxy if running inside the Canvas IDE
+            if (typeof VERCEL_GEMINI_API_KEY !== 'undefined' && VERCEL_GEMINI_API_KEY !== "") {
+                return VERCEL_GEMINI_API_KEY;
+            }
+            // Fallback to local storage (for Vercel deployments)
+            return localStorage.getItem('crew_gemini_api_key');
+        };
+
+        window.openApiSetupModal = function() {
+            document.getElementById('modal-view-settings').classList.add('hidden-view');
+            const savedKey = localStorage.getItem('crew_gemini_api_key');
+            if (savedKey) document.getElementById('input-api-key').value = savedKey;
+            document.getElementById('modal-api-setup').classList.remove('hidden-view');
+        };
+
+        window.closeApiSetupModal = function() {
+            document.getElementById('modal-api-setup').classList.add('hidden-view');
+        };
+
+        window.saveApiKey = function() {
+            const key = document.getElementById('input-api-key').value.trim();
+            if (!key || !key.startsWith('AIza')) {
+                window.showToast("Invalid key format. Key must start with 'AIza'.");
+                return;
+            }
+            localStorage.setItem('crew_gemini_api_key', key);
+            window.showToast("API Key saved securely to your device!");
+            window.closeApiSetupModal();
+        };
 
         // --- DATABASE ROUTING FIXED ---
         // Restoring original paths to comply strictly with the backend security rules 
@@ -6752,8 +6803,15 @@
             if (!files || files.length === 0) return;
             if (!window.currentStaffId) { window.showToast("Login Required to scan manifests."); return; }
             
+            const activeApiKey = window.getSecureApiKey();
+            if (!activeApiKey) {
+                window.showToast("AI Setup Required!");
+                window.openApiSetupModal();
+                e.target.value = '';
+                return;
+            }
+
             const flightId = document.getElementById('crew-flight-selector').value;
-            // Removed strict block here so AI can auto-detect the flight
 
             const validFiles = Array.from(files).filter(f => 
                 f.type === 'application/pdf' || 
@@ -6766,13 +6824,11 @@
                 return;
             }
 
-            window.executeManifestScan(validFiles[0], flightId); 
+            window.executeManifestScan(validFiles[0], flightId, activeApiKey); 
             e.target.value = ''; 
         });
 
-        window.executeManifestScan = async function(file, fallbackFlightId) {
-            const activeApiKey = VERCEL_GEMINI_API_KEY;
-            
+        window.executeManifestScan = async function(file, fallbackFlightId, activeApiKey) {
             window.showToast(`AI Vision scanning manifest... please wait.`, 8000);
             
             const base64Data = await new Promise((resolve) => {
@@ -6851,7 +6907,10 @@ EXAMPLES FROM IMAGE:
                 });
 
                 if (!response.ok) {
-                    if (response.status === 403) throw new Error("403: Missing API Key. Add your Gemini Key to VERCEL_GEMINI_API_KEY.");
+                    if (response.status === 400) {
+                        localStorage.removeItem('crew_gemini_api_key');
+                        throw new Error("400: Invalid API Key. Please provide a valid key starting with 'AIza'.");
+                    }
                     throw new Error(`AI Scan Error: ${response.status}`);
                 }
                 
@@ -6967,6 +7026,14 @@ EXAMPLES FROM IMAGE:
             if (!files || files.length === 0) return;
             if (!window.currentStaffId) { showToast("Login Required to scan logs."); return; }
             
+            const activeApiKey = window.getSecureApiKey();
+            if (!activeApiKey) {
+                window.showToast("AI Setup Required!");
+                window.openApiSetupModal();
+                e.target.value = '';
+                return;
+            }
+
             // Filter for supported formats to prevent "format failed" errors
             const validFiles = Array.from(files).filter(f => 
                 f.type === 'application/pdf' || 
@@ -6983,14 +7050,12 @@ EXAMPLES FROM IMAGE:
             }
 
             window.pendingScanFiles = validFiles;
-            executeScan(); 
+            executeScan(activeApiKey); 
             e.target.value = ''; 
         });
 
-        async function executeScan() {
+        async function executeScan(activeApiKey) {
             if (!window.pendingScanFiles || window.pendingScanFiles.length === 0) return;
-
-            const activeApiKey = VERCEL_GEMINI_API_KEY; // Uses Canvas proxy if empty, or your real key on Vercel
 
             showToast(`AI analyzing ${window.pendingScanFiles.length} document(s)... please wait.`, 8000);
             
@@ -7070,7 +7135,10 @@ JSON Format Example:
                 });
 
                 if (!response.ok) {
-                    if (response.status === 403) throw new Error("403: Missing API Key. Add your Gemini Key to VERCEL_GEMINI_API_KEY.");
+                    if (response.status === 400) {
+                        localStorage.removeItem('crew_gemini_api_key');
+                        throw new Error("400: Invalid API Key. Please provide a valid key starting with 'AIza'.");
+                    }
                     throw new Error(`AI Scan Error: ${response.status}`);
                 }
                 
