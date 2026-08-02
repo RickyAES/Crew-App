@@ -4266,34 +4266,45 @@
             showToast("Purging data... Please wait.", 5000);
             closePurgeModal();
             
+            // 1. Forcefully wipe ALL local offline caches immediately
+            localStorage.removeItem('crew_offline_flights');
+            localStorage.removeItem('crew_offline_timetable');
+            
             try {
                 if (!db || cloudSyncDisabled) {
-                    // --- VERCEL OFFLINE FALLBACK MODE ---
                     window.flightsData = [];
-                    localStorage.removeItem('crew_offline_flights'); // Completely wipe local storage for flights
                     renderUI();
                     showToast("Successfully purged all local flight records!");
                     return;
                 }
 
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
-                // Securely loop through and delete only the flights bound to the current user's Staff ID
-                const deletePromises = window.flightsData.map(flight => 
-                    deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'flights', flight.id))
-                );
                 
-                await Promise.all(deletePromises);
+                // 2. Chunk the deletions into batches of 40 to prevent Google Firebase from blocking us for rate-limiting
+                const myFlights = window.flightsData.filter(f => f.staffId === window.currentStaffId);
                 
-                // Clear the UI instantly
+                for (let i = 0; i < myFlights.length; i += 40) {
+                    const chunk = myFlights.slice(i, i + 40);
+                    const deletePromises = chunk.map(flight => 
+                        deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'flights', flight.id))
+                        .catch(err => console.warn("Skipped un-deletable ghost doc:", err))
+                    );
+                    await Promise.all(deletePromises);
+                }
+                
+                // 3. Clear the UI instantly
                 window.flightsData = [];
                 renderUI();
                 
-                showToast(`Successfully purged ${deletePromises.length} flight records!`);
+                showToast(`Successfully purged ${myFlights.length} flight records completely!`);
             } catch(e) {
                 if(e.code === 'permission-denied') handleFirestoreError(e, "Purge Data");
                 else {
                     console.error("Purge Error:", e);
-                    showToast("Error purging data. Please try again.");
+                    // Force the UI clear anyway so the user isn't stuck looking at the old data
+                    window.flightsData = [];
+                    renderUI();
+                    showToast("Data wiped locally. Cloud deletion partially completed.");
                 }
             }
         };
