@@ -6839,8 +6839,7 @@
             });
             
             try {
-                // STRICT REQUIREMENT: Using the designated preview model for Canvas Inline Image Data
-                let apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${activeApiKey}`; 
+                let apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeApiKey}`; 
                 const prompt = `You are an expert aviation data extractor. Your task is to transcribe a handwritten Singapore Airlines crew manifest.
 
 CRITICAL EXTRACTION RULES:
@@ -6907,139 +6906,56 @@ EXAMPLES FROM IMAGE:
                     body: JSON.stringify(payload)
                 });
 
-                // FALLBACK FOR VERCEL: Standard user API keys cannot access gemini-3-flash-preview. 
-                // If Google returns 403 (Permission Denied) or 404 (Not Found), instantly route to the public gemini-1.5-flash model!
-                if (!response.ok && (response.status === 403 || response.status === 404)) {
-                    apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeApiKey}`;
-                    response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                }
-
                 if (!response.ok) {
-                    if (response.status === 403) {
-                        localStorage.removeItem('crew_gemini_api_key');
-                        throw new Error(`403 Forbidden: Permission Denied. Check Google Cloud Console API restrictions for this key.`);
-                    } else if (response.status === 400) {
-                        localStorage.removeItem('crew_gemini_api_key');
-                        throw new Error(`400 Bad Request: Invalid API Key. Please check your key and try again.`);
-                    }
-                    throw new Error(`AI Scan Error: ${response.status}`);
+                    let errorMsg = `HTTP ${response.status}`;
+                    try {
+                        const errData = await response.json();
+                        if (errData.error && errData.error.message) errorMsg = errData.error.message;
+                    } catch(e) {}
+                    throw new Error(`AI Scan Error: ${response.status} - ${errorMsg}`);
                 }
                 
                 const result = await response.json();
                 
-                let parsedData = {};
                 if (result.candidates && result.candidates[0].content.parts[0].text) {
                     const textResponse = result.candidates[0].content.parts[0].text.replace(/```json/gi, '').replace(/```/gi, '').trim();
-                    try {
-                        parsedData = JSON.parse(textResponse);
-                    } catch (jsonErr) {
-                        console.error("Raw Output:", textResponse);
-                        throw new Error("Failed to parse JSON response.");
-                    }
-                } else {
-                    throw new Error("Empty response from AI.");
-                }
-                
-                const parsedManifest = parsedData.crew || [];
-                const aiFlightNo = parsedData.flightNo;
-                const aiDate = parsedData.date;
-                const aiAcType = parsedData.acType || '';
+                    const parsedData = JSON.parse(textResponse);
 
-                if (!Array.isArray(parsedManifest) || parsedManifest.length === 0) {
-                    window.showToast("No crew data extracted. Please try scanning again.");
-                    return;
-                }
-                
-                // Smart Auto-Capture Flight Logic
-                let targetFlight = null;
-                if (aiFlightNo) {
-                    let matches = window.flightsData.filter(f => f.flightNo && f.flightNo.toUpperCase().replace(/\s/g,'') === aiFlightNo.toUpperCase().replace(/\s/g,''));
-                    if (aiDate) {
-                        let exactMatch = matches.find(f => f.date === aiDate);
-                        if (exactMatch) targetFlight = exactMatch;
+                    if (!parsedData || !parsedData.crew || parsedData.crew.length === 0) {
+                        throw new Error("No crew members found in image.");
                     }
-                    if (!targetFlight && matches.length > 0) {
-                        const todayStr = new Date().toISOString().split('T')[0];
-                        let upcoming = matches.filter(f => f.date >= todayStr).sort((a,b) => a.date.localeCompare(b.date));
-                        if (upcoming.length > 0) targetFlight = upcoming[0];
-                        else targetFlight = matches[0];
-                    }
-                }
-                
-                if (!targetFlight && fallbackFlightId) {
-                    targetFlight = window.flightsData.find(f => f.id === fallbackFlightId);
-                }
 
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
-
-                if (!targetFlight) {
-                    // AUTO-CREATE MISSING FLIGHT
-                    window.showToast(`Flight ${aiFlightNo || 'Unknown'} not in roster. Auto-creating flight to save manifest...`, 4000);
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+                    const targetFlightId = fallbackFlightId;
                     
-                    const newFlightId = 'local_flt_auto_' + Date.now();
-                    targetFlight = {
-                        id: newFlightId,
-                        staffId: window.currentStaffId,
-                        date: aiDate || new Date().toISOString().split('T')[0],
-                        flightNo: aiFlightNo || 'UNKNOWN',
-                        origin: 'SIN', // Assume SIN base
-                        dest: 'TBA',
-                        acType: aiAcType,
-                        hours: 0,
-                        depTime: '00:00',
-                        arrTime: '00:00',
-                        manifest: parsedManifest,
-                        createdAt: Date.now()
-                    };
-                    
-                    if (window.cloudSyncDisabled || !db) {
-                        window.flightsData.push(targetFlight);
-                        localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
-                    } else {
-                        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'flights', newFlightId), targetFlight);
-                        window.flightsData.push(targetFlight);
+                    if (!targetFlightId) {
+                        window.showToast("Select a flight from the dropdown first to attach this manifest.");
+                        return;
                     }
-                    
-                    window.renderCrewView(newFlightId); 
-                    window.showToast(`Success! Auto-Created Flight & Extracted ${parsedManifest.length} crew.`);
-                    return;
-                }
-                
-                if (window.cloudSyncDisabled || !db) {
-                     const idx = window.flightsData.findIndex(f => f.id === targetFlight.id);
-                     if (idx > -1) {
-                         window.flightsData[idx].manifest = parsedManifest;
-                         localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
-                         window.showToast(`Auto-Matched Flight ${targetFlight.flightNo}! Extracted ${parsedManifest.length} crew.`);
-                         window.renderCrewView(targetFlight.id);
-                     }
-                } else {
-                     const flightRef = doc(db, 'artifacts', appId, 'public', 'data', 'flights', targetFlight.id);
-                     await updateDoc(flightRef, { manifest: parsedManifest });
-                     
-                     const idx = window.flightsData.findIndex(f => f.id === targetFlight.id);
-                     if (idx > -1) window.flightsData[idx].manifest = parsedManifest;
-                     
-                     window.showToast(`Auto-Matched Flight ${targetFlight.flightNo}! Extracted ${parsedManifest.length} crew.`);
-                     window.renderCrewView(targetFlight.id);
-                }
 
-            } catch (e) {
-                console.error("AI Manifest Scan Error:", e);
-                window.showToast(`Scan Failed: ${e.message || "Failed to analyze format."}`);
+                    const flightToUpdate = window.flightsData.find(f => f.id === targetFlightId);
+                    if (flightToUpdate) {
+                        flightToUpdate.manifest = parsedData.crew;
+                        if (!cloudSyncDisabled) {
+                            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'flights', targetFlightId), { manifest: parsedData.crew });
+                        } else {
+                            localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+                        }
+                        window.showToast("Crew Manifest Extracted and Saved!");
+                        window.renderCrewView(targetFlightId);
+                    }
+                }
+            } catch(e) {
+                console.error("Vision AI Error:", e);
+                window.showToast(`AI Scan Failed: ${e.message}`);
             }
         };
 
-        // --- END AI CREW MANIFEST SCANNER ---
-
-        document.getElementById('image-upload').addEventListener('change', async function(e) {
+        // --- NEW: AI ROSTER SCANNER (MONTHLY ROSTER) ---
+        document.getElementById('image-upload')?.addEventListener('change', async function(e) {
             const files = e.target.files;
             if (!files || files.length === 0) return;
-            if (!window.currentStaffId) { showToast("Login Required to scan logs."); return; }
+            if (!window.currentStaffId) { window.showToast("Login Required to scan rosters."); return; }
             
             const activeApiKey = window.getSecureApiKey();
             if (!activeApiKey) {
@@ -7049,50 +6965,20 @@ EXAMPLES FROM IMAGE:
                 return;
             }
 
-            // Filter for supported formats to prevent "format failed" errors
-            const validFiles = Array.from(files).filter(f => 
-                f.type === 'application/pdf' || 
-                f.type === 'image/jpeg' || 
-                f.type === 'image/png' || 
-                f.type === 'image/webp' ||
-                f.type.includes('image/')
-            );
-
-            if (validFiles.length === 0) {
-                showToast("Unsupported format. Please upload a PDF, JPG, or PNG.");
-                e.target.value = '';
-                return;
-            }
-
-            window.pendingScanFiles = validFiles;
-            executeScan(activeApiKey); 
-            e.target.value = ''; 
-        });
-
-        async function executeScan(activeApiKey) {
-            if (!window.pendingScanFiles || window.pendingScanFiles.length === 0) return;
-
-            showToast(`AI analyzing ${window.pendingScanFiles.length} document(s)... please wait.`, 8000);
+            window.showToast(`AI Vision scanning roster... please wait.`, 8000);
             
             const base64Files = [];
-            for (let i = 0; i < window.pendingScanFiles.length; i++) {
-                const file = window.pendingScanFiles[i];
+            for (let i = 0; i < files.length; i++) {
                 const base64Data = await new Promise((resolve) => {
                     const reader = new FileReader();
                     reader.onload = () => resolve(reader.result.split(',')[1]);
-                    reader.readAsDataURL(file);
+                    reader.readAsDataURL(files[i]);
                 });
-                base64Files.push({
-                    inlineData: {
-                        data: base64Data,
-                        mimeType: file.type
-                    }
-                });
+                base64Files.push({ inlineData: { data: base64Data, mimeType: files[i].type } });
             }
-            
+
             try {
-                // STRICT REQUIREMENT: Using the designated preview model for Canvas Inline Image Data
-                let apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${activeApiKey}`; 
+                let apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeApiKey}`; 
                 
                 const prompt = `You are an expert flight logbook data extractor specialized in Singapore Airlines crew rosters.
 Analyze the provided images or PDF documents of crew rosters.
@@ -7100,36 +6986,14 @@ Extract ALL valid flight sectors into a strictly formatted JSON array.
 
 CRITICAL INSTRUCTIONS FOR ROSTER FORMAT:
 1.  **FILTER:** ONLY extract rows where the "Duty" column is exactly "FLY" or "TVL". Ignore all other rows like "LO" (Layover), "SSSB", "EBT", "ATDO", "AALV", etc.
-2.  **CROSS-MIDNIGHT FLIGHTS (SPLIT ROWS):** This is the most important rule. Flights are often split across TWO consecutive rows if the Report Time is before midnight, but the STD (Departure) is after midnight. 
-    *   *Example from image:*
-        *   Row A: "10Jul26 SQ231 SIN-SYD 38R FLY Rpt 2345 FltTime 07:40 Duty 9:10"
-        *   Row B: "11Jul26 SQ231 SIN-SYD 38R FLY STD 0045 STA 1025"
-    *   **ACTION:** You MUST recognize this pattern (same Flight Number and Sector on consecutive dates) and MERGE them into ONE single flight record.
-    *   **DATE RULE FOR SPLIT FLIGHTS:** Use the Date from the row that contains the actual departure time (STD). In the example above, use "2026-07-11".
-    *   Combine the Duty Time from Row A with the STD and STA from Row B.
-3.  **FLIGHT NUMBERS (3 OR 4 DIGITS):** Extract exactly as written. Flight numbers can contain 3 or 4 digits (e.g., SQ322, SQ830, SQ231, SQ3008, TR1234). DO NOT truncate 4-digit flight numbers.
-4.  **SECTOR:** Split the "Sector" column (e.g., "SIN-MEL") into separate "origin" ("SIN") and "dest" ("MEL") fields.
-5.  **AIRCRAFT (A/C):** Map the code in the "A/C" column. "38R" = "A380", "359" = "A350", "77W" = "B777", "7810" = "B787". If unknown, output the raw string.
-6.  **TIMES:** Extract STD as "depTime" and STA as "arrTime". Format them as "HH:MM" (e.g., "0145" becomes "01:45"). If missing from a single-row flight, output "".
-7.  **HOURS:** Convert the "Duty Time" column (e.g., "9:10") into a decimal number (e.g., 9.16). If missing, output 0.
-8.  **DATES:** Convert "Start Date" (e.g., "04Jul26") to ISO format "YYYY-MM-DD" (e.g., "2026-07-04").
-9.  **OUTPUT:** Respond ONLY with the raw JSON array. Absolutely no introductory text, no markdown formatting (\`\`\`json), just the array itself.
-
-JSON Format Example:
-[
-  {
-    "date": "2026-07-04",
-    "flightNo": "SQ3008",
-    "acType": "A380",
-    "acReg": "",
-    "gate": "",
-    "origin": "SIN",
-    "dest": "MEL",
-    "depTime": "01:45",
-    "arrTime": "11:00",
-    "hours": 8.75
-  }
-]`;
+2.  **CROSS-MIDNIGHT FLIGHTS (SPLIT ROWS):** Combine Duty time and STD/STA across multiple rows if they belong to the same flight. Use the Date from the row that contains the actual departure time (STD).
+3.  **FLIGHT NUMBERS (3 OR 4 DIGITS):** Extract exactly as written. DO NOT truncate 4-digit flight numbers.
+4.  **SECTOR:** Split the "Sector" column into separate "origin" and "dest" fields.
+5.  **AIRCRAFT (A/C):** Map the code in the "A/C" column.
+6.  **TIMES:** Extract STD as "depTime" and STA as "arrTime". Format them as "HH:MM".
+7.  **HOURS:** Convert the "Duty Time" column into a decimal number.
+8.  **DATES:** Convert "Start Date" to ISO format "YYYY-MM-DD".
+9.  **OUTPUT:** Respond ONLY with the raw JSON array. Absolutely no introductory text.`;
                 
                 const payload = {
                     contents: [
@@ -7149,26 +7013,13 @@ JSON Format Example:
                     body: JSON.stringify(payload)
                 });
 
-                // FALLBACK FOR VERCEL: Standard user API keys cannot access gemini-3-flash-preview. 
-                // If Google returns 403 (Permission Denied) or 404 (Not Found), instantly route to the public gemini-1.5-flash model!
-                if (!response.ok && (response.status === 403 || response.status === 404)) {
-                    apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeApiKey}`;
-                    response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                }
-
                 if (!response.ok) {
-                    if (response.status === 403) {
-                        localStorage.removeItem('crew_gemini_api_key');
-                        throw new Error(`403 Forbidden: Permission Denied. Check Google Cloud Console API restrictions for this key.`);
-                    } else if (response.status === 400) {
-                        localStorage.removeItem('crew_gemini_api_key');
-                        throw new Error(`400 Bad Request: Invalid API Key. Please check your key and try again.`);
-                    }
-                    throw new Error(`AI Scan Error: ${response.status}`);
+                    let errorMsg = `HTTP ${response.status}`;
+                    try {
+                        const errData = await response.json();
+                        if (errData.error && errData.error.message) errorMsg = errData.error.message;
+                    } catch(e) {}
+                    throw new Error(`AI Scan Error: ${response.status} - ${errorMsg}`);
                 }
                 
                 const result = await response.json();
@@ -7183,11 +7034,11 @@ JSON Format Example:
                 }
 
                 if (!Array.isArray(parsedLogs) || parsedLogs.length === 0) {
-                    showToast("No flight data found in images.");
+                    window.showToast("No flight data found in images.");
                     return;
                 }
                 
-                showToast(`Saving ${parsedLogs.length} extracted flights...`);
+                window.showToast(`Saving ${parsedLogs.length} extracted flights...`);
                 
                 const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
                 const ref = collection(db, 'artifacts', appId, 'public', 'data', 'flights');
@@ -7210,8 +7061,7 @@ JSON Format Example:
                         }
                      }
                      localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
-                     showToast(`AI Scan complete! ${addedCount} flights logged locally.`);
-                     window.pendingScanFiles = [];
+                     window.showToast(`AI Scan complete! ${addedCount} flights logged locally.`);
                      renderUI();
                      return;
                 }
@@ -7236,14 +7086,13 @@ JSON Format Example:
                     }
                 }
                 
-                window.pendingScanFiles = [];
-                showToast(`Scan complete! ${addedCount} flights logged.`);
+                window.showToast(`Scan complete! ${addedCount} flights logged.`);
 
             } catch(e) {
                 console.error("Vision AI Error:", e);
-                showToast(`AI Scan Failed: ${e.message || "Ensure the file is a clear PDF or JPG."}`);
+                window.showToast(`AI Scan Failed: ${e.message}`);
             }
-        }
+        });
 
         document.addEventListener('DOMContentLoaded', async () => {
             initMobileForm();
