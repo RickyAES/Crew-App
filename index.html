@@ -1517,7 +1517,7 @@
             <p class="text-xs text-gray-400 mb-6 font-mono leading-relaxed">To power the Vision AI scanner on Vercel, please enter your secure Gemini API Key. This key is saved locally to your device and never touches our servers.</p>
             
             <div class="w-full mb-6">
-                <input type="password" id="input-api-key" placeholder="Enter API Key..." class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none text-center font-mono">
+                <input type="password" id="input-api-key" placeholder="Enter Gemini API Key" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none text-center font-mono">
                 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] text-blue-400 hover:text-blue-300 mt-2 inline-block underline underline-offset-2">Get a free key from Google AI Studio</a>
             </div>
 
@@ -6907,9 +6907,9 @@ EXAMPLES FROM IMAGE:
                 });
 
                 if (!response.ok) {
-                    if (response.status === 400) {
+                    if (response.status === 400 || response.status === 403) {
                         localStorage.removeItem('crew_gemini_api_key');
-                        throw new Error("400: Invalid API Key. Please provide a valid key starting with 'AIza'.");
+                        throw new Error(`${response.status}: Invalid or Expired Key. Please check your API key and try again.`);
                     }
                     throw new Error(`AI Scan Error: ${response.status}`);
                 }
@@ -7135,9 +7135,9 @@ JSON Format Example:
                 });
 
                 if (!response.ok) {
-                    if (response.status === 400) {
+                    if (response.status === 400 || response.status === 403) {
                         localStorage.removeItem('crew_gemini_api_key');
-                        throw new Error("400: Invalid API Key. Please provide a valid key starting with 'AIza'.");
+                        throw new Error(`${response.status}: Invalid or Expired Key. Please check your API key and try again.`);
                     }
                     throw new Error(`AI Scan Error: ${response.status}`);
                 }
