@@ -2722,14 +2722,14 @@
 
             // Save persistent session privately (Wrapped safely to prevent crashes)
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
-            if (currentUser && db && !cloudSyncDisabled) {
+            if (currentUser && db && !cloudSyncDisabled && !window.isAdmin) {
                 try {
                     await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'session', 'current'), { staffId: account.staffId });
                 } catch(e) { 
                     console.warn("Session save bypassed"); 
                     if(e.code === 'permission-denied') handleFirestoreError(e, "Session Save");
                 }
-            } else {
+            } else if (!window.isAdmin) {
                 // VERCEL OFFLINE SESSION SAVE
                 localStorage.setItem('crew_offline_session', account.staffId);
             }
@@ -3096,12 +3096,11 @@
                 // VERCEL AUTO-LOGIN RECOVERY
                 const savedId = localStorage.getItem('crew_offline_session');
                 if (savedId) {
-                    const savedAcc = window.accountsData.find(a => a.staffId === savedId && a.status === 'approved');
-                    if (savedAcc) completeLogin(savedAcc);
-                    else if (MASTER_ADMINS.includes(savedId)) {
-                        const mockMaster = { name: savedId === '00230747' ? "Law Phooi Hwa" : "Master Admin", staffId: savedId, pin: "123456", role: "FS", status: 'approved', id: 'local-master-id-' + savedId };
-                        window.accountsData = [mockMaster];
-                        completeLogin(mockMaster);
+                    if (MASTER_ADMINS.includes(savedId)) {
+                        localStorage.removeItem('crew_offline_session'); // Enforce manual login for Master Admin
+                    } else {
+                        const savedAcc = window.accountsData.find(a => a.staffId === savedId && a.status === 'approved');
+                        if (savedAcc) completeLogin(savedAcc);
                     }
                 }
                 return;
@@ -3190,8 +3189,12 @@
                         // Check local storage auto-login if the cloud session was blocked
                         const savedId = localStorage.getItem('crew_offline_session');
                         if (savedId) {
-                            const acct = window.accountsData.find(a => a.staffId === savedId && a.status === 'approved');
-                            if (acct) completeLogin(acct);
+                            if (MASTER_ADMINS.includes(savedId)) {
+                                localStorage.removeItem('crew_offline_session'); // Enforce manual login for Master Admin
+                            } else {
+                                const acct = window.accountsData.find(a => a.staffId === savedId && a.status === 'approved');
+                                if (acct) completeLogin(acct);
+                            }
                         }
                     }
 
@@ -6880,22 +6883,18 @@ OUTPUT FORMAT: You MUST return ONLY a valid JSON object. Do not include markdown
                             { inlineData: { data: base64Data, mimeType: file.type } }
                         ]
                     }],
-                    generationConfig: {
-                        responseMimeType: "application/json"
-                    }
+                    // Removed responseSchema to prevent compatibility crashes with older projects
                 };
 
                 const modelsToTry = [
-                    'gemini-3-flash-preview', // Canvas environment proxy
-                    'gemini-1.5-flash',       // Vercel Standard Public
-                    'gemini-1.5-flash-latest',// Vercel Fallback 1
-                    'gemini-1.5-pro'          // Vercel Fallback 2
+                    'gemini-2.5-flash',
+                    'gemini-3.1-flash'
                 ];
 
                 let response = null;
                 let result = null;
                 let success = false;
-                let errorMsg = '';
+                let firstErrorMsg = '';
 
                 for (const model of modelsToTry) {
                     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeApiKey}`;
@@ -6912,7 +6911,8 @@ OUTPUT FORMAT: You MUST return ONLY a valid JSON object. Do not include markdown
                         break; // Stop loop, we found a working model!
                     } else {
                         const errData = await response.json().catch(() => ({}));
-                        errorMsg = errData.error ? errData.error.message : `HTTP ${response.status}`;
+                        const errMsg = errData.error ? errData.error.message : `HTTP ${response.status}`;
+                        if (!firstErrorMsg || response.status === 429) firstErrorMsg = errMsg;
                         
                         // Break immediately if it is a hard Auth error so we don't spam Google
                         if (response.status === 400 || response.status === 403) {
@@ -6925,7 +6925,7 @@ OUTPUT FORMAT: You MUST return ONLY a valid JSON object. Do not include markdown
                     if (response && (response.status === 400 || response.status === 403)) {
                          throw new Error(`API Key Rejected (${response.status}). Please verify your key in Google AI Studio.`);
                     }
-                    throw new Error(`${errorMsg}`);
+                    throw new Error(`${firstErrorMsg || 'API Error'}`);
                 }
                 
                 if (result.candidates && result.candidates[0].content.parts[0].text) {
@@ -7028,23 +7028,18 @@ OUTPUT FORMAT: You MUST return ONLY a valid JSON array of objects. Do not includ
                                 ...base64Files
                             ]
                         }
-                    ],
-                    generationConfig: {
-                        responseMimeType: "application/json"
-                    }
+                    ]
                 };
 
                 const modelsToTry = [
-                    'gemini-3-flash-preview', // Canvas environment proxy
-                    'gemini-1.5-flash',       // Vercel Standard Public
-                    'gemini-1.5-flash-latest',// Vercel Fallback 1
-                    'gemini-1.5-pro'          // Vercel Fallback 2
+                    'gemini-2.5-flash',
+                    'gemini-3.1-flash'
                 ];
 
                 let response = null;
                 let result = null;
                 let success = false;
-                let errorMsg = '';
+                let firstErrorMsg = '';
 
                 for (const model of modelsToTry) {
                     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeApiKey}`;
@@ -7061,7 +7056,8 @@ OUTPUT FORMAT: You MUST return ONLY a valid JSON array of objects. Do not includ
                         break; // Stop loop, we found a working model!
                     } else {
                         const errData = await response.json().catch(() => ({}));
-                        errorMsg = errData.error ? errData.error.message : `HTTP ${response.status}`;
+                        const errMsg = errData.error ? errData.error.message : `HTTP ${response.status}`;
+                        if (!firstErrorMsg || response.status === 429) firstErrorMsg = errMsg;
                         
                         if (response.status === 400 || response.status === 403) {
                             break; // Stop on auth errors
@@ -7073,7 +7069,7 @@ OUTPUT FORMAT: You MUST return ONLY a valid JSON array of objects. Do not includ
                     if (response && (response.status === 400 || response.status === 403)) {
                          throw new Error(`API Key Rejected (${response.status}). Please verify your key in Google AI Studio.`);
                     }
-                    throw new Error(`${errorMsg}`);
+                    throw new Error(`${firstErrorMsg || 'API Error'}`);
                 }
                 
                 const textResponse = result.candidates[0].content.parts[0].text;
