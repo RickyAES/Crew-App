@@ -1514,10 +1514,11 @@
                 <i class="ph-fill ph-robot text-3xl text-blue-400"></i>
             </div>
             <h2 class="text-lg font-bold text-white uppercase tracking-widest mb-2">Connect AI Scanner</h2>
-            <p class="text-xs text-gray-400 mb-6 font-mono leading-relaxed">To power the Vision AI scanner on Vercel, please enter your secure Gemini API Key. This key is saved locally to your device and never touches our servers.</p>
+            <p class="text-xs text-gray-400 mb-2 font-mono leading-relaxed">To power the Vision AI scanner on Vercel, please enter a Google AI Studio API Key. This key is saved locally to your device.</p>
+            <p class="text-[10px] text-yellow-500 mb-6 font-mono leading-relaxed bg-yellow-900/20 p-2 rounded border border-yellow-500/30">Note: Please use a standard Developer Key (starts with "AIza"). Enterprise Service Account keys ("AQ.") will return a 403 Forbidden error.</p>
             
             <div class="w-full mb-6">
-                <input type="password" id="input-api-key" placeholder="Enter Gemini API Key" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none text-center font-mono">
+                <input type="password" id="input-api-key" placeholder="Enter API Key" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none text-center font-mono">
                 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[10px] text-blue-400 hover:text-blue-300 mt-2 inline-block underline underline-offset-2">Get a free key from Google AI Studio</a>
             </div>
 
@@ -6907,9 +6908,12 @@ EXAMPLES FROM IMAGE:
                 });
 
                 if (!response.ok) {
-                    if (response.status === 400 || response.status === 403) {
+                    if (response.status === 403) {
                         localStorage.removeItem('crew_gemini_api_key');
-                        throw new Error(`${response.status}: Invalid or Expired Key. Please check your API key and try again.`);
+                        throw new Error(`403 Forbidden: Permission Denied. Please ensure the 'Generative Language API' is enabled in your Google Cloud Console, and that your API Key does NOT have strict domain restrictions blocking Vercel.`);
+                    } else if (response.status === 400) {
+                        localStorage.removeItem('crew_gemini_api_key');
+                        throw new Error(`400 Bad Request: Invalid API Key. Please check your key and try again.`);
                     }
                     throw new Error(`AI Scan Error: ${response.status}`);
                 }
@@ -7135,9 +7139,12 @@ JSON Format Example:
                 });
 
                 if (!response.ok) {
-                    if (response.status === 400 || response.status === 403) {
+                    if (response.status === 403) {
                         localStorage.removeItem('crew_gemini_api_key');
-                        throw new Error(`${response.status}: Invalid or Expired Key. Please check your API key and try again.`);
+                        throw new Error(`403 Forbidden: Permission Denied. Please ensure the 'Generative Language API' is enabled in your Google Cloud Console, and that your API Key does NOT have strict domain restrictions blocking Vercel.`);
+                    } else if (response.status === 400) {
+                        localStorage.removeItem('crew_gemini_api_key');
+                        throw new Error(`400 Bad Request: Invalid API Key. Please check your key and try again.`);
                     }
                     throw new Error(`AI Scan Error: ${response.status}`);
                 }
