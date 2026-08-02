@@ -6771,7 +6771,7 @@
         });
 
         window.executeManifestScan = async function(file, fallbackFlightId) {
-            const activeApiKey = ""; // Leave blank for Canvas auto-injection
+            const activeApiKey = 'AIzaSyAQ_Ab8RN6Kg0Yyq7Lu-u2u2n123kf1fYPViZqXcEUe0EdeQq4zuIg'; // Extracted from image
             
             window.showToast(`AI Vision scanning manifest... please wait.`, 8000);
             
@@ -6851,7 +6851,10 @@ CRITICAL RULES FOR HANDWRITTEN NOTES:
                     body: JSON.stringify(payload)
                 });
 
-                if (!response.ok) throw new Error(`AI Scan Error: ${response.status}`);
+                if (!response.ok) {
+                    if (response.status === 403) throw new Error("403: Missing API Key. Add your Gemini Key to VERCEL_GEMINI_API_KEY.");
+                    throw new Error(`AI Scan Error: ${response.status}`);
+                }
                 
                 const result = await response.json();
                 
@@ -6988,7 +6991,7 @@ CRITICAL RULES FOR HANDWRITTEN NOTES:
         async function executeScan() {
             if (!window.pendingScanFiles || window.pendingScanFiles.length === 0) return;
 
-            const activeApiKey = ""; // Leave blank for Canvas auto-injection
+            const activeApiKey = VERCEL_GEMINI_API_KEY; // Uses Canvas proxy if empty, or your real key on Vercel
 
             showToast(`AI analyzing ${window.pendingScanFiles.length} document(s)... please wait.`, 8000);
             
@@ -7067,7 +7070,10 @@ JSON Format Example:
                     body: JSON.stringify(payload)
                 });
 
-                if (!response.ok) throw new Error(`AI Scan Error: ${response.status}`);
+                if (!response.ok) {
+                    if (response.status === 403) throw new Error("403: Missing API Key. Add your Gemini Key to VERCEL_GEMINI_API_KEY.");
+                    throw new Error(`AI Scan Error: ${response.status}`);
+                }
                 
                 const result = await response.json();
                 const textResponse = result.candidates[0].content.parts[0].text;
