@@ -1546,13 +1546,19 @@
             measurementId: "G-8SZ2WB0MHP"
         };
         
+        // Removed hardcoded key completely. Reverting to Local Storage for strict security.
+        const VERCEL_GEMINI_API_KEY = ""; 
+
         // --- API KEY MANAGER ---
         window.getSecureApiKey = function() {
-            // First, try the proxy if running inside the Canvas IDE
-            if (typeof VERCEL_GEMINI_API_KEY !== 'undefined' && VERCEL_GEMINI_API_KEY !== "") {
-                return VERCEL_GEMINI_API_KEY;
-            }
-            // Fallback to local storage (for Vercel deployments)
+            // First check if we are in the secure Canvas proxy environment (automatic key injection)
+            const envKey = typeof process !== 'undefined' && process.env ? process.env.GEMINI_API_KEY : "";
+            if (envKey) return envKey;
+            
+            // Fallback: Check hardcoded var (now empty)
+            if (VERCEL_GEMINI_API_KEY) return VERCEL_GEMINI_API_KEY;
+            
+            // Ultimate Secure Fallback: Retrieve from Local Storage
             return localStorage.getItem('crew_gemini_api_key');
         };
 
@@ -1574,9 +1580,11 @@
                 return;
             }
 
+            // Removed artificial validation lock. 
+            // All key formats (including AQ. service account keys) are now accepted and saved locally.
             document.getElementById('input-api-key').classList.remove('border-red-500');
             localStorage.setItem('crew_gemini_api_key', key);
-            window.showToast("API Key saved securely to your device!");
+            window.showToast("API Key saved securely to your device's local memory!");
             window.closeApiSetupModal();
         };
 
