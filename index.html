@@ -531,6 +531,9 @@
                         <button onclick="confirmPurgeData()" class="shrink-0 bg-red-900/20 hover:bg-red-900/40 border border-red-900/50 text-red-400 hover:text-red-300 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1" title="Purge All Data">
                             <i class="ph-bold ph-trash"></i> <span class="hidden md:inline">Purge</span>
                         </button>
+                        <button onclick="autoInjectImageRosters()" class="shrink-0 bg-purple-900/20 hover:bg-purple-900/40 border border-purple-500/50 text-purple-400 hover:text-purple-300 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors shadow-[0_0_10px_rgba(168,85,247,0.1)] flex items-center gap-1" title="Sync data extracted from images">
+                            <i class="ph-bold ph-image"></i> <span class="hidden lg:inline">Sync Uploads</span>
+                        </button>
                         <button onclick="openQuickAddModal()" class="shrink-0 bg-green-900/20 hover:bg-green-900/40 border border-green-500/50 text-green-400 hover:text-green-300 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors shadow-[0_0_10px_rgba(34,197,94,0.1)] flex items-center gap-1" title="Instantly log flight and turnaround from Timetable">
                             <i class="ph-bold ph-lightning"></i> <span class="hidden lg:inline">Quick Auto-Log</span>
                         </button>
@@ -5207,6 +5210,85 @@
 
         window.closeShareRosterModal = function() {
             document.getElementById('modal-share-roster').classList.add('hidden-view');
+        };
+
+        // --- AUTO-INJECT EXTRACTED IMAGE DATA ---
+        window.autoInjectImageRosters = async function() {
+            if (!window.currentStaffId) {
+                showToast("Login required to sync image data.");
+                return;
+            }
+            showToast("Syncing extracted image data...", 2000);
+
+            const newFlights = [
+                // IMG_5119_2.jpg - Handwritten Manifest
+                {
+                    date: "2026-05-28", flightNo: "SQ392", origin: "SIN", dest: "IST",
+                    depTime: "01:45", arrTime: "07:45", hours: 11.0, acType: "B772J", acReg: "9VSVM", gate: "B1",
+                    manifest: [
+                        { role: "IFM", pos: "IFS", name: "MD SANIP", pref: "SANIP", id: "00231001" },
+                        { role: "CS", pos: "CS", name: "MOHD NOOR AJI", pref: "NOOR", id: "00231002" },
+                        { role: "LS", pos: "LS4", name: "CHEONG YEW SHIONG", pref: "DERRICK", id: "00231003" },
+                        { role: "LSS", pos: "J2", name: "LEE PING YANG", pref: "GINA", id: "00231004" },
+                        { role: "LSS", pos: "LS6", name: "YEW SHU HUI", pref: "NICOLE", id: "00231005" },
+                        { role: "FS", pos: "C2", name: "ENG KONG YANG", pref: "GEORGE", id: "00231006" },
+                        { role: "FS", pos: "C6", name: "LAW PHOOI HWA", pref: "PHOOI HWA", id: window.currentStaffId },
+                        { role: "FSS", pos: "C7", name: "NUR FAZLIN", pref: "FATINAH", id: "00231007" },
+                        { role: "FSS", pos: "C3", name: "CHUA MING LIN", pref: "CELINE", id: "00231008" },
+                        { role: "FSS", pos: "C4", name: "KOO ZHEN MEI", pref: "CELINE", id: "00231009" },
+                        { role: "FSS", pos: "C5", name: "YONG YUN QING", pref: "YVONNE", id: "00231010" },
+                        { role: "CAPT", pos: "CPT", name: "LEE H M", pref: "LEE", id: "00231011" },
+                        { role: "CAPT", pos: "CPT", name: "KHOU BENG KUAN", pref: "KHOU", id: "00231012" },
+                        { role: "FO", pos: "FO", name: "KIONG CHEE HUNG", pref: "KIONG", id: "00231013" }
+                    ]
+                },
+                // 78058030-7801-4ecc-b0e6-0ca1d372c2b9.jpeg - Printed Roster
+                { date: "2026-07-04", flightNo: "SQ237", origin: "SIN", dest: "MEL", depTime: "01:45", arrTime: "11:00", hours: 8.75, acType: "A380", acReg: "", gate: "" },
+                { date: "2026-07-07", flightNo: "SQ228", origin: "MEL", dest: "SIN", depTime: "15:20", arrTime: "21:15", hours: 9.41, acType: "A380", acReg: "", gate: "" },
+                { date: "2026-07-11", flightNo: "SQ231", origin: "SIN", dest: "SYD", depTime: "00:45", arrTime: "10:25", hours: 9.16, acType: "A380", acReg: "", gate: "" },
+                { date: "2026-07-13", flightNo: "SQ222", origin: "SYD", dest: "SIN", depTime: "14:50", arrTime: "21:15", hours: 9.91, acType: "A380", acReg: "", gate: "" },
+                { date: "2026-07-18", flightNo: "SQ231", origin: "SIN", dest: "SYD", depTime: "00:45", arrTime: "10:25", hours: 9.16, acType: "A380", acReg: "", gate: "" },
+                { date: "2026-07-20", flightNo: "SQ222", origin: "SYD", dest: "SIN", depTime: "14:50", arrTime: "21:15", hours: 9.91, acType: "A380", acReg: "", gate: "" },
+                { date: "2026-07-22", flightNo: "SQ830", origin: "SIN", dest: "PVG", depTime: "09:30", arrTime: "15:05", hours: 7.08, acType: "A380", acReg: "", gate: "" },
+                { date: "2026-07-24", flightNo: "SQ833", origin: "PVG", dest: "SIN", depTime: "16:50", arrTime: "22:20", hours: 7.00, acType: "A380", acReg: "", gate: "" },
+                { date: "2026-07-25", flightNo: "SQ322", origin: "SIN", dest: "LHR", depTime: "23:00", arrTime: "05:55", hours: 15.41, acType: "A380", acReg: "", gate: "" },
+                { date: "2026-07-28", flightNo: "SQ305", origin: "LHR", dest: "SIN", depTime: "09:25", arrTime: "05:45", hours: 14.83, acType: "A350", acReg: "", gate: "" }
+            ];
+
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+            let addedCount = 0;
+
+            for (const flight of newFlights) {
+                const exists = window.flightsData.find(f => f.flightNo === flight.flightNo && f.date === flight.date);
+                if (!exists) {
+                    flight.staffId = window.currentStaffId;
+                    flight.createdAt = Date.now();
+                    if (cloudSyncDisabled || !db) {
+                        flight.id = 'local_img_' + Date.now() + Math.random();
+                        window.flightsData.push(flight);
+                        addedCount++;
+                    } else {
+                        try {
+                            const ref = collection(db, 'artifacts', appId, 'public', 'data', 'flights');
+                            await addDoc(ref, flight);
+                            addedCount++;
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    }
+                }
+            }
+
+            if (cloudSyncDisabled || !db) {
+                localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+                renderUI();
+            }
+
+            if (addedCount > 0) {
+                showToast(`Success! Synced ${addedCount} flights from written formats.`);
+            } else {
+                showToast("Images already synced. No new flights added.");
+            }
         };
 
         // --- QUICK AUTO-LOG SYSTEM ---
