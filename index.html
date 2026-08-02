@@ -6784,32 +6784,30 @@
             try {
                 // STRICT REQUIREMENT: Using the designated preview model for Canvas Inline Image Data
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${activeApiKey}`; 
-                const prompt = `You are an expert flight data extractor specialized in Singapore Airlines crew manifests.
-Analyze the handwritten document carefully.
-Extract the Flight details and the crew manifest into a strictly formatted JSON object.
+                const prompt = `You are an expert aviation data extractor. Your task is to transcribe a handwritten Singapore Airlines crew manifest.
 
-CRITICAL RULES FOR HANDWRITTEN NOTES:
-1. Extract Flight No and Date from the top (e.g., "SQ392/28MAY" -> flightNo: "SQ392", date: "2026-05-28"). Assume year is 2026. MUST FORMAT DATE AS YYYY-MM-DD.
-2. Extract Aircraft type (e.g., "B772J").
-3. Parse crew lines carefully! The handwriting lists: [Position] [Rank] - [Full Name] [Preferred Name circled].
-   Explicit handwriting mapping guide:
-   - "IFS - MD SANIR" -> pos: "IFS", role: "IFM", name: "MD SANIR", pref: "SANIR"
-   - "CS - MOHD NOOR AJI" -> pos: "CS1", role: "CS", name: "MOHD NOOR AJI", pref: "NOOR"
-   - "LS4 LS - CHEONG YEW SHIONG DERRICK" -> pos: "LS4", role: "LS", name: "CHEONG YEW SHIONG", pref: "DERRICK"
-   - "J2 LSS - LEE PING YING GINA" -> pos: "J2", role: "LSS", name: "LEE PING YING", pref: "GINA"
-   - "LS6 LSS - YEW SHU HUI NICOLE" -> pos: "LS6", role: "LSS", name: "YEW SHU HUI", pref: "NICOLE"
-   - "C2 FS - ENG KENG YANG GEORGE" -> pos: "C2", role: "FS", name: "ENG KENG YANG", pref: "GEORGE"
-   - "C6 FS - LAW PHOOI HWA" -> pos: "C6", role: "FS", name: "LAW PHOOI HWA", pref: "PHOOI HWA", id: "00230747"
-   - "C7 FSS - NUR FATIN FATINAH" -> pos: "C7", role: "FSS", name: "NUR FATIN", pref: "FATINAH"
-   - "C3 FSS - CHUA MING LIN CELINE" -> pos: "C3", role: "FSS", name: "CHUA MING LIN", pref: "CELINE"
-   - "C4 FSS - KOO ZHEN MEI CELINE" -> pos: "C4", role: "FSS", name: "KOO ZHEN MEI", pref: "CELINE"
-   - "C5 FSS - YONG YUN QING YVONNE" -> pos: "C5", role: "FSS", name: "YONG YUN QING", pref: "YVONNE"
-   - "CPT - LEE H M" -> pos: "Commander", role: "CAPT", name: "LEE H M"
-   - "CPT - KHOU BENG KUAN" -> pos: "Commander", role: "CAPT", name: "KHOU BENG KUAN"
-   - "FO - KIONG CHEE HUNG" -> pos: "First Officer", role: "FO", name: "KIONG CHEE HUNG"
-4. Normalize Ranks: "IFS" becomes "IFM", "CPT" becomes "CAPT".
-5. If Staff ID is missing, generate a random 8 digit string starting with '00' (e.g. "00881234").
-6. SPECIAL EXCEPTION: For name "LAW PHOOI HWA" or "LAW PHOO HWA", output exactly id: "00230747".`;
+CRITICAL EXTRACTION RULES:
+1. FLIGHT INFO: Extract Flight No (e.g., "SQ392"), Date (format as YYYY-MM-DD, assume year 2026), and Aircraft Type (e.g., "B772J").
+2. CREW MANIFEST: Read EVERY single line of handwriting. Each line represents one crew member.
+3. CREW FORMAT: The handwritten lines strictly follow this pattern:
+   [WORK POSITION] [RANK] - [FULL NAME] [NICKNAME (usually circled)]
+4. FIELD DEFINITIONS:
+   - 'pos' (Work Position): Examples: IFS, CS, LS4, J2, LS6, C2, C6, C7, C3, C4, C5, CP7, FO.
+   - 'role' (Rank): Must be one of: IFM, CS, CSS, LS, LSS, FS, FSS, CAPT, FO, SO. (Note: map "IFS" to IFM, "CPT" to CAPT).
+   - 'name' (Full Name): Extract the full uncircled text name.
+   - 'pref' (Nickname): Extract the nickname that is circled or at the very end of the line.
+   - 'id': If the name is "LAW PHOOI HWA" or "LAW PHOO HWA", output exactly "00230747". Otherwise, generate a random 8-digit number starting with '00'.
+
+EXAMPLES FROM IMAGE:
+"IFS - MD SANIR" -> pos: "IFS", role: "IFM", name: "MD SANIR", pref: "SANIR"
+"CS - MOHD NOOR AJI" -> pos: "CS1", role: "CS", name: "MOHD NOOR AJI", pref: "NOOR"
+"LS4 LS - CHEONG YEW SHIONG DERRICK" -> pos: "LS4", role: "LS", name: "CHEONG YEW SHIONG", pref: "DERRICK"
+"J2 LSS - LEE PING YING GINA" -> pos: "J2", role: "LSS", name: "LEE PING YING", pref: "GINA"
+"LS6 LSS - YEW SHU HUI NICOLE" -> pos: "LS6", role: "LSS", name: "YEW SHU HUI", pref: "NICOLE"
+"C2 FS - ENG KENG YANG GEORGE" -> pos: "C2", role: "FS", name: "ENG KENG YANG", pref: "GEORGE"
+"C6 FS - LAW PHOOI HWA" -> pos: "C6", role: "FS", name: "LAW PHOOI HWA", pref: "PHOOI HWA", id: "00230747"
+"CP7 - LEE H M" -> pos: "Commander", role: "CAPT", name: "LEE H M", pref: "LEE H M"
+"FO - KIONG CHEE HUNG" -> pos: "First Officer", role: "FO", name: "KIONG CHEE HUNG", pref: "CHEE HUNG"`;
 
                 const payload = {
                     contents: [{
@@ -6829,13 +6827,14 @@ CRITICAL RULES FOR HANDWRITTEN NOTES:
                                 acType: { type: "STRING", description: "Aircraft type like B772J" },
                                 crew: {
                                     type: "ARRAY",
+                                    description: "List of all crew members on the flight",
                                     items: {
                                         type: "OBJECT",
                                         properties: {
-                                            pos: { type: "STRING", description: "Work position like LS4, C6, Commander" },
-                                            role: { type: "STRING", description: "Rank like FS, FSS, LS, LSS, CS, IFM, CAPT, FO" },
+                                            pos: { type: "STRING", description: "Work position (e.g. LS4, C6, Commander)" },
+                                            role: { type: "STRING", description: "Rank (e.g. FS, FSS, LS, LSS, CS, IFM, CAPT, FO)" },
                                             name: { type: "STRING", description: "Full Name" },
-                                            pref: { type: "STRING", description: "Preferred name" },
+                                            pref: { type: "STRING", description: "Nickname (usually circled at the end)" },
                                             id: { type: "STRING", description: "8 digit staff ID" }
                                         }
                                     }
