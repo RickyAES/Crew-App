@@ -987,9 +987,9 @@
     </nav>
 
     <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-[#131A2A] border border-app-accent text-white px-6 py-3 rounded-full text-sm font-bold tracking-wider uppercase shadow-[0_0_20px_rgba(203,160,82,0.6)] transition-all duration-300 opacity-0 pointer-events-none flex items-center gap-2" style="z-index: 2147483647 !important;">
-        <i class="ph-fill ph-info text-app-accent text-lg"></i>
-        <span id="toast-msg" class="whitespace-nowrap">Notification</span>
+    <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-[#131A2A] border border-app-accent text-white px-6 py-3 rounded-xl text-sm font-bold tracking-wider uppercase shadow-[0_0_20px_rgba(203,160,82,0.6)] transition-all duration-300 opacity-0 pointer-events-none flex items-center gap-3 w-[90vw] md:w-auto md:max-w-2xl text-center md:text-left z-[2147483647]">
+        <i class="ph-fill ph-info text-app-accent text-xl shrink-0"></i>
+        <span id="toast-msg" class="whitespace-normal break-words leading-relaxed">Notification</span>
     </div>
 
     <!-- FATIGUE WARNING MODAL -->
@@ -6818,15 +6818,15 @@
                 f.type === 'application/pdf' || 
                 f.type.startsWith('image/')
             );
-
+            
             if (validFiles.length === 0) {
                 window.showToast("Unsupported format. Please upload a PDF or Image.");
                 e.target.value = '';
                 return;
             }
 
-            window.executeManifestScan(validFiles[0], flightId, activeApiKey); 
-            e.target.value = ''; 
+            window.executeManifestScan(validFiles[0], flightId, activeApiKey);
+            e.target.value = '';
         });
 
         window.executeManifestScan = async function(file, fallbackFlightId, activeApiKey) {
@@ -6840,7 +6840,7 @@
             
             try {
                 // STRICT REQUIREMENT: Using the designated preview model for Canvas Inline Image Data
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${activeApiKey}`; 
+                let apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${activeApiKey}`; 
                 const prompt = `You are an expert aviation data extractor. Your task is to transcribe a handwritten Singapore Airlines crew manifest.
 
 CRITICAL EXTRACTION RULES:
@@ -6901,16 +6901,27 @@ EXAMPLES FROM IMAGE:
                     }
                 };
 
-                const response = await fetch(apiUrl, {
+                let response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
+                // FALLBACK FOR VERCEL: Standard user API keys cannot access gemini-3-flash-preview. 
+                // If Google returns 403 (Permission Denied) or 404 (Not Found), instantly route to the public gemini-1.5-flash model!
+                if (!response.ok && (response.status === 403 || response.status === 404)) {
+                    apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeApiKey}`;
+                    response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                }
+
                 if (!response.ok) {
                     if (response.status === 403) {
                         localStorage.removeItem('crew_gemini_api_key');
-                        throw new Error(`403 Forbidden: Permission Denied. Please ensure the 'Generative Language API' is enabled in your Google Cloud Console, and that your API Key does NOT have strict domain restrictions blocking Vercel.`);
+                        throw new Error(`403 Forbidden: Permission Denied. Check Google Cloud Console API restrictions for this key.`);
                     } else if (response.status === 400) {
                         localStorage.removeItem('crew_gemini_api_key');
                         throw new Error(`400 Bad Request: Invalid API Key. Please check your key and try again.`);
@@ -7081,7 +7092,7 @@ EXAMPLES FROM IMAGE:
             
             try {
                 // STRICT REQUIREMENT: Using the designated preview model for Canvas Inline Image Data
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${activeApiKey}`; 
+                let apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${activeApiKey}`; 
                 
                 const prompt = `You are an expert flight logbook data extractor specialized in Singapore Airlines crew rosters.
 Analyze the provided images or PDF documents of crew rosters.
@@ -7132,16 +7143,27 @@ JSON Format Example:
                     ]
                 };
 
-                const response = await fetch(apiUrl, {
+                let response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
+                // FALLBACK FOR VERCEL: Standard user API keys cannot access gemini-3-flash-preview. 
+                // If Google returns 403 (Permission Denied) or 404 (Not Found), instantly route to the public gemini-1.5-flash model!
+                if (!response.ok && (response.status === 403 || response.status === 404)) {
+                    apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeApiKey}`;
+                    response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                }
+
                 if (!response.ok) {
                     if (response.status === 403) {
                         localStorage.removeItem('crew_gemini_api_key');
-                        throw new Error(`403 Forbidden: Permission Denied. Please ensure the 'Generative Language API' is enabled in your Google Cloud Console, and that your API Key does NOT have strict domain restrictions blocking Vercel.`);
+                        throw new Error(`403 Forbidden: Permission Denied. Check Google Cloud Console API restrictions for this key.`);
                     } else if (response.status === 400) {
                         localStorage.removeItem('crew_gemini_api_key');
                         throw new Error(`400 Bad Request: Invalid API Key. Please check your key and try again.`);
