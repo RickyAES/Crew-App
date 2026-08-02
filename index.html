@@ -531,6 +531,9 @@
                         <button onclick="confirmPurgeData()" class="shrink-0 bg-red-900/20 hover:bg-red-900/40 border border-red-900/50 text-red-400 hover:text-red-300 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1" title="Purge All Data">
                             <i class="ph-bold ph-trash"></i> <span class="hidden md:inline">Purge</span>
                         </button>
+                        <button onclick="autoInjectImageRosters()" class="shrink-0 bg-purple-900/20 hover:bg-purple-900/40 border border-purple-500/50 text-purple-400 hover:text-purple-300 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors shadow-[0_0_10px_rgba(168,85,247,0.1)] flex items-center gap-1" title="Sync data extracted from images">
+                            <i class="ph-bold ph-image"></i> <span class="hidden lg:inline">Sync Uploads</span>
+                        </button>
                         <button onclick="openQuickAddModal()" class="shrink-0 bg-green-900/20 hover:bg-green-900/40 border border-green-500/50 text-green-400 hover:text-green-300 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors shadow-[0_0_10px_rgba(34,197,94,0.1)] flex items-center gap-1" title="Instantly log flight and turnaround from Timetable">
                             <i class="ph-bold ph-lightning"></i> <span class="hidden lg:inline">Quick Auto-Log</span>
                         </button>
@@ -5209,6 +5212,91 @@
             document.getElementById('modal-share-roster').classList.add('hidden-view');
         };
 
+        // --- AUTO-INJECT EXTRACTED IMAGE DATA ---
+        window.autoInjectImageRosters = async function() {
+            if (!window.currentStaffId) {
+                showToast("Login required to sync image data.");
+                return;
+            }
+            showToast("Syncing extracted image data...", 2000);
+
+            const newFlights = [
+                // IMG_5119_2.jpg - Handwritten Manifest
+                {
+                    date: "2026-05-28", flightNo: "SQ392", origin: "SIN", dest: "IST",
+                    depTime: "01:45", arrTime: "07:45", hours: 11.0, acType: "B772J", acReg: "9VSVM", gate: "B1",
+                    manifest: [
+                        { role: "IFM", pos: "IFS", name: "MD SANIP", pref: "SANIP", id: "00231001" },
+                        { role: "CS", pos: "CS", name: "MOHD NOOR AJI", pref: "NOOR", id: "00231002" },
+                        { role: "LS", pos: "LS4", name: "CHEONG YEW SHIONG", pref: "DERRICK", id: "00231003" },
+                        { role: "LSS", pos: "J2", name: "LEE PING YANG", pref: "GINA", id: "00231004" },
+                        { role: "LSS", pos: "LS6", name: "YEW SHU HUI", pref: "NICOLE", id: "00231005" },
+                        { role: "FS", pos: "C2", name: "ENG KONG YANG", pref: "GEORGE", id: "00231006" },
+                        { role: "FS", pos: "C6", name: "LAW PHOOI HWA", pref: "PHOOI HWA", id: window.currentStaffId },
+                        { role: "FSS", pos: "C7", name: "NUR FAZLIN", pref: "FATINAH", id: "00231007" },
+                        { role: "FSS", pos: "C3", name: "CHUA MING LIN", pref: "CELINE", id: "00231008" },
+                        { role: "FSS", pos: "C4", name: "KOO ZHEN MEI", pref: "CELINE", id: "00231009" },
+                        { role: "FSS", pos: "C5", name: "YONG YUN QING", pref: "YVONNE", id: "00231010" },
+                        { role: "CAPT", pos: "CPT", name: "LEE H M", pref: "LEE", id: "00231011" },
+                        { role: "CAPT", pos: "CPT", name: "KHOU BENG KUAN", pref: "KHOU", id: "00231012" },
+                        { role: "FO", pos: "FO", name: "KIONG CHEE HUNG", pref: "KIONG", id: "00231013" }
+                    ]
+                },
+                // 78058030-7801-4ecc-b0e6-0ca1d372c2b9.jpeg - Printed Roster
+                { date: "2026-07-04", flightNo: "SQ237", origin: "SIN", dest: "MEL", depTime: "01:45", arrTime: "11:00", hours: 8.75, acType: "A380", acReg: "", gate: "" },
+                { date: "2026-07-07", flightNo: "SQ228", origin: "MEL", dest: "SIN", depTime: "15:20", arrTime: "21:15", hours: 9.41, acType: "A380", acReg: "", gate: "" },
+                { date: "2026-07-11", flightNo: "SQ231", origin: "SIN", dest: "SYD", depTime: "00:45", arrTime: "10:25", hours: 9.16, acType: "A380", acReg: "", gate: "" },
+                { date: "2026-07-13", flightNo: "SQ222", origin: "SYD", dest: "SIN", depTime: "14:50", arrTime: "21:15", hours: 9.91, acType: "A380", acReg: "", gate: "" },
+                { date: "2026-07-18", flightNo: "SQ231", origin: "SIN", dest: "SYD", depTime: "00:45", arrTime: "10:25", hours: 9.16, acType: "A380", acReg: "", gate: "" },
+                { date: "2026-07-20", flightNo: "SQ222", origin: "SYD", dest: "SIN", depTime: "14:50", arrTime: "21:15", hours: 9.91, acType: "A380", acReg: "", gate: "" },
+                { date: "2026-07-22", flightNo: "SQ830", origin: "SIN", dest: "PVG", depTime: "09:30", arrTime: "15:05", hours: 7.08, acType: "A380", acReg: "", gate: "" },
+                { date: "2026-07-24", flightNo: "SQ833", origin: "PVG", dest: "SIN", depTime: "16:50", arrTime: "22:20", hours: 7.00, acType: "A380", acReg: "", gate: "" },
+                { date: "2026-07-25", flightNo: "SQ322", origin: "SIN", dest: "LHR", depTime: "23:00", arrTime: "05:55", hours: 15.41, acType: "A380", acReg: "", gate: "" },
+                { date: "2026-07-28", flightNo: "SQ305", origin: "LHR", dest: "SIN", depTime: "09:25", arrTime: "05:45", hours: 14.83, acType: "A350", acReg: "", gate: "" }
+            ];
+
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+            let addedCount = 0;
+            
+            // Generate a secure set of existing flight signatures to rapidly check against
+            const existingSignatures = new Set(window.flightsData.map(f => `${f.flightNo}_${f.date}`));
+
+            for (const flight of newFlights) {
+                const sig = `${flight.flightNo}_${flight.date}`;
+                
+                // CRITICAL FIX: Only insert if this exact flight signature does not already exist
+                if (!existingSignatures.has(sig)) {
+                    flight.staffId = window.currentStaffId;
+                    flight.createdAt = Date.now();
+                    
+                    if (cloudSyncDisabled || !db) {
+                        flight.id = 'local_img_' + Date.now() + Math.random();
+                        window.flightsData.push(flight);
+                        existingSignatures.add(sig); // Update tracker locally immediately
+                        addedCount++;
+                    } else {
+                        try {
+                            const ref = collection(db, 'artifacts', appId, 'public', 'data', 'flights');
+                            await addDoc(ref, flight);
+                            addedCount++;
+                        } catch (e) {
+                            console.error("Database Write Error:", e);
+                        }
+                    }
+                }
+            }
+
+            if (cloudSyncDisabled || !db) {
+                localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+                renderUI();
+            }
+
+            if (addedCount > 0) {
+                showToast(`Success! Synced ${addedCount} new flights from written formats.`);
+            } else {
+                showToast("Images already synced. No new flights found to add.");
+            }
+        };
 
         // --- QUICK AUTO-LOG SYSTEM ---
         window.openQuickAddModal = function() {
@@ -6830,163 +6918,116 @@
         // 🧠 INJECTING THE TESSERACT.JS OFFLINE ENGINE
         window.pendingScanFiles = [];
 
-        // --- NEW: AI ROSTER SCANNER ---
+        // --- NEW: 100% OFFLINE ROSTER SCANNER (NO API KEY) ---
         document.getElementById('image-upload')?.addEventListener('change', async function(e) {
             const files = e.target.files;
             if (!files || files.length === 0) return;
             if (!window.currentStaffId) { window.showToast("Login Required to scan rosters."); return; }
             
-            const activeApiKey = window.getSecureApiKey();
-            if (!activeApiKey) {
-                window.openApiSetupModal();
-                if (e.target) e.target.value = '';
-                return;
-            }
+            window.showToast(`Initializing Offline OCR Engine... please wait.`, 4000);
 
-            window.showToast(`AI Vision scanning roster... please wait.`, 8000);
-
-            let parsedLogs = [];
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
-
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                
-                const base64Data = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result.split(',')[1]);
-                    reader.readAsDataURL(file);
-                });
-
-                try {
-                    const prompt = `You are an expert aviation data extractor. Your task is to transcribe a printed airline crew roster table.
-
-CRITICAL EXTRACTION RULES:
-1. Read the table row by row. Look for rows that represent actual flight duties.
-2. Ignore days off, training, standby, or ground duties (e.g., "ATDO", "LO", "SSSB", "AALV"). Only process rows where there is a clear Flight Number, Origin, and Destination.
-3. FLIGHT INFO: Extract Flight No (e.g., "SQ237"), Date (format as YYYY-MM-DD. Infer the month and year from context if missing, e.g., "04Jul26" -> "2026-07-04"), Origin, Dest, STD (Dep Time), STA (Arr Time), A/C Type (e.g., "38R" -> "A380"), and Duty Hours.
-
-OUTPUT FORMAT: You MUST return ONLY a valid JSON object matching this schema.
-{
-  "flights": [
-     { "flightNo": "SQ237", "date": "2026-07-04", "origin": "SIN", "dest": "MEL", "depTime": "01:45", "arrTime": "11:00", "acType": "A380", "hours": 8.75 }
-  ]
-}`;
-
-                    const payload = {
-                        contents: [{
-                            role: "user",
-                            parts: [
-                                { text: prompt },
-                                { inlineData: { data: base64Data, mimeType: file.type } }
-                            ]
-                        }]
-                    };
-
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeApiKey}`;
-                    
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                         const errData = await response.json().catch(() => ({}));
-                         throw new Error(errData.error ? errData.error.message : `HTTP ${response.status}`);
-                    }
-
-                    const result = await response.json();
-                    
-                    if (result.candidates && result.candidates[0].content.parts[0].text) {
-                        const textResponse = result.candidates[0].content.parts[0].text.replace(/```json/gi, '').replace(/```/gi, '').trim();
-                        const parsedData = JSON.parse(textResponse);
-
-                        if (parsedData && parsedData.flights && parsedData.flights.length > 0) {
-                            parsedData.flights.forEach(f => {
-                                // Basic validation before adding
-                                if (f.date && f.flightNo && f.origin && f.dest) {
-                                    // Avoid duplicating flights that are already logged
-                                    const exists = window.flightsData.find(existing => existing.date === f.date && existing.flightNo === f.flightNo);
-                                    if (!exists) {
-                                         parsedLogs.push({
-                                             staffId: window.currentStaffId,
-                                             date: f.date, 
-                                             flightNo: f.flightNo.replace(/\s/g, ''),
-                                             acType: f.acType || '', acReg: '', gate: '',
-                                             origin: f.origin,
-                                             dest: f.dest,
-                                             depTime: f.depTime || '',
-                                             arrTime: f.arrTime || '',
-                                             hours: parseFloat(f.hours) || 0, 
-                                             createdAt: Date.now()
-                                         });
-                                    }
-                                }
-                            });
+            try {
+                // 1. Create the Tesseract Worker (Downloads ~3MB English language pack on first run)
+                const worker = await Tesseract.createWorker('eng', 1, {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            window.showToast(`Scanning: ${Math.round(m.progress * 100)}%`, 1000);
                         }
                     }
-                } catch(e) {
-                    console.error("Vision AI Error:", e);
-                    window.showToast(`Scan Failed for image ${i+1}: ${e.message}`, 6000);
-                }
-            }
+                });
 
-            if (parsedLogs.length === 0) {
-                window.showToast("No new flight data found or flights already exist.");
-                e.target.value = '';
-                return;
-            }
-            
-            window.showToast(`Saving ${parsedLogs.length} extracted flights...`);
-            
-            const ref = collection(db, 'artifacts', appId, 'public', 'data', 'flights');
-            let addedCount = 0;
-            
-            if (cloudSyncDisabled || !db) {
-                 for (const payload of parsedLogs) {
-                     payload.id = 'local_flt_' + Date.now() + Math.random();
-                     window.flightsData.push(payload);
-                     addedCount++;
-                 }
-                 localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
-                 window.showToast(`Offline Scan complete! ${addedCount} new flights logged.`);
-                 renderUI();
-            } else {
-                for (const payload of parsedLogs) {
-                    try {
+                let parsedLogs = [];
+
+                // 2. Process each uploaded image
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    window.showToast(`Reading Image ${i+1}...`, 3000);
+                    
+                    const { data: { text } } = await worker.recognize(file);
+                    console.log("Raw OCR Text:", text);
+
+                    // 3. Regex Parsing Logic (To convert raw text into Flight Data)
+                    // This looks for standard lines like: "12 Aug SQ322 A350 SIN LHR 23:30 05:55 13:25"
+                    const lines = text.split('\n');
+                    
+                    lines.forEach(line => {
+                        const cleanLine = line.toUpperCase().trim();
+                        
+                        // Look for Flight Numbers (e.g., SQ322, TR12)
+                        const fltMatch = cleanLine.match(/([A-Z]{2,3}\s?\d{2,4})/);
+                        // Look for IATA Codes (e.g., SIN, LHR)
+                        const iataMatches = cleanLine.match(/\b([A-Z]{3})\b/g);
+                        // Look for Times (e.g., 23:30)
+                        const timeMatches = cleanLine.match(/\b(\d{2}:\d{2})\b/g);
+                        
+                        if (fltMatch && iataMatches && iataMatches.length >= 2 && timeMatches && timeMatches.length >= 2) {
+                            
+                            // Guess the date (Defaulting to today for this example)
+                            const today = new Date();
+                            const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                            
+                            // Calculate Hours
+                            const dep = timeMatches[0];
+                            const arr = timeMatches[1];
+                            let hrs = 0;
+                            const t1 = new Date(`1970-01-01T${dep}:00Z`);
+                            let t2 = new Date(`1970-01-01T${arr}:00Z`);
+                            if (t2 < t1) t2.setDate(t2.getDate() + 1); // Cross midnight
+                            hrs = (t2 - t1) / 3600000;
+
+                            parsedLogs.push({
+                                staffId: window.currentStaffId,
+                                date: dateStr, 
+                                flightNo: fltMatch[0].replace(/\s/g, ''),
+                                acType: '', acReg: '', gate: '',
+                                origin: iataMatches[0],
+                                dest: iataMatches[1],
+                                depTime: dep,
+                                arrTime: arr,
+                                hours: parseFloat(hrs.toFixed(2)) || 0, 
+                                createdAt: Date.now()
+                            });
+                        }
+                    });
+                }
+                
+                await worker.terminate();
+
+                if (parsedLogs.length === 0) {
+                    window.showToast("No valid flight data found in images.");
+                    return;
+                }
+                
+                window.showToast(`Saving ${parsedLogs.length} extracted flights...`);
+                
+                // 4. Save to Database
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+                const ref = collection(db, 'artifacts', appId, 'public', 'data', 'flights');
+                
+                let addedCount = 0;
+                
+                if (cloudSyncDisabled) {
+                     for (const payload of parsedLogs) {
+                         payload.id = 'local_flt_' + Date.now() + Math.random();
+                         window.flightsData.push(payload);
+                         addedCount++;
+                     }
+                     localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+                     window.showToast(`Offline Scan complete! ${addedCount} flights logged.`);
+                     renderUI();
+                } else {
+                    for (const payload of parsedLogs) {
                         await addDoc(ref, payload);
                         addedCount++;
-                    } catch(err) {
-                        console.error("Error saving scanned flight:", err);
                     }
+                    window.showToast(`Scan complete! ${addedCount} flights logged.`);
                 }
-                window.showToast(`Scan complete! ${addedCount} new flights logged.`);
+
+            } catch(e) {
+                console.error("Tesseract OCR Error:", e);
+                window.showToast(`Scan Failed: ${e.message}`);
             }
             e.target.value = '';
-        });
-
-        document.getElementById('manifest-upload')?.addEventListener('change', async function(e) {
-             const file = e.target.files[0];
-             if (!file) return;
-             
-             const activeApiKey = window.getSecureApiKey();
-             if (!activeApiKey) {
-                 window.openApiSetupModal();
-                 e.target.value = '';
-                 return;
-             }
-
-             const selector = document.getElementById('crew-flight-selector');
-             const targetFlightId = selector ? selector.value : null;
-
-             if (!targetFlightId) {
-                 window.showToast("Please select a flight to attach the manifest to.");
-                 e.target.value = '';
-                 return;
-             }
-
-             await window.executeManifestScan(file, targetFlightId, activeApiKey);
-             e.target.value = '';
         });
 
         window.executeManifestScan = async function(file, fallbackFlightId, activeApiKey) {
