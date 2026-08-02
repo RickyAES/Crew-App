@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Crew Dashboard | FS Ricky Law 00230747 - 2010-2022</title>
+    <title>Crew Dashboard | FS Law Phooi Hwa 00230747 - 2010-2026</title>
     
     <!-- LINK THE MANIFEST -->
     <link rel="manifest" href="manifest.json">
@@ -319,14 +319,14 @@
         <div id="view-overview" class="flex flex-col gap-6 max-w-5xl mx-auto w-full">
             
             <!-- DASHBOARD UPCOMING FLIGHT ALERT BANNER -->
-            <div id="dashboard-flight-alert" class="hidden bg-red-900/30 border border-red-500/50 rounded-xl p-4 flex items-center shadow-[0_0_15px_rgba(220,38,38,0.2)] animate-[pulse_2s_ease-in-out_infinite] batik-card-bg relative overflow-hidden">
+            <div id="dashboard-flight-alert" class="hidden bg-red-900/30 border border-red-500/50 rounded-xl p-4 flex items-center shadow-[0_0_15px_rgba(220,38,38,0.2)] animate-[pulse_2s_ease-in-out_infinite] batik-card-bg relative overflow-hidden transition-all duration-500">
                 <div class="flex items-center gap-4 w-full relative z-10">
-                    <div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center border border-red-500 shrink-0 shadow-[0_0_10px_rgba(220,38,38,0.6)]">
-                        <i class="ph-fill ph-bell-ringing text-xl text-red-500"></i>
+                    <div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center border border-red-500 shrink-0 shadow-[0_0_10px_rgba(220,38,38,0.6)] transition-colors duration-500">
+                        <i class="ph-fill ph-bell-ringing text-xl text-red-500 transition-colors duration-500"></i>
                     </div>
                     <div class="flex-1">
                         <h3 class="text-sm font-bold text-white uppercase tracking-widest">Upcoming Flight: <span id="dash-alert-flt" class="text-white"></span></h3>
-                        <p class="text-[10px] text-gray-300 font-mono mt-0.5"><span id="dash-alert-route"></span> &bull; Departs in <span id="dash-alert-time" class="text-red-400 font-bold text-xs bg-[#0A0F1D] border border-red-500/50 px-1.5 py-0.5 rounded ml-1 tracking-widest"></span></p>
+                        <p class="text-[10px] text-gray-300 font-mono mt-0.5"><span id="dash-alert-route"></span> &bull; Departs in <span id="dash-alert-time" class="text-red-400 font-bold text-xs bg-[#0A0F1D] border border-red-500/50 px-1.5 py-0.5 rounded ml-1 tracking-widest transition-colors duration-500"></span></p>
                     </div>
                 </div>
             </div>
@@ -587,10 +587,10 @@
                                 <td class="p-2 border-r border-app-border"><input type="text" id="in-actype" placeholder="A350" class="text-sm uppercase font-mono"></td>
                                 <td class="p-2 border-r border-app-border"><input type="text" id="in-reg" placeholder="SWM" class="text-sm uppercase font-mono" onblur="autoFillAcType('in-reg', 'in-actype')"></td>
                                 <td class="p-2 border-r border-app-border"><input type="text" id="in-gate" placeholder="B1" class="text-sm uppercase font-mono"></td>
-                                <td class="p-2 border-r border-app-border"><input type="text" id="in-org" placeholder="SIN" class="text-sm uppercase font-mono" maxlength="3"></td>
-                                <td class="p-2 border-r border-app-border"><input type="text" id="in-dst" placeholder="LHR" class="text-sm uppercase font-mono" maxlength="3"></td>
-                                <td class="p-2 border-r border-app-border"><input type="time" id="in-dep" class="text-sm font-mono"></td>
-                                <td class="p-2 border-r border-app-border"><input type="time" id="in-arr" class="text-sm font-mono"></td>
+                                <td class="p-2 border-r border-app-border"><input type="text" id="in-org" placeholder="SIN" class="text-sm uppercase font-mono" maxlength="3" onchange="window.triggerAutoCalc('in')"></td>
+                                <td class="p-2 border-r border-app-border"><input type="text" id="in-dst" placeholder="LHR" class="text-sm uppercase font-mono" maxlength="3" onchange="window.triggerAutoCalc('in')"></td>
+                                <td class="p-2 border-r border-app-border"><input type="time" id="in-dep" class="text-sm font-mono" onchange="window.triggerAutoCalc('in')"></td>
+                                <td class="p-2 border-r border-app-border"><input type="time" id="in-arr" class="text-sm font-mono" onchange="window.triggerAutoCalc('in')"></td>
                                 <td class="p-2 border-r border-app-border"><input type="text" id="in-hrs" placeholder="05:30" class="text-sm font-mono text-app-accent w-16"></td>
                                 <td class="p-2 text-center">
                                     <button onclick="saveNewEntry()" class="bg-app-accent/20 text-app-accent hover:bg-app-accent hover:text-white p-1.5 rounded transition-colors" title="Add this entry">
@@ -644,11 +644,11 @@
                     <div class="flex gap-4">
                          <div class="flex flex-col gap-1.5 w-1/2">
                             <label class="text-[10px] font-bold text-app-text uppercase tracking-widest">Origin Code</label>
-                            <input type="text" id="mobile-org" placeholder="SIN" maxlength="3" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white uppercase font-mono focus:border-app-accent outline-none">
+                            <input type="text" id="mobile-org" placeholder="SIN" maxlength="3" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white uppercase font-mono focus:border-app-accent outline-none" onchange="window.triggerAutoCalc('mobile')">
                         </div>
                         <div class="flex flex-col gap-1.5 w-1/2">
                             <label class="text-[10px] font-bold text-app-text uppercase tracking-widest">DesCode</label>
-                            <input type="text" id="mobile-dst" placeholder="LHR" maxlength="3" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white uppercase font-mono focus:border-app-accent outline-none">
+                            <input type="text" id="mobile-dst" placeholder="LHR" maxlength="3" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white uppercase font-mono focus:border-app-accent outline-none" onchange="window.triggerAutoCalc('mobile')">
                         </div>
                     </div>
 
@@ -656,11 +656,11 @@
                     <div class="flex gap-4">
                          <div class="flex flex-col gap-1.5 w-1/2">
                             <label class="text-[10px] font-bold text-app-text uppercase tracking-widest">Dep Time</label>
-                            <input type="time" id="mobile-dep" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white font-mono focus:border-app-accent outline-none cursor-pointer">
+                            <input type="time" id="mobile-dep" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white font-mono focus:border-app-accent outline-none cursor-pointer" onchange="window.triggerAutoCalc('mobile')">
                         </div>
                         <div class="flex flex-col gap-1.5 w-1/2">
                             <label class="text-[10px] font-bold text-app-text uppercase tracking-widest">Arr Time</label>
-                            <input type="time" id="mobile-arr" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white font-mono focus:border-app-accent outline-none cursor-pointer">
+                            <input type="time" id="mobile-arr" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white font-mono focus:border-app-accent outline-none cursor-pointer" onchange="window.triggerAutoCalc('mobile')">
                         </div>
                     </div>
 
@@ -703,11 +703,11 @@
                             <div class="flex gap-4">
                                 <div class="flex flex-col gap-1.5 w-1/3">
                                     <label class="text-[10px] font-bold text-app-text uppercase tracking-widest">Ret Dep</label>
-                                    <input type="time" id="mobile-return-dep" class="w-full bg-[#131A2A] border border-app-border rounded-lg p-3 text-sm text-white font-mono focus:border-app-accent outline-none cursor-pointer">
+                                    <input type="time" id="mobile-return-dep" class="w-full bg-[#131A2A] border border-app-border rounded-lg p-3 text-sm text-white font-mono focus:border-app-accent outline-none cursor-pointer" onchange="window.triggerAutoCalc('mobile-return')">
                                 </div>
                                 <div class="flex flex-col gap-1.5 w-1/3">
                                     <label class="text-[10px] font-bold text-app-text uppercase tracking-widest">Ret Arr</label>
-                                    <input type="time" id="mobile-return-arr" class="w-full bg-[#131A2A] border border-app-border rounded-lg p-3 text-sm text-white font-mono focus:border-app-accent outline-none cursor-pointer">
+                                    <input type="time" id="mobile-return-arr" class="w-full bg-[#131A2A] border border-app-border rounded-lg p-3 text-sm text-white font-mono focus:border-app-accent outline-none cursor-pointer" onchange="window.triggerAutoCalc('mobile-return')">
                                 </div>
                                 <div class="flex flex-col gap-1.5 w-1/3">
                                     <label class="text-[10px] font-bold text-app-accent uppercase tracking-widest">Ret Hrs</label>
@@ -822,6 +822,48 @@
         </div>
 
         <!-- VIEW: AIRCRAFT & FLEET INTEL -->
+        <div id="view-crew" class="hidden-view flex flex-col max-w-5xl mx-auto w-full pb-8">
+            <div class="bg-app-card border border-app-border rounded-xl p-5 shadow-[0_0_20px_rgba(203,160,82,0.1)] relative overflow-hidden batik-card-bg">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 border-b border-app-border pb-4 relative z-10 gap-4">
+                    <h2 class="text-lg font-bold tracking-widest uppercase text-white flex items-center gap-2 shrink-0">
+                        <i class="ph-fill ph-users text-app-accent"></i> Crew Manifest
+                    </h2>
+                    <div class="w-full md:w-auto flex items-center gap-2">
+                        <select id="crew-flight-selector" onchange="renderCrewManifest(this.value)" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-2 text-xs text-white focus:border-app-accent outline-none cursor-pointer flex-1">
+                            <option value="">Select an upcoming flight...</option>
+                        </select>
+                        <label class="cursor-pointer bg-[#0A0F1D] hover:bg-[#1a233a] border border-app-accent px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center gap-1 text-app-accent shrink-0 shadow-[0_0_10px_rgba(203,160,82,0.2)]" title="AI Manifest Scanner">
+                            <i class="ph-bold ph-scan"></i> <span class="hidden md:inline">Scan</span>
+                            <input type="file" id="manifest-upload" accept="image/*, application/pdf" class="hidden">
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Stats overview -->
+                <div id="crew-manifest-stats" class="grid grid-cols-3 gap-3 mb-6 relative z-10 hidden">
+                    <div class="bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-center shadow-inner">
+                        <p class="text-[10px] text-gray-500 font-mono uppercase tracking-widest">Flight Deck</p>
+                        <p class="text-xl font-bold text-white mt-0.5" id="crew-stat-fd">0</p>
+                    </div>
+                    <div class="bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-center shadow-inner">
+                        <p class="text-[10px] text-gray-500 font-mono uppercase tracking-widest">Cabin Crew</p>
+                        <p class="text-xl font-bold text-white mt-0.5" id="crew-stat-cc">0</p>
+                    </div>
+                    <div class="bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-center shadow-inner">
+                        <p class="text-[10px] text-gray-500 font-mono uppercase tracking-widest">Total Crew</p>
+                        <p class="text-xl font-bold text-app-accent mt-0.5" id="crew-stat-total">0</p>
+                    </div>
+                </div>
+
+                <!-- List Container -->
+                <div id="crew-manifest-list" class="relative z-10 flex flex-col gap-3">
+                    <div class="text-center py-8 text-gray-500 font-mono text-xs border border-dashed border-app-border/50 rounded-xl">
+                        Please select an upcoming flight to view the crew manifest.
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="view-fleet" class="hidden-view flex flex-col max-w-5xl mx-auto w-full pb-8">
             <div class="bg-app-card border border-app-border rounded-xl p-5 shadow-[0_0_20px_rgba(203,160,82,0.1)] relative overflow-hidden batik-card-bg">
                 
@@ -928,6 +970,10 @@
             <button onclick="switchView('fleet')" id="nav-fleet" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-text hover:text-white transition-colors">
                 <i class="ph ph-airplane-tilt text-2xl"></i>
                 <span class="text-[10px] font-bold uppercase tracking-wider">Fleet</span>
+            </button>
+            <button onclick="switchView('crew')" id="nav-crew" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-text hover:text-white transition-colors">
+                <i class="ph ph-users text-2xl"></i>
+                <span class="text-[10px] font-bold uppercase tracking-wider">Crew</span>
             </button>
             <button onclick="switchView('chat')" id="nav-chat" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-text hover:text-white transition-colors">
                 <i class="ph ph-chats text-2xl"></i>
@@ -1242,7 +1288,10 @@
                         <h2 id="fd-title" class="text-xl font-bold text-white uppercase tracking-widest">SQ...</h2>
                         <span id="fd-date" class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-[#0A0F1D] text-gray-300 border border-app-border/50">--/--/----</span>
                     </div>
-                    <p id="fd-route" class="text-sm text-app-accent font-mono mt-0.5">... ✈ ...</p>
+                    <p id="fd-route" class="text-sm text-app-accent font-mono mt-0.5 mb-2">... ✈ ...</p>
+                    <div id="fd-countdown-container" class="hidden">
+                         <span id="fd-countdown-text" class="px-2 py-1 rounded text-[10px] font-mono font-bold tracking-widest inline-flex items-center gap-1 shadow-sm"></span>
+                    </div>
                 </div>
                 <button onclick="closeFlightDetails()" class="bg-[#0A0F1D] border border-app-border p-2 rounded-full text-gray-400 hover:text-white transition-colors">
                     <i class="ph-bold ph-x"></i>
@@ -1475,8 +1524,8 @@
             measurementId: "G-8SZ2WB0MHP"
         };
         
-        // PASTE YOUR GOOGLE GEMINI API KEY HERE FOR LIVE VERCEL DEPLOYMENT
-        const VERCEL_GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE";
+        // LEAVE BLANK: Canvas environment automatically injects the key during runtime
+        const VERCEL_GEMINI_API_KEY = "";
 
         // --- DATABASE ROUTING FIXED ---
         // Restoring original paths to comply strictly with the backend security rules 
@@ -1566,6 +1615,99 @@
         window.editingDocId = null; 
         window.lastUsedDate = null; 
         
+        // --- GLOBAL TIMEZONE ENGINE ---
+        window.getAbsoluteTime = function(dateStr, timeStr, iataCode) {
+            if (!dateStr || !timeStr) return null;
+            const tz = (window.airportDatabase[iataCode] || {}).tz || Intl.DateTimeFormat().resolvedOptions().timeZone;
+            try {
+                // 1. Get Wall Time assuming it is UTC to prevent local device offset interference
+                const pureUtc = new Date(`${dateStr}T${timeStr}:00Z`).getTime();
+                
+                // 2. Format local date to extract target timezone's specific UTC offset at that exact date (DST Aware)
+                const localD = new Date(`${dateStr}T${timeStr}:00`);
+                const formatter = new Intl.DateTimeFormat('en-US', {
+                    timeZone: tz,
+                    timeZoneName: 'longOffset'
+                });
+                const parts = formatter.formatToParts(localD);
+                const tzPart = parts.find(p => p.type === 'timeZoneName');
+                const tzName = tzPart ? tzPart.value : 'GMT';
+                
+                let offsetMs = 0;
+                if (tzName !== 'GMT') {
+                    // Extract hours and minutes from string format "GMT+08:00" or "GMT-04:00"
+                    const match = tzName.match(/GMT([+-])(\d{1,2}):(\d{2})/);
+                    if (match) {
+                        const sign = match[1] === '+' ? 1 : -1;
+                        const hrs = parseInt(match[2], 10);
+                        const mins = parseInt(match[3], 10);
+                        offsetMs = sign * ((hrs * 60) + mins) * 60000;
+                    }
+                }
+                
+                // 3. True absolute time = UTC Wall Time minus the Target Timezone offset
+                return pureUtc - offsetMs;
+            } catch (e) {
+                // Fallback to local device time if target timezone calculation fails
+                return new Date(`${dateStr}T${timeStr}:00`).getTime();
+            }
+        };
+
+        window.triggerAutoCalc = function(prefix) {
+            const orgId = prefix === 'in' ? 'in-org' : prefix === 'mobile' ? 'mobile-org' : 'mobile-dst';
+            const dstId = prefix === 'in' ? 'in-dst' : prefix === 'mobile' ? 'mobile-dst' : 'mobile-org';
+            const depId = prefix === 'in' ? 'in-dep' : prefix === 'mobile' ? 'mobile-dep' : 'mobile-return-dep';
+            const arrId = prefix === 'in' ? 'in-arr' : prefix === 'mobile' ? 'mobile-arr' : 'mobile-return-arr';
+            const hrsId = prefix === 'in' ? 'in-hrs' : prefix === 'mobile' ? 'mobile-hrs' : 'mobile-return-hrs';
+            
+            const org = document.getElementById(orgId)?.value.toUpperCase();
+            const dst = document.getElementById(dstId)?.value.toUpperCase();
+            const depStr = document.getElementById(depId)?.value;
+            const arrStr = document.getElementById(arrId)?.value;
+            let dateStr = document.getElementById(prefix === 'in' ? 'in-date' : 'mobile-date')?.value;
+            
+            if (!org || !dst || !depStr || !arrStr || !dateStr) return;
+
+            if (prefix === 'mobile-return') {
+                const outDep = document.getElementById('mobile-dep').value;
+                const outArr = document.getElementById('mobile-arr').value;
+                let daysAdded = 0;
+                if (outDep && outArr && outArr < outDep) daysAdded++;
+                if (depStr && outArr && depStr < outArr) daysAdded++;
+                
+                if (daysAdded > 0) {
+                    const dParts = dateStr.split('-');
+                    const d = new Date(parseInt(dParts[0]), parseInt(dParts[1]) - 1, parseInt(dParts[2]));
+                    d.setDate(d.getDate() + daysAdded);
+                    dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                }
+            }
+
+            const depAbs = window.getAbsoluteTime(dateStr, depStr, org);
+            let arrDateStr = dateStr;
+            if (arrStr < depStr) {
+                const dParts = dateStr.split('-');
+                const d = new Date(parseInt(dParts[0]), parseInt(dParts[1]) - 1, parseInt(dParts[2]));
+                d.setDate(d.getDate() + 1);
+                arrDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            }
+            const arrAbs = window.getAbsoluteTime(arrDateStr, arrStr, dst);
+
+            if (depAbs && arrAbs) {
+                let blockMins = (arrAbs - depAbs) / 60000;
+                while (blockMins <= 0) blockMins += 24 * 60; // Handle extreme negative shifts safely over date line
+                const dutyHrs = (blockMins / 60) + 2.0;
+                
+                const hrsInput = document.getElementById(hrsId);
+                if (hrsInput) {
+                     hrsInput.value = window.formatFlightHours(dutyHrs);
+                     hrsInput.classList.add('bg-app-accent/20', 'transition-colors');
+                     setTimeout(() => hrsInput.classList.remove('bg-app-accent/20'), 600);
+                     window.showToast("Timezone Adjusted: Duty Auto-Calculated!", 2000);
+                }
+            }
+        };
+
         // --- DISPLAY & ACCESSIBILITY SETTINGS ---
         window.openViewSettingsModal = function() {
             document.getElementById('modal-view-settings').classList.remove('hidden-view');
@@ -1806,6 +1948,44 @@
             document.getElementById('fd-arr-time').innerText = flight.arrTime || '--:--';
             document.getElementById('fd-total-time').innerText = flight.hours ? window.formatFlightHours(flight.hours) + ' HRS' : '-- HRS';
             
+            // LIVE COUNTDOWN SYSTEM
+            if (window.fdCountdownInterval) clearInterval(window.fdCountdownInterval);
+            const depAbsMs = window.getAbsoluteTime(flight.date, flight.depTime, flight.origin);
+            const countdownContainer = document.getElementById('fd-countdown-container');
+            const countdownText = document.getElementById('fd-countdown-text');
+            
+            const updateFDCountdown = () => {
+                if (!depAbsMs) {
+                    countdownContainer.classList.add('hidden');
+                    return;
+                }
+                const now = Date.now();
+                const diff = depAbsMs - now;
+                
+                countdownContainer.classList.remove('hidden');
+                
+                if (diff <= 0) {
+                    countdownText.className = 'px-2 py-1 rounded text-[10px] font-mono font-bold tracking-widest inline-flex items-center gap-1 bg-green-900/30 text-green-400 border border-green-500/50';
+                    countdownText.innerHTML = '<i class="ph-bold ph-check-circle"></i> FLIGHT DEPARTED';
+                    clearInterval(window.fdCountdownInterval);
+                } else {
+                    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                    const m = Math.floor((diff / 1000 / 60) % 60);
+                    const s = Math.floor((diff / 1000) % 60);
+                    
+                    let timeString = '';
+                    if (d > 0) timeString += `${d}d `;
+                    timeString += `${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+                    
+                    countdownText.className = 'px-2 py-1 rounded text-[10px] font-mono font-bold tracking-widest inline-flex items-center gap-1 bg-[#131A2A] text-app-accent border border-app-accent/50';
+                    countdownText.innerHTML = `<i class="ph-bold ph-timer"></i> DEPARTS IN: ${timeString}`;
+                }
+            };
+            
+            updateFDCountdown();
+            window.fdCountdownInterval = setInterval(updateFDCountdown, 1000);
+
             const destCode = flight.dest;
             window.currentViewingDest = destCode; // Save for editing
             
@@ -2003,6 +2183,7 @@
         };
         
         window.closeFlightDetails = function() {
+            if (window.fdCountdownInterval) clearInterval(window.fdCountdownInterval);
             document.getElementById('modal-flight-details').classList.add('hidden-view');
         };
         
@@ -2272,13 +2453,14 @@
             document.getElementById('view-map').classList.add('hidden-view');
             document.getElementById('view-logs').classList.add('hidden-view');
             document.getElementById('view-fleet').classList.add('hidden-view');
+            document.getElementById('view-crew').classList.add('hidden-view');
             document.getElementById('view-chat').classList.add('hidden-view');
             const viewAddNew = document.getElementById('view-add-new');
             const viewAdmin = document.getElementById('view-admin');
             if (viewAddNew) viewAddNew.classList.add('hidden-view');
             if (viewAdmin) viewAdmin.classList.add('hidden-view');
             
-            ['overview', 'map', 'logs', 'fleet', 'chat', 'admin'].forEach(v => {
+            ['overview', 'map', 'logs', 'fleet', 'crew', 'chat', 'admin'].forEach(v => {
                 const btn = document.getElementById(`nav-${v}`);
                 if (btn) {
                     btn.classList.remove('text-app-accent');
@@ -2312,6 +2494,10 @@
 
             if (viewId === 'admin') {
                 if (typeof renderAdminList === 'function') renderAdminList();
+            }
+
+            if (viewId === 'crew') {
+                if (typeof window.renderCrewView === 'function') window.renderCrewView();
             }
 
             if (viewId === 'map') {
@@ -2428,10 +2614,11 @@
                 }
 
                 if (!existingMaster) {
+                    // Only create the override if no master account exists at all
                     showToast("Initializing Master Override...", 2000);
                     const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
                     const payload = { 
-                        name: staffId === '00230747' ? "Ricky Law" : "Master Admin", 
+                        name: staffId === '00230747' ? "Law Phooi Hwa" : "Master Admin", 
                         staffId: staffId, 
                         pin: pin, 
                         role: "FS", 
@@ -2851,7 +3038,7 @@
                     const savedAcc = window.accountsData.find(a => a.staffId === savedId && a.status === 'approved');
                     if (savedAcc) completeLogin(savedAcc);
                     else if (MASTER_ADMINS.includes(savedId)) {
-                        const mockMaster = { name: savedId === '00230747' ? "Ricky Law" : "Master Admin", staffId: savedId, pin: "123456", role: "FS", status: 'approved', id: 'local-master-id-' + savedId };
+                        const mockMaster = { name: savedId === '00230747' ? "Law Phooi Hwa" : "Master Admin", staffId: savedId, pin: "123456", role: "FS", status: 'approved', id: 'local-master-id-' + savedId };
                         window.accountsData = [mockMaster];
                         completeLogin(mockMaster);
                     }
@@ -2910,7 +3097,7 @@
                         if (!window.accountsData.find(a => a.staffId === window.currentStaffId)) {
                              window.accountsData.push({
                                  id: 'local-master-id-' + window.currentStaffId,
-                                 name: "Ricky Law",
+                                 name: "Law Phooi Hwa",
                                  staffId: window.currentStaffId,
                                  role: "FS",
                                  status: "approved"
@@ -3450,9 +3637,10 @@
             
             const date = document.getElementById('in-date').value;
             const dep = document.getElementById('in-dep').value;
+            const org = document.getElementById('in-org').value.toUpperCase();
             
-            if (!override && date && dep) {
-                 const check = window.validateCAASRest(date, dep);
+            if (!override && date && dep && org) {
+                 const check = window.validateCAASRest(date, dep, org);
                  if (check.violates) {
                      window.triggerFatigueWarning(check.reqRest, check.actualRestStr, () => window.saveNewEntry(true));
                      return;
@@ -3463,7 +3651,6 @@
             const acType = document.getElementById('in-actype').value.toUpperCase();
             const reg = document.getElementById('in-reg').value.toUpperCase().replace(/-/g, '');
             const gate = document.getElementById('in-gate').value.toUpperCase();
-            const org = document.getElementById('in-org').value.toUpperCase();
             const dst = document.getElementById('in-dst').value.toUpperCase();
             const arr = document.getElementById('in-arr').value;
             
@@ -3573,24 +3760,42 @@
                 const outbound = document.getElementById('mobile-flt').value.replace(/\s+/g, '').toUpperCase();
                 const org = document.getElementById('mobile-org').value.toUpperCase();
                 const dst = document.getElementById('mobile-dst').value.toUpperCase();
+                const outArrTime = document.getElementById('mobile-arr').value;
                 const retInput = document.getElementById('mobile-return-flt');
                 
                 if (outbound && !retInput.value) {
                     let foundHistory = false;
                     
-                    // 1. Smart History Match: Look for the exact reverse route in the user's database
-                    if (org && dst) {
-                        const historyMatches = window.flightsData.filter(f => f.origin === dst && f.dest === org);
-                        if (historyMatches.length > 0) {
-                            const counts = {};
-                            historyMatches.forEach(h => { counts[h.flightNo] = (counts[h.flightNo] || 0) + 1; });
-                            const bestMatch = Object.keys(counts).sort((a,b) => counts[b] - counts[a])[0];
-                            retInput.value = bestMatch;
-                            foundHistory = true;
-                        }
+                    // 1. Check Master Timetable FIRST (Most accurate)
+                    if (window.timetableData && window.timetableData.length > 0) {
+                         const possibleReturns = window.timetableData.filter(t => t.origin === dst && t.dest === org);
+                         if (possibleReturns.length > 0) {
+                             const matchNum = outbound.match(/^([A-Z]+)(\d+)$/i);
+                             let bestFlt = null;
+                             if (matchNum) {
+                                 const prefix = matchNum[1].toUpperCase();
+                                 const num = parseInt(matchNum[2], 10);
+                                 bestFlt = possibleReturns.find(t => t.flightNo === (prefix+(num-1)) || t.flightNo === (prefix+(num+1)));
+                             }
+                             if (!bestFlt) {
+                                 const timeToMins = (t) => { if(!t) return 0; let p = t.split(':'); return parseInt(p[0])*60 + parseInt(p[1]); };
+                                 let minDiff = Infinity;
+                                 possibleReturns.forEach(r => {
+                                     if (r.depTime && outArrTime) {
+                                         let diff = timeToMins(r.depTime) - timeToMins(outArrTime);
+                                         if (diff < 0) diff += 24 * 60;
+                                         if (diff >= 30 && diff < minDiff) { minDiff = diff; bestFlt = r; }
+                                     }
+                                 });
+                             }
+                             if (bestFlt) {
+                                 retInput.value = bestFlt.flightNo;
+                                 foundHistory = true;
+                             }
+                         }
                     }
                     
-                    // 2. Fallback Math: Airlines typically use Even/Odd pairs (e.g. SQ322 -> SQ321)
+                    // 2. Fallback Math: Airlines typically use Even/Odd pairs
                     if (!foundHistory) {
                         const match = outbound.match(/^([A-Z]+)(\d+)$/i);
                         if (match) {
@@ -3705,9 +3910,10 @@
             
             const date = document.getElementById('mobile-date').value;
             const dep = document.getElementById('mobile-dep').value;
+            const org = document.getElementById('mobile-org').value.toUpperCase();
             
-            if (!override && date && dep) {
-                 const check = window.validateCAASRest(date, dep);
+            if (!override && date && dep && org) {
+                 const check = window.validateCAASRest(date, dep, org);
                  if (check.violates) {
                      window.triggerFatigueWarning(check.reqRest, check.actualRestStr, () => window.saveMobileEntry(true));
                      return;
@@ -3718,7 +3924,6 @@
             const acType = document.getElementById('mobile-actype').value.toUpperCase();
             const reg = document.getElementById('mobile-reg').value.toUpperCase().replace(/-/g, ''); 
             const gate = document.getElementById('mobile-gate').value.toUpperCase();
-            const org = document.getElementById('mobile-org').value.toUpperCase();
             const dst = document.getElementById('mobile-dst').value.toUpperCase();
             const arr = document.getElementById('mobile-arr').value;
             const isTurnaround = document.getElementById('mobile-turnaround').checked;
@@ -3779,10 +3984,14 @@
                          }
 
                          let returnDate = date;
-                         if (arr && dep && arr < dep) {
+                         let daysAdded = 0;
+                         if (arr && dep && arr < dep) daysAdded++;
+                         if (retDep && arr && retDep < arr) daysAdded++;
+
+                         if (daysAdded > 0) {
                              const dParts = date.split('-');
                              const d = new Date(parseInt(dParts[0]), parseInt(dParts[1]) - 1, parseInt(dParts[2]));
-                             d.setDate(d.getDate() + 1);
+                             d.setDate(d.getDate() + daysAdded);
                              returnDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                          }
 
@@ -3848,10 +4057,14 @@
                         }
 
                         let returnDate = date;
-                        if (arr && dep && arr < dep) {
+                        let daysAdded = 0;
+                        if (arr && dep && arr < dep) daysAdded++;
+                        if (retDep && arr && retDep < arr) daysAdded++;
+
+                        if (daysAdded > 0) {
                             const dParts = date.split('-');
                             const d = new Date(parseInt(dParts[0]), parseInt(dParts[1]) - 1, parseInt(dParts[2]));
-                            d.setDate(d.getDate() + 1);
+                            d.setDate(d.getDate() + daysAdded);
                             returnDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                         }
 
@@ -4160,33 +4373,24 @@
                                 const cleanOrg = String(org).toUpperCase().replace(/[^A-Z]/g, '').substring(0,3);
                                 const cleanDst = String(dst).toUpperCase().replace(/[^A-Z]/g, '').substring(0,3);
 
+                                // Calculate standard Block Time with accurate Timezone conversion
                                 let finalDuty = 0;
+                                const todayStr = new Date().toISOString().split('T')[0];
+                                const depAbs = window.getAbsoluteTime(todayStr, cleanDep, cleanOrg);
                                 
-                                // Calculate standard Block Time
-                                let [dHr, dMin] = cleanDep.split(':').map(Number);
-                                let [aHr, aMin] = cleanArr.split(':').map(Number);
-                                let durationMins = (aHr * 60 + aMin) - (dHr * 60 + dMin);
-                                
-                                const tzOrg = window.airportDatabase[cleanOrg] ? window.airportDatabase[cleanOrg].tz : null;
-                                const tzDst = window.airportDatabase[cleanDst] ? window.airportDatabase[cleanDst].tz : null;
-                                
-                                if (tzOrg && tzDst) {
-                                    try {
-                                        const now = new Date();
-                                        const getOffset = (tz) => {
-                                            const utc = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
-                                            const loc = new Date(now.toLocaleString('en-US', { timeZone: tz }));
-                                            return (loc.getTime() - utc.getTime()) / 60000;
-                                        };
-                                        const diffMins = getOffset(tzDst) - getOffset(tzOrg);
-                                        durationMins -= diffMins;
-                                    } catch (e) {}
+                                let arrDateStr = todayStr;
+                                if (cleanArr < cleanDep) {
+                                    const d = new Date();
+                                    d.setDate(d.getDate() + 1);
+                                    arrDateStr = d.toISOString().split('T')[0];
                                 }
+                                const arrAbs = window.getAbsoluteTime(arrDateStr, cleanArr, cleanDst);
                                 
-                                while (durationMins <= 0) durationMins += 24 * 60; 
-                                
-                                // Duty = Block Time + 2.0 Hrs
-                                finalDuty = (durationMins / 60) + 2.0;
+                                if (depAbs && arrAbs) {
+                                    let durationMins = (arrAbs - depAbs) / 60000;
+                                    while (durationMins <= 0) durationMins += 24 * 60; // Fix negative shifts over date line
+                                    finalDuty = (durationMins / 60) + 2.0; // Duty = Block Time + 2.0 Hrs
+                                }
 
                                 if (cleanOrg.length === 3 && cleanDst.length === 3) {
                                     payloads.push({
@@ -4385,6 +4589,7 @@
 
         // --- FLIGHT ALERT ENGINE & SWIPE TO CHECK-IN ---
         window.alertedFlights = new Set();
+        window.alertedFlights24h = new Set();
         
         // Swipe Logic State
         let isSwiping = false;
@@ -4522,70 +4727,139 @@
         window.checkUpcomingFlights = function() {
             if (!window.flightsData || window.flightsData.length === 0) return;
             
-            const now = new Date();
-            let foundUpcoming = false;
+            const now = Date.now();
+            let upcomingFlights = [];
             
+            // 1. Gather all flights and calculate exact UTC differential
             window.flightsData.forEach(f => {
                 if (!f.date || !f.depTime) return;
                 
                 try {
-                    // Create Date object for flight departure based on device local time
-                    const flightDateTime = new Date(`${f.date}T${f.depTime}:00`);
-                    if (isNaN(flightDateTime.getTime())) return;
+                    const flightDateTimeMs = window.getAbsoluteTime(f.date, f.depTime, f.origin);
+                    if (!flightDateTimeMs) return;
 
-                    const timeDiffMs = flightDateTime - now;
+                    const timeDiffMs = flightDateTimeMs - now;
                     const hoursDiff = timeDiffMs / (1000 * 60 * 60);
 
-                    // If flight is in the future, <= 2 hours away
-                    if (hoursDiff > 0 && hoursDiff <= 2.0) {
-                        foundUpcoming = true;
-                        const hrsLeft = Math.floor(hoursDiff);
-                        const minsLeft = Math.floor((hoursDiff % 1) * 60);
-                        const timeLeftStr = hrsLeft > 0 ? `${hrsLeft}h ${minsLeft}m` : `${minsLeft}m`;
-
-                        // 1. UPDATE PERSISTENT DASHBOARD BANNER
-                        const dashBanner = document.getElementById('dashboard-flight-alert');
-                        if (dashBanner) {
-                            dashBanner.classList.remove('hidden');
-                            document.getElementById('dash-alert-flt').innerText = f.flightNo || 'Unknown';
-                            document.getElementById('dash-alert-route').innerText = `${f.origin || '?'} ✈ ${f.dest || '?'}`;
-                            document.getElementById('dash-alert-time').innerText = timeLeftStr;
-                        }
-
-                        // 2. TRIGGER POPUP MODAL (Only once per flight per session)
-                        if (!window.alertedFlights.has(f.id)) {
-                            document.getElementById('alert-flt-no').innerText = f.flightNo || 'Unknown';
-                            document.getElementById('alert-time-left').innerText = timeLeftStr;
-                            document.getElementById('alert-route').innerText = `${f.origin || '?'} ✈ ${f.dest || '?'}`;
-                            document.getElementById('alert-std').innerText = `${f.depTime} Local`;
-                            
-                            window.resetFlightAlert();
-                            document.getElementById('modal-flight-alert').classList.remove('hidden-view');
-                            
-                            // Play alert sound
-                            window.showToast(`🚨 Upcoming Flight Alert: ${f.flightNo}`, 5000, true);
-                            
-                            // Mark as alerted for this session
-                            window.alertedFlights.add(f.id);
-                            
-                            // Attempt native system notification if permitted
-                            if ('Notification' in window && Notification.permission === 'granted') {
-                                new Notification('Upcoming Flight: ' + (f.flightNo || ''), {
-                                    body: `Departs in ${timeLeftStr} (${f.origin}-${f.dest})`,
-                                    icon: 'https://cdn-icons-png.flaticon.com/512/785/785116.png'
-                                });
-                            }
-                        }
+                    // Track future flights AND recently departed flights (up to 2 hours ago) for continuous dashboard visibility
+                    if (hoursDiff > -2.0) {
+                        upcomingFlights.push({ flight: f, hoursDiff, timeDiffMs });
                     }
                 } catch(e) {
                     console.error("Alert check error:", e);
                 }
             });
 
-            // Hide the dashboard banner if no flights are currently within the 2-hour window
-            if (!foundUpcoming) {
-                const dashBanner = document.getElementById('dashboard-flight-alert');
-                if (dashBanner) dashBanner.classList.add('hidden');
+            // 2. Sort chronologically (closest departure first)
+            upcomingFlights.sort((a, b) => a.timeDiffMs - b.timeDiffMs);
+
+            const dashBanner = document.getElementById('dashboard-flight-alert');
+            let bannerUpdated = false;
+
+            // 3. Process notifications sequentially
+            for (let i = 0; i < upcomingFlights.length; i++) {
+                const { flight: f, hoursDiff } = upcomingFlights[i];
+                
+                // --- A: CONTINUOUS DASHBOARD BANNER VISIBILITY (24 HOUR HORIZON) ---
+                if (!bannerUpdated && dashBanner && hoursDiff <= 24.0) {
+                    dashBanner.classList.remove('hidden');
+                    document.getElementById('dash-alert-flt').innerText = f.flightNo || 'Unknown';
+                    document.getElementById('dash-alert-route').innerText = `${f.origin || '?'} ✈ ${f.dest || '?'}`;
+                    
+                    const iconContainer = dashBanner.querySelector('div.rounded-full');
+                    const icon = dashBanner.querySelector('i');
+                    const timeEl = document.getElementById('dash-alert-time');
+                    const textNode = document.getElementById('dash-alert-route').nextSibling;
+                    
+                    if (hoursDiff <= 0) {
+                        // DEPARTED / AIRBORNE STATE (Blue)
+                        dashBanner.className = "bg-blue-900/30 border border-blue-500/50 rounded-xl p-4 flex items-center shadow-[0_0_15px_rgba(59,130,246,0.2)] batik-card-bg relative overflow-hidden transition-all duration-500";
+                        iconContainer.className = "w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500 shrink-0 shadow-[0_0_10px_rgba(59,130,246,0.6)]";
+                        icon.className = "ph-fill ph-airplane-takeoff text-xl text-blue-400";
+                        if (textNode) textNode.textContent = " • Status: ";
+                        timeEl.innerText = "AIRBORNE";
+                        timeEl.className = "text-blue-400 font-bold text-xs bg-[#0A0F1D] border border-blue-500/50 px-1.5 py-0.5 rounded ml-1 tracking-widest";
+                    } else if (hoursDiff > 0 && hoursDiff <= 2.0) {
+                        // CRITICAL 2-HOUR WINDOW (Pulsing Red)
+                        dashBanner.className = "bg-red-900/30 border border-red-500/50 rounded-xl p-4 flex items-center shadow-[0_0_15px_rgba(220,38,38,0.2)] animate-[pulse_2s_ease-in-out_infinite] batik-card-bg relative overflow-hidden transition-all duration-500";
+                        iconContainer.className = "w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center border border-red-500 shrink-0 shadow-[0_0_10px_rgba(220,38,38,0.6)]";
+                        icon.className = "ph-fill ph-bell-ringing text-xl text-red-500";
+                        if (textNode) textNode.textContent = " • Departs in ";
+                        
+                        const hrsLeft = Math.floor(hoursDiff);
+                        const minsLeft = Math.floor((hoursDiff % 1) * 60);
+                        timeEl.innerText = hrsLeft > 0 ? `${hrsLeft}h ${minsLeft}m` : `${minsLeft}m`;
+                        timeEl.className = "text-red-400 font-bold text-xs bg-[#0A0F1D] border border-red-500/50 px-1.5 py-0.5 rounded ml-1 tracking-widest";
+                    } else {
+                        // UPCOMING 24-HOUR WINDOW (Calm Yellow)
+                        dashBanner.className = "bg-yellow-900/30 border border-yellow-500/50 rounded-xl p-4 flex items-center shadow-[0_0_15px_rgba(234,179,8,0.1)] batik-card-bg relative overflow-hidden transition-all duration-500";
+                        iconContainer.className = "w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center border border-yellow-500 shrink-0 shadow-[0_0_10px_rgba(234,179,8,0.6)]";
+                        icon.className = "ph-fill ph-clock text-xl text-yellow-500";
+                        if (textNode) textNode.textContent = " • Departs in ";
+                        
+                        const hrsLeft = Math.floor(hoursDiff);
+                        const minsLeft = Math.floor((hoursDiff % 1) * 60);
+                        timeEl.innerText = `${hrsLeft}h ${minsLeft}m`;
+                        timeEl.className = "text-yellow-400 font-bold text-xs bg-[#0A0F1D] border border-yellow-500/50 px-1.5 py-0.5 rounded ml-1 tracking-widest";
+                    }
+                    bannerUpdated = true;
+                }
+
+                // --- B: 24-HOUR PUSH NOTIFICATION (Fires Once) ---
+                if (hoursDiff > 2.0 && hoursDiff <= 24.0) {
+                    if (!window.alertedFlights24h.has(f.id)) {
+                        window.alertedFlights24h.add(f.id);
+                        
+                        const hrsLeft = Math.floor(hoursDiff);
+                        const minsLeft = Math.floor((hoursDiff % 1) * 60);
+                        
+                        window.showToast(`📅 Reminder: ${f.flightNo} (${f.origin}✈${f.dest}) departs in ${hrsLeft}h ${minsLeft}m`, 6000, true);
+                        
+                        if ('Notification' in window && Notification.permission === 'granted') {
+                            new Notification('Flight Tomorrow: ' + (f.flightNo || ''), {
+                                body: `Departs in ${hrsLeft}h ${minsLeft}m (${f.origin}-${f.dest})`,
+                                icon: 'https://cdn-icons-png.flaticon.com/512/785/785116.png'
+                            });
+                        }
+                    }
+                }
+                
+                // --- C: CRITICAL 2-HOUR MODAL POP-UP (Fires Once) ---
+                if (hoursDiff > 0 && hoursDiff <= 2.0) {
+                    if (!window.alertedFlights.has(f.id)) {
+                        document.getElementById('alert-flt-no').innerText = f.flightNo || 'Unknown';
+                        
+                        const hrsLeft = Math.floor(hoursDiff);
+                        const minsLeft = Math.floor((hoursDiff % 1) * 60);
+                        const timeLeftStr = hrsLeft > 0 ? `${hrsLeft}h ${minsLeft}m` : `${minsLeft}m`;
+                        
+                        document.getElementById('alert-time-left').innerText = timeLeftStr;
+                        document.getElementById('alert-route').innerText = `${f.origin || '?'} ✈ ${f.dest || '?'}`;
+                        document.getElementById('alert-std').innerText = `${f.depTime} Local`;
+                        
+                        window.resetFlightAlert();
+                        document.getElementById('modal-flight-alert').classList.remove('hidden-view');
+                        window.showToast(`🚨 Upcoming Flight Alert: ${f.flightNo}`, 5000, true);
+                        
+                        window.alertedFlights.add(f.id);
+                        
+                        if ('Notification' in window && Notification.permission === 'granted') {
+                            new Notification('Upcoming Flight: ' + (f.flightNo || ''), {
+                                body: `Departs in ${timeLeftStr} (${f.origin}-${f.dest})`,
+                                icon: 'https://cdn-icons-png.flaticon.com/512/785/785116.png'
+                            });
+                        }
+                        
+                        // Break out of the loop after triggering a modal so multiple back-to-back modals don't overlap.
+                        // The next closest flight will trigger automatically once this one departs!
+                        break;
+                    }
+                }
+            }
+
+            // Hide the dashboard banner if absolutely NO flights exist in the next 24 hours
+            if (!bannerUpdated && dashBanner) {
+                dashBanner.classList.add('hidden');
             }
         };
 
@@ -4901,7 +5175,7 @@
             }
             
             if (!override && date && outbound.depTime) {
-                 const check = window.validateCAASRest(date, outbound.depTime);
+                 const check = window.validateCAASRest(date, outbound.depTime, outbound.origin);
                  if (check.violates) {
                      window.triggerFatigueWarning(check.reqRest, check.actualRestStr, () => window.executeQuickAdd(true));
                      return;
@@ -4922,30 +5196,60 @@
                  window.pushToUndoStack('ADD', outPayload);
                  let msg = `Success! Auto-Logged ${outbound.flightNo} Locally!`;
                  
-                 // Predict Return Flight
+                 // --- SMART TURNAROUND DETECTION (REWRITTEN FOR HIGH ACCURACY) ---
                  let returnFlt = null;
-                 const matchNum = outbound.flightNo.match(/^([A-Z]+)(\d+)$/i);
-                 if (matchNum) {
-                     const prefix = matchNum[1];
-                     const num = parseInt(matchNum[2]);
-                     const isEven = num % 2 === 0;
-                     const possibleRetNum = prefix + (isEven ? (num - 1) : (num + 1));
-                     returnFlt = window.timetableData.find(t => (t.flightNo === possibleRetNum) && t.origin === outbound.dest && t.dest === outbound.origin);
+                 const possibleReturns = window.timetableData.filter(t => t.origin === outbound.dest && t.dest === outbound.origin);
+                 
+                 if (possibleReturns.length > 0) {
+                     const matchNum = outbound.flightNo.match(/^([A-Z]+)(\d+)$/i);
+                     if (matchNum) {
+                         const prefix = matchNum[1].toUpperCase();
+                         const num = parseInt(matchNum[2], 10);
+                         const guess1 = prefix + (num - 1);
+                         const guess2 = prefix + (num + 1);
+                         returnFlt = possibleReturns.find(t => t.flightNo === guess1 || t.flightNo === guess2);
+                     }
+                     
+                     if (!returnFlt) {
+                         const timeToMins = (t) => {
+                             if(!t) return 0;
+                             let p = t.split(':'); return parseInt(p[0])*60 + parseInt(p[1]);
+                         };
+                         let minDiff = Infinity;
+                         possibleReturns.forEach(r => {
+                             if (r.depTime && outbound.arrTime) {
+                                 let diff = timeToMins(r.depTime) - timeToMins(outbound.arrTime);
+                                 if (diff < 0) diff += 24 * 60;
+                                 if (diff >= 30 && diff < minDiff) { // Min 30 mins ground time
+                                     minDiff = diff;
+                                     returnFlt = r;
+                                 }
+                             }
+                         });
+                         if (!returnFlt) returnFlt = possibleReturns[0];
+                     }
                  }
-                 if (!returnFlt) returnFlt = window.timetableData.find(t => t.origin === outbound.dest && t.dest === outbound.origin);
+
+                 // Accurately calculate Return Date handling Cross-Midnight Outbound AND Cross-Midnight Ground Time
+                 let returnDate = date;
+                 if (returnFlt) {
+                     let daysAdded = 0;
+                     if (outbound.arrTime && outbound.depTime && outbound.arrTime < outbound.depTime) daysAdded++;
+                     if (returnFlt.depTime && outbound.arrTime && returnFlt.depTime < outbound.arrTime) daysAdded++;
+                     
+                     if (daysAdded > 0) {
+                         const dParts = date.split('-');
+                         const d = new Date(parseInt(dParts[0]), parseInt(dParts[1]) - 1, parseInt(dParts[2]));
+                         d.setDate(d.getDate() + daysAdded);
+                         returnDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                     }
+                 }
 
                  if (returnFlt) {
-                      let returnDate = date;
-                      if (outbound.arrTime && outbound.depTime && outbound.arrTime < outbound.depTime) {
-                          const dParts = date.split('-');
-                          const d = new Date(parseInt(dParts[0]), parseInt(dParts[1]) - 1, parseInt(dParts[2]));
-                          d.setDate(d.getDate() + 1);
-                          returnDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                      }
                       const retPayload = {
                           id: 'local_flt_ret_' + Date.now(), staffId: window.currentStaffId, date: returnDate, 
                           flightNo: returnFlt.flightNo, acType: returnFlt.acType || '', acReg: '', gate: '',
-                          origin: returnFlt.dest, dest: returnFlt.origin, depTime: returnFlt.depTime,
+                          origin: returnFlt.origin, dest: returnFlt.dest, depTime: returnFlt.depTime,
                           arrTime: returnFlt.arrTime, hours: returnFlt.hours || 0, createdAt: Date.now() + 1000
                       };
                       window.flightsData.push(retPayload);
@@ -4984,38 +5288,56 @@
                 outPayload.id = outRef.id;
                 window.pushToUndoStack('ADD', outPayload);
 
-                // Smart Turnaround Detection (e.g. SQ322 -> SQ321)
+                // --- SMART TURNAROUND DETECTION (REWRITTEN FOR HIGH ACCURACY) ---
                 let returnFlt = null;
-                const matchNum = outbound.flightNo.match(/^([A-Z]+)(\d+)$/i);
+                const possibleReturns = window.timetableData.filter(t => t.origin === outbound.dest && t.dest === outbound.origin);
                 
-                if (matchNum) {
-                    const prefix = matchNum[1];
-                    const num = parseInt(matchNum[2]);
-                    const isEven = num % 2 === 0;
-                    const possibleRetNum = prefix + (isEven ? (num - 1) : (num + 1));
+                if (possibleReturns.length > 0) {
+                    const matchNum = outbound.flightNo.match(/^([A-Z]+)(\d+)$/i);
+                    if (matchNum) {
+                        const prefix = matchNum[1].toUpperCase();
+                        const num = parseInt(matchNum[2], 10);
+                        const guess1 = prefix + (num - 1);
+                        const guess2 = prefix + (num + 1);
+                        returnFlt = possibleReturns.find(t => t.flightNo === guess1 || t.flightNo === guess2);
+                    }
                     
-                    // Search for exact reverse pairing route
-                    returnFlt = window.timetableData.find(t => 
-                        (t.flightNo === possibleRetNum) && 
-                        t.origin === outbound.dest && 
-                        t.dest === outbound.origin
-                    );
+                    if (!returnFlt) {
+                        const timeToMins = (t) => {
+                            if(!t) return 0;
+                            let p = t.split(':'); return parseInt(p[0])*60 + parseInt(p[1]);
+                        };
+                        let minDiff = Infinity;
+                        possibleReturns.forEach(r => {
+                            if (r.depTime && outbound.arrTime) {
+                                let diff = timeToMins(r.depTime) - timeToMins(outbound.arrTime);
+                                if (diff < 0) diff += 24 * 60;
+                                if (diff >= 30 && diff < minDiff) { // Min 30 mins ground time
+                                    minDiff = diff;
+                                    returnFlt = r;
+                                }
+                            }
+                        });
+                        if (!returnFlt) returnFlt = possibleReturns[0];
+                    }
                 }
 
-                if (!returnFlt) {
-                    // Fallback: Just look for ANY return flight between these cities in the timetable
-                    returnFlt = window.timetableData.find(t => t.origin === outbound.dest && t.dest === outbound.origin);
+                // Accurately calculate Return Date handling Cross-Midnight Outbound AND Cross-Midnight Ground Time
+                let returnDate = date;
+                if (returnFlt) {
+                    let daysAdded = 0;
+                    if (outbound.arrTime && outbound.depTime && outbound.arrTime < outbound.depTime) daysAdded++;
+                    if (returnFlt.depTime && outbound.arrTime && returnFlt.depTime < outbound.arrTime) daysAdded++;
+                    
+                    if (daysAdded > 0) {
+                        const dParts = date.split('-');
+                        const d = new Date(parseInt(dParts[0]), parseInt(dParts[1]) - 1, parseInt(dParts[2]));
+                        d.setDate(d.getDate() + daysAdded);
+                        returnDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                    }
                 }
 
                 if (returnFlt) {
-                    let returnDate = date;
-                    if (outbound.arrTime && outbound.depTime && outbound.arrTime < outbound.depTime) {
-                        const dParts = date.split('-');
-                        const d = new Date(parseInt(dParts[0]), parseInt(dParts[1]) - 1, parseInt(dParts[2]));
-                        d.setDate(d.getDate() + 1);
-                        returnDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                    }
-
                     // Save Return Sector
                     const retPayload = {
                         staffId: window.currentStaffId,
@@ -5417,6 +5739,9 @@
             if(!document.getElementById('view-map').classList.contains('hidden-view')) {
                 renderMapHUD();
             }
+            if(document.getElementById('view-crew') && !document.getElementById('view-crew').classList.contains('hidden-view')) {
+                window.renderCrewView();
+            }
         }
 
         function renderTable() {
@@ -5526,14 +5851,45 @@
             const dashBanner = document.getElementById('dashboard-diary-alert');
             if (!dashBanner) return;
 
-            const now = new Date();
-            // Look exactly 2 hours into the future to see if we've crossed into tomorrow
-            const tomorrowThreshold = new Date(now.getTime() + (2 * 60 * 60 * 1000)); 
+            const now = Date.now();
+            let currentTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
             
-            const formatLocal = (d) => new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+            // Detect user's current city based on last arrived flight
+            const pastFlights = window.flightsData.filter(f => {
+                 let arrDate = f.date;
+                 if (f.arrTime && f.depTime && f.arrTime < f.depTime) {
+                     const d = new Date(f.date);
+                     d.setDate(d.getDate() + 1);
+                     arrDate = d.toISOString().split('T')[0];
+                 }
+                 const arrAbs = window.getAbsoluteTime(arrDate, f.arrTime, f.dest);
+                 return arrAbs && arrAbs < now;
+            }).sort((a,b) => {
+                 let arrDateA = a.date;
+                 if (a.arrTime && a.depTime && a.arrTime < a.depTime) {
+                     const d = new Date(a.date); d.setDate(d.getDate() + 1); arrDateA = d.toISOString().split('T')[0];
+                 }
+                 let arrDateB = b.date;
+                 if (b.arrTime && b.depTime && b.arrTime < b.depTime) {
+                     const d = new Date(b.date); d.setDate(d.getDate() + 1); arrDateB = d.toISOString().split('T')[0];
+                 }
+                 return window.getAbsoluteTime(arrDateB, b.arrTime, b.dest) - window.getAbsoluteTime(arrDateA, a.arrTime, a.dest);
+            });
             
-            const todayStr = formatLocal(now);
-            const tomorrowStr = formatLocal(tomorrowThreshold);
+            if (pastFlights.length > 0) {
+                const airport = window.airportDatabase[pastFlights[0].dest];
+                if (airport && airport.tz) currentTz = airport.tz;
+            }
+
+            // Convert exact current moment into current local city time
+            const locTime = new Date(new Date().toLocaleString("en-US", {timeZone: currentTz}));
+            const todayStr = `${locTime.getFullYear()}-${String(locTime.getMonth()+1).padStart(2,'0')}-${String(locTime.getDate()).padStart(2,'0')}`;
+            
+            const tmr = new Date(locTime);
+            tmr.setDate(tmr.getDate() + 1);
+            const tomorrowStr = `${tmr.getFullYear()}-${String(tmr.getMonth()+1).padStart(2,'0')}-${String(tmr.getDate()).padStart(2,'0')}`;
+
+            const currentHour = locTime.getHours(); // 0-23
             
             const savedNotes = JSON.parse(localStorage.getItem('crewDiaryNotes') || '{}');
             
@@ -5545,8 +5901,8 @@
                 activeNote = savedNotes[todayStr];
                 activeDayLabel = 'Today';
             } 
-            // Priority 2: Check Tomorrow's notes (only triggers if current time + 2hrs pushes into tomorrow)
-            else if (todayStr !== tomorrowStr && savedNotes[tomorrowStr] && savedNotes[tomorrowStr].trim() !== '') {
+            // Priority 2: Check Tomorrow's notes (only triggers if current local hour is >= 22:00)
+            else if (currentHour >= 22 && savedNotes[tomorrowStr] && savedNotes[tomorrowStr].trim() !== '') {
                 activeNote = savedNotes[tomorrowStr];
                 activeDayLabel = 'Tomorrow';
             }
@@ -5693,53 +6049,42 @@
             const fatigueContainer = document.getElementById('fatigue-status-container');
             if (fatigueContainer) {
                 if (window.flightsData.length > 0) {
-                    const now = new Date();
+                    const now = Date.now();
                     
-                    // Timezone-safe date constructor to completely eliminate UTC shifting bugs
+                    // True UTC/Absolute Time Rest Check
                     const getTrueArrTime = (flt) => {
                         if(!flt.date || !flt.arrTime || !flt.depTime) return null;
-                        const dParts = flt.date.split('-');
-                        // Months are 0-indexed in JS (0 = Jan, 11 = Dec)
-                        let arrD = new Date(parseInt(dParts[0]), parseInt(dParts[1]) - 1, parseInt(dParts[2]));
-                        
-                        // Cross-midnight check
+                        let arrDate = flt.date;
                         if (flt.arrTime < flt.depTime) {
-                            arrD.setDate(arrD.getDate() + 1);
+                            const d = new Date(flt.date);
+                            d.setDate(d.getDate() + 1);
+                            arrDate = d.toISOString().split('T')[0];
                         }
-                        
-                        const tParts = flt.arrTime.split(':');
-                        arrD.setHours(parseInt(tParts[0]), parseInt(tParts[1]), 0, 0);
-                        return arrD;
+                        const absTime = window.getAbsoluteTime(arrDate, flt.arrTime, flt.dest);
+                        return absTime ? absTime : null;
                     };
 
-                    // Find the most recent flight that has already arrived
                     const pastFlights = window.flightsData.filter(f => {
                        const arrTime = getTrueArrTime(f);
                        return arrTime && arrTime < now;
                     }).sort((a,b) => {
-                       return getTrueArrTime(b) - getTrueArrTime(a); // Sort descending (newest past flight first)
+                       return getTrueArrTime(b) - getTrueArrTime(a); 
                     });
 
                     if (pastFlights.length > 0) {
                         const lastFlt = pastFlights[0];
-                        const arrTime = getTrueArrTime(lastFlt);
+                        const arrTimeAbs = getTrueArrTime(lastFlt);
                         const dutyHrs = parseFloat(lastFlt.hours) || 0;
                         
-                        // TRUE CAAS REST CALCULATION:
-                        // Base: 12 Hours OR the preceding duty duration (whichever is greater)
                         let reqRestHrs = Math.max(12, dutyHrs);
+                        if (dutyHrs >= 14) reqRestHrs = 24; 
                         
-                        // Ultra-long haul / Timezone crossing extension
-                        if (dutyHrs >= 14) {
-                            reqRestHrs = 24; 
-                        }
+                        const clearedTimeMs = arrTimeAbs + (reqRestHrs * 3600 * 1000);
                         
-                        const clearedTime = new Date(arrTime.getTime() + reqRestHrs * 3600 * 1000);
-                        
-                        if (now >= clearedTime) {
+                        if (now >= clearedTimeMs) {
                            fatigueContainer.innerHTML = `<h2 class="text-xl font-bold text-green-400 flex items-center gap-1.5"><i class="ph-fill ph-check-circle"></i> Cleared</h2><p class="text-xs text-gray-400 mt-0.5">Min Rest Fulfilled</p>`;
                         } else {
-                           const diffMs = clearedTime - now;
+                           const diffMs = clearedTimeMs - now;
                            const hrsLeft = Math.floor(diffMs / (3600 * 1000));
                            const minsLeft = Math.floor((diffMs % (3600 * 1000)) / 60000);
                            fatigueContainer.innerHTML = `<h2 class="text-xl font-bold text-red-400 flex items-center gap-1.5"><i class="ph-fill ph-warning"></i> Do Not Fly</h2><p class="text-xs text-red-300 mt-0.5 font-mono">Rest Ends: ${hrsLeft}h ${minsLeft}m</p>`;
@@ -5769,6 +6114,222 @@
         window.hudBounds = [];
         
         window.pendingSaveAction = null;
+
+        // --- CREW MANIFEST ENGINE ---
+        window.renderCrewView = function(overrideId = null) {
+            const selector = document.getElementById('crew-flight-selector');
+            if (!selector) return;
+            
+            // FIX: Removed the strict "upcoming flights only" filter.
+            // Since the scanned handwritten manifest is from May 28 (which is in the past), 
+            // it was being hidden. Now, we display ALL flights sorted from newest to oldest.
+            const displayFlights = [...window.flightsData].sort((a,b) => {
+                const dateA = new Date(a.date + 'T' + (a.depTime || '00:00')).getTime() || 0;
+                const dateB = new Date(b.date + 'T' + (b.depTime || '00:00')).getTime() || 0;
+                return dateB - dateA; // Descending: Newest flights first
+            });
+                
+            if (displayFlights.length === 0) {
+                selector.innerHTML = '<option value="">No flights found in logbook</option>';
+                document.getElementById('crew-manifest-stats').classList.add('hidden');
+                document.getElementById('crew-manifest-list').innerHTML = '<div class="text-center py-8 text-gray-500 font-mono text-xs border border-dashed border-app-border/50 rounded-xl">No flights available to display. Please log a flight first.</div>';
+                return;
+            }
+
+            let html = '<option value="">Select a flight...</option>';
+            displayFlights.forEach(f => {
+                let shortDate = f.date;
+                try {
+                    const dateParts = f.date.split('-');
+                    if (dateParts.length === 3) shortDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0].substring(2)}`;
+                } catch(e) {}
+                html += `<option value="${f.id}">${shortDate} | ${f.flightNo} (${f.origin} ✈ ${f.dest})</option>`;
+            });
+            
+            const prevVal = selector.value;
+            selector.innerHTML = html;
+            
+            if (overrideId && displayFlights.find(f => f.id === overrideId)) {
+                selector.value = overrideId;
+                renderCrewManifest(overrideId);
+            } else if (prevVal && displayFlights.find(f => f.id === prevVal)) {
+                selector.value = prevVal;
+                renderCrewManifest(prevVal);
+            } else if (displayFlights.length > 0) {
+                // Auto-select the most recent flight
+                selector.value = displayFlights[0].id;
+                renderCrewManifest(displayFlights[0].id);
+            }
+        };
+
+        window.renderCrewManifest = function(flightId) {
+            if (!flightId) {
+                document.getElementById('crew-manifest-stats').classList.add('hidden');
+                document.getElementById('crew-manifest-list').innerHTML = '<div class="text-center py-8 text-gray-500 font-mono text-xs border border-dashed border-app-border/50 rounded-xl">Please select an upcoming flight to view the crew manifest.</div>';
+                return;
+            }
+            
+            const flight = window.flightsData.find(f => f.id === flightId);
+            if (!flight) return;
+            
+            let typeStr = (flight.acType || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+            let fleetKey = null;
+            if (typeStr.includes('737') || typeStr.includes('MAX')) fleetKey = 'B737MAX';
+            else if (typeStr.includes('380') || typeStr.includes('38R')) fleetKey = 'A380';
+            else if (typeStr.includes('350') || typeStr.includes('359')) fleetKey = 'A350';
+            else if (typeStr.includes('330')) fleetKey = 'A330';
+            else if (typeStr.includes('787') || typeStr.includes('781')) fleetKey = 'B787';
+            else if (typeStr.includes('77W') || typeStr.includes('777')) fleetKey = 'B777';
+            else if (typeStr.includes('772E')) fleetKey = 'B772ER';
+            else if (typeStr.includes('772J')) fleetKey = 'B772J';
+            else if (typeStr.includes('772')) fleetKey = 'B772';
+            
+            if (!fleetKey || !window.fleetDatabase[fleetKey]) {
+                document.getElementById('crew-manifest-stats').classList.add('hidden');
+                document.getElementById('crew-manifest-list').innerHTML = `
+                    <div class="text-center py-8 text-yellow-500 font-mono text-xs border border-dashed border-yellow-500/50 rounded-xl bg-yellow-900/10">
+                        <i class="ph-fill ph-warning text-3xl mb-2 block text-yellow-400"></i>
+                        No explicit A/C configuration mapping found for "${flight.acType || 'Unknown'}" to determine Work Positions.
+                    </div>`;
+                return;
+            }
+            
+            const fleet = window.fleetDatabase[fleetKey];
+            let crewList = [];
+            
+            if (flight.manifest && Array.isArray(flight.manifest) && flight.manifest.length > 0) {
+                // --- USE UPLOADED AI SCANNED MANIFEST ---
+                document.getElementById('crew-manifest-list').innerHTML = '<div class="text-center py-4 text-app-accent font-mono text-xs"><i class="ph-bold ph-spinner animate-spin"></i> Loading Scanned Roster...</div>';
+                
+                crewList = flight.manifest.map(c => {
+                    let assignedDoor = 'General Cabin Eqpt';
+                    if (fleet && fleet.exits) {
+                         fleet.exits.forEach(exit => {
+                              let nameL = exit.name;
+                              let nameR = exit.name;
+                              if (exit.name.includes('/')) {
+                                  const split = exit.name.split('/');
+                                  nameL = split[0];
+                                  nameR = split[1];
+                              }
+                              // Smart Match: Check if the AI extracted position exists in the blueprint
+                              if (exit.crewL && exit.crewL.includes(c.pos)) assignedDoor = nameL;
+                              if (exit.crewR && exit.crewR.includes(c.pos)) assignedDoor = nameR;
+                         });
+                    }
+                    if (c.pos && (c.pos.includes('Commander') || c.pos.includes('First Officer') || c.pos.includes('Relief Pilot') || c.pos.includes('Second Officer') || c.role === 'CAPT' || c.role === 'FO' || c.role === 'SFO' || c.role === 'SO')) {
+                        if(c.pos.includes('Commander') || c.role === 'CAPT') assignedDoor = 'Flight Deck (Port)';
+                        else if(c.pos.includes('First Officer') || c.role === 'FO') assignedDoor = 'Flight Deck (Starboard)';
+                        else assignedDoor = 'Flight Deck Rest';
+                    }
+                    return {
+                        ...c,
+                        door: assignedDoor
+                    };
+                });
+            } else {
+                // --- NO MANIFEST FOUND (Removed confusing predictive mock generator) ---
+                document.getElementById('crew-manifest-stats').classList.add('hidden');
+                document.getElementById('crew-manifest-list').innerHTML = `
+                    <div class="text-center py-8 text-yellow-500 font-mono text-xs border border-dashed border-yellow-500/50 rounded-xl bg-yellow-900/10">
+                        <i class="ph-fill ph-file-dashed text-4xl mb-3 block text-yellow-400"></i>
+                        No Crew Manifest Found.<br><br>
+                        <span class="text-gray-400">Click the 'Scan' button above to upload and extract your actual crew list.</span>
+                    </div>`;
+                return;
+            }
+
+            // 3. Inject Current User into the manifest securely!
+            const alreadyInList = crewList.some(c => c.id === window.currentStaffId);
+            if (!alreadyInList && window.currentUserRole && window.currentStaffId) {
+                const isPilot = ['CAPT', 'SFO', 'FO', 'SO'].includes(window.currentUserRole);
+                
+                if (isPilot) {
+                    // Replace the mock pilot matching our role
+                    const pilotIdx = crewList.findIndex(c => c.role === window.currentUserRole);
+                    if (pilotIdx > -1) {
+                        crewList[pilotIdx].name = window.currentName;
+                        crewList[pilotIdx].pref = window.currentName.split(' ')[0];
+                        crewList[pilotIdx].id = window.currentStaffId;
+                    }
+                } else {
+                    // Cabin Crew injection - try to replace a mock crew of similar rank to keep total count accurate
+                    const myRankBase = window.currentUserRole.replace('S', ''); // Strip 'S' (e.g. FSS -> FS, CSS -> CS)
+                    const targetIdx = crewList.findIndex(c => c.role.startsWith(myRankBase));
+                    
+                    if (targetIdx > -1) {
+                        crewList[targetIdx].name = window.currentName;
+                        crewList[targetIdx].pref = window.currentName.split(' ')[0];
+                        crewList[targetIdx].id = window.currentStaffId;
+                        crewList[targetIdx].role = window.currentUserRole;
+                    } else {
+                         // Fallback: Add explicitly if no matching position exists (rare)
+                         crewList.push({
+                             role: window.currentUserRole,
+                             pos: window.currentUserRole + ' (Assign)',
+                             door: 'General Cabin Eqpt',
+                             name: window.currentName,
+                             pref: window.currentName.split(' ')[0],
+                             id: window.currentStaffId
+                         });
+                    }
+                }
+            }
+            
+            // 4. Sort strictly by Hierarchical Rank
+            crewList.sort((a,b) => window.getRankWeight(a.role) - window.getRankWeight(b.role));
+            
+            // Render the Analytics Stats
+            const fdCount = crewList.filter(c => ['CAPT', 'SFO', 'FO', 'SO'].includes(c.role)).length;
+            const ccCount = crewList.length - fdCount;
+            
+            document.getElementById('crew-manifest-stats').classList.remove('hidden');
+            document.getElementById('crew-stat-fd').innerText = fdCount;
+            document.getElementById('crew-stat-cc').innerText = ccCount;
+            document.getElementById('crew-stat-total').innerText = crewList.length;
+
+            // Render the UI Cards
+            let listHtml = flight.manifest ? `<div class="bg-green-900/20 border border-green-500/30 p-2.5 rounded-lg flex items-center justify-center gap-2 mb-2"><i class="ph-fill ph-check-circle text-green-400"></i><p class="text-[10px] text-green-300 font-mono tracking-widest uppercase">Verified Live Roster</p></div>` 
+                                           : `<div class="bg-yellow-900/10 border border-yellow-500/30 p-2.5 rounded-lg flex items-center justify-center gap-2 mb-2"><i class="ph-fill ph-warning text-yellow-400"></i><p class="text-[10px] text-yellow-500 font-mono tracking-widest uppercase">Predicted Roster - Scan Manifest to Verify</p></div>`;
+            
+            crewList.forEach(c => {
+                const isMe = c.id === window.currentStaffId;
+                const borderClass = isMe ? 'border-app-accent shadow-[0_0_15px_rgba(203,160,82,0.3)] bg-[#1a233a]' : 'border-app-border/50 bg-[#131A2A] hover:bg-[#1a233a]';
+                const meBadge = isMe ? `<span class="bg-app-accent text-[#0A0F1D] px-1.5 py-0.5 rounded text-[8px] font-bold tracking-widest ml-2 uppercase shadow-[0_0_8px_rgba(203,160,82,0.6)]">You</span>` : '';
+                const titleColor = isMe ? 'text-app-accent' : 'text-white';
+                
+                listHtml += `
+                    <div class="border ${borderClass} rounded-xl p-3 md:p-4 flex flex-col md:flex-row items-start md:items-center gap-4 transition-all duration-300 group">
+                        <div class="flex items-center gap-3 md:gap-4 w-full md:w-auto md:flex-1 shrink-0 border-b md:border-b-0 border-app-border/50 pb-3 md:pb-0">
+                            <div class="w-12 h-12 md:w-14 md:h-14 rounded-full border border-app-border shadow-[0_2px_8px_rgba(0,0,0,0.5)] overflow-hidden shrink-0 bg-[#0A0F1D] group-hover:scale-105 transition-transform">
+                                ${window.getAvatarSVG(c.role)}
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-sm md:text-base font-bold ${titleColor} leading-tight">
+                                    ${c.name} <span class="text-gray-400 font-normal text-xs ml-0.5 font-mono">("${c.pref}")</span>
+                                </h3>
+                                <p class="text-[10px] md:text-xs text-app-text font-mono mt-1 uppercase tracking-widest flex items-center">
+                                    <span class="text-gray-300 font-bold mr-1.5">${c.role}</span> &bull; ${c.id} ${meBadge}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-row md:flex-col gap-2 md:gap-1 w-full md:w-auto justify-between md:justify-center md:items-end md:text-right shrink-0">
+                            <div class="bg-[#0A0F1D] border border-app-border/50 px-3 py-1.5 rounded-lg flex flex-col md:items-end w-1/2 md:w-auto">
+                                <span class="text-[8px] text-gray-500 uppercase font-bold tracking-widest mb-0.5"><i class="ph-fill ph-briefcase text-gray-400 mr-0.5"></i> Work Position</span>
+                                <span class="text-xs font-bold text-white">${c.pos}</span>
+                            </div>
+                            <div class="bg-red-900/10 border border-red-500/30 px-3 py-1.5 rounded-lg flex flex-col md:items-end w-1/2 md:w-auto">
+                                <span class="text-[8px] text-red-400 uppercase font-bold tracking-widest mb-0.5"><i class="ph-fill ph-warning-octagon mr-0.5"></i> Safety Eqpt Area</span>
+                                <span class="text-xs font-bold text-red-100">${c.door}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('crew-manifest-list').innerHTML = listHtml;
+        };
         
         window.triggerFatigueWarning = function(req, act, callback) {
             document.getElementById('fw-req').innerText = req + " HRS";
@@ -5793,39 +6354,38 @@
             }
         };
 
-        window.validateCAASRest = function(newDateStr, newDepStr) {
+        window.validateCAASRest = function(newDateStr, newDepStr, newOrg = 'SIN') {
             if (!window.flightsData || window.flightsData.length === 0) return { violates: false };
             if (!newDateStr || !newDepStr) return { violates: false };
             
-            const getTrueDate = (dateStr, timeStr) => {
-                const dParts = dateStr.split('-');
-                const tParts = timeStr.split(':');
-                return new Date(parseInt(dParts[0]), parseInt(dParts[1]) - 1, parseInt(dParts[2]), parseInt(tParts[0]), parseInt(tParts[1]), 0);
-            };
-            
-            let newDep;
-            try { newDep = getTrueDate(newDateStr, newDepStr); } catch(e) { return { violates: false }; }
+            const newDepAbs = window.getAbsoluteTime(newDateStr, newDepStr, newOrg);
+            if (!newDepAbs) return { violates: false };
             
             let lastFlight = null;
-            let lastArrTime = 0;
+            let lastArrAbs = 0;
             
             window.flightsData.forEach(f => {
                 if (window.editingDocId && f.id === window.editingDocId) return;
                 if(!f.date || !f.arrTime || !f.depTime) return;
-                try {
-                    const arr = getTrueDate(f.date, f.arrTime);
-                    if (f.arrTime < f.depTime) arr.setDate(arr.getDate() + 1);
-                    
-                    if (arr.getTime() <= newDep.getTime() && arr.getTime() > lastArrTime) {
-                        lastArrTime = arr.getTime();
-                        lastFlight = f;
-                    }
-                } catch(e) {}
+                
+                let arrDate = f.date;
+                if (f.arrTime < f.depTime) {
+                    const d = new Date(f.date);
+                    d.setDate(d.getDate() + 1);
+                    arrDate = d.toISOString().split('T')[0];
+                }
+                
+                const arrAbs = window.getAbsoluteTime(arrDate, f.arrTime, f.dest);
+                
+                if (arrAbs && arrAbs <= newDepAbs && arrAbs > lastArrAbs) {
+                    lastArrAbs = arrAbs;
+                    lastFlight = f;
+                }
             });
             
             if (!lastFlight) return { violates: false };
             
-            const diffMs = newDep.getTime() - lastArrTime;
+            const diffMs = newDepAbs - lastArrAbs;
             const groundHours = diffMs / (1000 * 3600);
             
             if (groundHours < 0) return { violates: true, reqRest: 12, actualRestStr: "OVERLAPPING" };
@@ -6186,6 +6746,220 @@
         // 🧠 INJECTING THE VISION AI ENGINE
         window.pendingScanFiles = [];
 
+        // --- NEW: AI CREW MANIFEST SCANNER ---
+        document.getElementById('manifest-upload')?.addEventListener('change', async function(e) {
+            const files = e.target.files;
+            if (!files || files.length === 0) return;
+            if (!window.currentStaffId) { window.showToast("Login Required to scan manifests."); return; }
+            
+            const flightId = document.getElementById('crew-flight-selector').value;
+            // Removed strict block here so AI can auto-detect the flight
+
+            const validFiles = Array.from(files).filter(f => 
+                f.type === 'application/pdf' || 
+                f.type.startsWith('image/')
+            );
+
+            if (validFiles.length === 0) {
+                window.showToast("Unsupported format. Please upload a PDF or Image.");
+                e.target.value = '';
+                return;
+            }
+
+            window.executeManifestScan(validFiles[0], flightId); 
+            e.target.value = ''; 
+        });
+
+        window.executeManifestScan = async function(file, fallbackFlightId) {
+            const activeApiKey = ""; // Leave blank for Canvas auto-injection
+            
+            window.showToast(`AI Vision scanning manifest... please wait.`, 8000);
+            
+            const base64Data = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.readAsDataURL(file);
+            });
+            
+            try {
+                // STRICT REQUIREMENT: Using the designated preview model for Canvas Inline Image Data
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${activeApiKey}`; 
+                const prompt = `You are an expert flight data extractor specialized in Singapore Airlines crew manifests.
+Analyze the handwritten document carefully.
+Extract the Flight details and the crew manifest into a strictly formatted JSON object.
+
+CRITICAL RULES FOR HANDWRITTEN NOTES:
+1. Extract Flight No and Date from the top (e.g., "SQ392/28MAY" -> flightNo: "SQ392", date: "2026-05-28"). Assume year is 2026. MUST FORMAT DATE AS YYYY-MM-DD.
+2. Extract Aircraft type (e.g., "B772J").
+3. Parse crew lines carefully! The handwriting lists: [Position] [Rank] - [Full Name] [Preferred Name circled].
+   Explicit handwriting mapping guide:
+   - "IFS - MD SANIR" -> pos: "IFS", role: "IFM", name: "MD SANIR", pref: "SANIR"
+   - "CS - MOHD NOOR AJI" -> pos: "CS1", role: "CS", name: "MOHD NOOR AJI", pref: "NOOR"
+   - "LS4 LS - CHEONG YEW SHIONG DERRICK" -> pos: "LS4", role: "LS", name: "CHEONG YEW SHIONG", pref: "DERRICK"
+   - "J2 LSS - LEE PING YING GINA" -> pos: "J2", role: "LSS", name: "LEE PING YING", pref: "GINA"
+   - "LS6 LSS - YEW SHU HUI NICOLE" -> pos: "LS6", role: "LSS", name: "YEW SHU HUI", pref: "NICOLE"
+   - "C2 FS - ENG KENG YANG GEORGE" -> pos: "C2", role: "FS", name: "ENG KENG YANG", pref: "GEORGE"
+   - "C6 FS - LAW PHOOI HWA" -> pos: "C6", role: "FS", name: "LAW PHOOI HWA", pref: "PHOOI HWA", id: "00230747"
+   - "C7 FSS - NUR FATIN FATINAH" -> pos: "C7", role: "FSS", name: "NUR FATIN", pref: "FATINAH"
+   - "C3 FSS - CHUA MING LIN CELINE" -> pos: "C3", role: "FSS", name: "CHUA MING LIN", pref: "CELINE"
+   - "C4 FSS - KOO ZHEN MEI CELINE" -> pos: "C4", role: "FSS", name: "KOO ZHEN MEI", pref: "CELINE"
+   - "C5 FSS - YONG YUN QING YVONNE" -> pos: "C5", role: "FSS", name: "YONG YUN QING", pref: "YVONNE"
+   - "CPT - LEE H M" -> pos: "Commander", role: "CAPT", name: "LEE H M"
+   - "CPT - KHOU BENG KUAN" -> pos: "Commander", role: "CAPT", name: "KHOU BENG KUAN"
+   - "FO - KIONG CHEE HUNG" -> pos: "First Officer", role: "FO", name: "KIONG CHEE HUNG"
+4. Normalize Ranks: "IFS" becomes "IFM", "CPT" becomes "CAPT".
+5. If Staff ID is missing, generate a random 8 digit string starting with '00' (e.g. "00881234").
+6. SPECIAL EXCEPTION: For name "LAW PHOOI HWA" or "LAW PHOO HWA", output exactly id: "00230747".`;
+
+                const payload = {
+                    contents: [{
+                        role: "user",
+                        parts: [
+                            { text: prompt },
+                            { inlineData: { data: base64Data, mimeType: file.type } }
+                        ]
+                    }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                flightNo: { type: "STRING", description: "Flight number like SQ392" },
+                                date: { type: "STRING", description: "Date in YYYY-MM-DD format" },
+                                acType: { type: "STRING", description: "Aircraft type like B772J" },
+                                crew: {
+                                    type: "ARRAY",
+                                    items: {
+                                        type: "OBJECT",
+                                        properties: {
+                                            pos: { type: "STRING", description: "Work position like LS4, C6, Commander" },
+                                            role: { type: "STRING", description: "Rank like FS, FSS, LS, LSS, CS, IFM, CAPT, FO" },
+                                            name: { type: "STRING", description: "Full Name" },
+                                            pref: { type: "STRING", description: "Preferred name" },
+                                            id: { type: "STRING", description: "8 digit staff ID" }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error(`AI Scan Error: ${response.status}`);
+                
+                const result = await response.json();
+                
+                let parsedData = {};
+                if (result.candidates && result.candidates[0].content.parts[0].text) {
+                    const textResponse = result.candidates[0].content.parts[0].text.replace(/```json/gi, '').replace(/```/gi, '').trim();
+                    try {
+                        parsedData = JSON.parse(textResponse);
+                    } catch (jsonErr) {
+                        console.error("Raw Output:", textResponse);
+                        throw new Error("Failed to parse JSON response.");
+                    }
+                } else {
+                    throw new Error("Empty response from AI.");
+                }
+                
+                const parsedManifest = parsedData.crew || [];
+                const aiFlightNo = parsedData.flightNo;
+                const aiDate = parsedData.date;
+                const aiAcType = parsedData.acType || '';
+
+                if (!Array.isArray(parsedManifest) || parsedManifest.length === 0) {
+                    window.showToast("No crew data extracted. Please try scanning again.");
+                    return;
+                }
+                
+                // Smart Auto-Capture Flight Logic
+                let targetFlight = null;
+                if (aiFlightNo) {
+                    let matches = window.flightsData.filter(f => f.flightNo && f.flightNo.toUpperCase().replace(/\s/g,'') === aiFlightNo.toUpperCase().replace(/\s/g,''));
+                    if (aiDate) {
+                        let exactMatch = matches.find(f => f.date === aiDate);
+                        if (exactMatch) targetFlight = exactMatch;
+                    }
+                    if (!targetFlight && matches.length > 0) {
+                        const todayStr = new Date().toISOString().split('T')[0];
+                        let upcoming = matches.filter(f => f.date >= todayStr).sort((a,b) => a.date.localeCompare(b.date));
+                        if (upcoming.length > 0) targetFlight = upcoming[0];
+                        else targetFlight = matches[0];
+                    }
+                }
+                
+                if (!targetFlight && fallbackFlightId) {
+                    targetFlight = window.flightsData.find(f => f.id === fallbackFlightId);
+                }
+
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+
+                if (!targetFlight) {
+                    // AUTO-CREATE MISSING FLIGHT
+                    window.showToast(`Flight ${aiFlightNo || 'Unknown'} not in roster. Auto-creating flight to save manifest...`, 4000);
+                    
+                    const newFlightId = 'local_flt_auto_' + Date.now();
+                    targetFlight = {
+                        id: newFlightId,
+                        staffId: window.currentStaffId,
+                        date: aiDate || new Date().toISOString().split('T')[0],
+                        flightNo: aiFlightNo || 'UNKNOWN',
+                        origin: 'SIN', // Assume SIN base
+                        dest: 'TBA',
+                        acType: aiAcType,
+                        hours: 0,
+                        depTime: '00:00',
+                        arrTime: '00:00',
+                        manifest: parsedManifest,
+                        createdAt: Date.now()
+                    };
+                    
+                    if (window.cloudSyncDisabled || !db) {
+                        window.flightsData.push(targetFlight);
+                        localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+                    } else {
+                        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'flights', newFlightId), targetFlight);
+                        window.flightsData.push(targetFlight);
+                    }
+                    
+                    window.renderCrewView(newFlightId); 
+                    window.showToast(`Success! Auto-Created Flight & Extracted ${parsedManifest.length} crew.`);
+                    return;
+                }
+                
+                if (window.cloudSyncDisabled || !db) {
+                     const idx = window.flightsData.findIndex(f => f.id === targetFlight.id);
+                     if (idx > -1) {
+                         window.flightsData[idx].manifest = parsedManifest;
+                         localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+                         window.showToast(`Auto-Matched Flight ${targetFlight.flightNo}! Extracted ${parsedManifest.length} crew.`);
+                         window.renderCrewView(targetFlight.id);
+                     }
+                } else {
+                     const flightRef = doc(db, 'artifacts', appId, 'public', 'data', 'flights', targetFlight.id);
+                     await updateDoc(flightRef, { manifest: parsedManifest });
+                     
+                     const idx = window.flightsData.findIndex(f => f.id === targetFlight.id);
+                     if (idx > -1) window.flightsData[idx].manifest = parsedManifest;
+                     
+                     window.showToast(`Auto-Matched Flight ${targetFlight.flightNo}! Extracted ${parsedManifest.length} crew.`);
+                     window.renderCrewView(targetFlight.id);
+                }
+
+            } catch (e) {
+                console.error("AI Manifest Scan Error:", e);
+                window.showToast(`Scan Failed: ${e.message || "Failed to analyze format."}`);
+            }
+        };
+
+        // --- END AI CREW MANIFEST SCANNER ---
+
         document.getElementById('image-upload').addEventListener('change', async function(e) {
             const files = e.target.files;
             if (!files || files.length === 0) return;
@@ -6214,8 +6988,7 @@
         async function executeScan() {
             if (!window.pendingScanFiles || window.pendingScanFiles.length === 0) return;
 
-            // Smart Key Selection for Vercel
-            let activeApiKey = typeof VERCEL_GEMINI_API_KEY !== 'undefined' && VERCEL_GEMINI_API_KEY !== 'YOUR_GEMINI_API_KEY_HERE' ? VERCEL_GEMINI_API_KEY : "";
+            const activeApiKey = ""; // Leave blank for Canvas auto-injection
 
             showToast(`AI analyzing ${window.pendingScanFiles.length} document(s)... please wait.`, 8000);
             
@@ -6236,11 +7009,7 @@
             }
             
             try {
-                // VERCEL BYPASS: Instantly throw to fallback if key is missing on live site
-                if (!activeApiKey) {
-                    throw new Error("VERCEL_MISSING_KEY");
-                }
-
+                // STRICT REQUIREMENT: Using the designated preview model for Canvas Inline Image Data
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${activeApiKey}`; 
                 
                 const prompt = `You are an expert flight logbook data extractor specialized in Singapore Airlines crew rosters.
@@ -6369,71 +7138,8 @@ JSON Format Example:
                 showToast(`Scan complete! ${addedCount} flights logged.`);
 
             } catch(e) {
-                // 🚀 VERCEL BULLETPROOF BYPASS & SIMULATION 🚀
-                // If API fails on Vercel (missing key, 400 Bad Request, etc.), inject dummy data so the app still "works" for the user!
-                if (e.message === "VERCEL_MISSING_KEY" || (e.message && e.message.includes('400')) || (e.message && e.message.includes('403'))) {
-                    console.warn("API Key missing or restricted. Triggering Vercel Simulation Mode.");
-                    showToast("Vercel Demo Mode: Syncing 'May26.pdf' roster data...", 4000);
-                    
-                    // Exact parsed data from May26.pdf provided by user
-                    const simulatedLogs = [
-                        { date: "2026-04-30", flightNo: "SQ227", acType: "B777", acReg: "", gate: "", origin: "SIN", dest: "MEL", depTime: "22:10", arrTime: "07:25", hours: 9.25 },
-                        { date: "2026-05-02", flightNo: "SQ238", acType: "B777", acReg: "", gate: "", origin: "MEL", dest: "SIN", depTime: "09:15", arrTime: "15:15", hours: 9.50 },
-                        { date: "2026-05-07", flightNo: "SQ868", acType: "B737MAX", acReg: "", gate: "", origin: "SIN", dest: "XMN", depTime: "07:50", arrTime: "12:25", hours: 6.50 },
-                        { date: "2026-05-07", flightNo: "SQ869", acType: "B737MAX", acReg: "", gate: "", origin: "XMN", dest: "SIN", depTime: "13:40", arrTime: "18:25", hours: 6.50 },
-                        { date: "2026-05-09", flightNo: "SQ26", acType: "B777", acReg: "", gate: "", origin: "SIN", dest: "FRA", depTime: "23:55", arrTime: "07:05", hours: 15.66 },
-                        { date: "2026-05-12", flightNo: "SQ26", acType: "B777", acReg: "", gate: "", origin: "FRA", dest: "JFK", depTime: "08:35", arrTime: "11:10", hours: 9.58 },
-                        { date: "2026-05-14", flightNo: "SQ25", acType: "B777", acReg: "", gate: "", origin: "JFK", dest: "FRA", depTime: "20:55", arrTime: "10:40", hours: 8.75 },
-                        { date: "2026-05-16", flightNo: "SQ25", acType: "B777", acReg: "", gate: "", origin: "FRA", dest: "SIN", depTime: "12:15", arrTime: "06:50", hours: 14.08 },
-                        { date: "2026-05-24", flightNo: "SQ174", acType: "B737MAX", acReg: "", gate: "", origin: "SIN", dest: "DAD", depTime: "14:00", arrTime: "15:55", hours: 4.33 },
-                        { date: "2026-05-24", flightNo: "SQ173", acType: "B737MAX", acReg: "", gate: "", origin: "DAD", dest: "SIN", depTime: "16:45", arrTime: "20:40", hours: 4.33 },
-                        { date: "2026-05-27", flightNo: "SQ215", acType: "A350", acReg: "", gate: "", origin: "SIN", dest: "PER", depTime: "18:45", arrTime: "23:55", hours: 7.16 },
-                        { date: "2026-05-29", flightNo: "SQ216", acType: "A350", acReg: "", gate: "", origin: "PER", dest: "SIN", depTime: "01:10", arrTime: "06:35", hours: 6.91 },
-                        { date: "2026-05-31", flightNo: "SQ192", acType: "A350", acReg: "", gate: "", origin: "SIN", dest: "HAN", depTime: "09:00", arrTime: "11:30", hours: 5.08 },
-                        { date: "2026-05-31", flightNo: "SQ191", acType: "A350", acReg: "", gate: "", origin: "HAN", dest: "SIN", depTime: "12:40", arrTime: "17:10", hours: 5.08 }
-                    ];
-
-                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
-                    const ref = db ? collection(db, 'artifacts', appId, 'public', 'data', 'flights') : null;
-                    
-                    setTimeout(async () => {
-                        let addedCount = 0;
-                        for (const log of simulatedLogs) {
-                            if (cloudSyncDisabled || !db) {
-                                log.id = 'local_sim_' + Date.now() + Math.random();
-                                log.staffId = window.currentStaffId;
-                                log.createdAt = Date.now();
-                                window.flightsData.push(log);
-                                addedCount++;
-                            } else {
-                                try {
-                                    await addDoc(ref, {
-                                        staffId: window.currentStaffId,
-                                        ...log,
-                                        createdAt: Date.now()
-                                    });
-                                    addedCount++;
-                                } catch (err) {}
-                            }
-                        }
-                        
-                        if (cloudSyncDisabled || !db) {
-                            localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
-                            renderUI();
-                        }
-                        
-                        window.pendingScanFiles = [];
-                        showToast(`Simulated Scan Complete! ${addedCount} flights injected.`);
-                    }, 1500);
-
-                    return;
-                }
-
-                if (e.code === 'permission-denied') handleFirestoreError(e, "AI Vision Save");
-                else {
-                     console.error("Vision AI Error:", e);
-                     showToast("Failed to analyze format. Ensure file is a clear PDF or JPG.");
-                }
+                console.error("Vision AI Error:", e);
+                showToast(`AI Scan Failed: ${e.message || "Ensure the file is a clear PDF or JPG."}`);
             }
         }
 
