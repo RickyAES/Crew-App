@@ -987,7 +987,7 @@
     </nav>
 
     <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-[#131A2A] border border-app-accent text-white px-6 py-3 rounded-xl text-sm font-bold tracking-wider uppercase shadow-[0_0_20px_rgba(203,160,82,0.6)] transition-all duration-300 opacity-0 pointer-events-none flex items-center gap-3 w-[90vw] md:w-auto md:max-w-2xl text-center md:text-left z-[2147483647]">
+    <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-[#131A2A] border border-app-accent text-white px-6 py-3 rounded-xl text-sm font-bold tracking-wider shadow-[0_0_20px_rgba(203,160,82,0.6)] transition-all duration-300 opacity-0 pointer-events-none flex items-center gap-3 w-[90vw] md:w-auto md:max-w-2xl text-center md:text-left z-[2147483647]">
         <i class="ph-fill ph-info text-app-accent text-xl shrink-0"></i>
         <span id="toast-msg" class="whitespace-normal break-words leading-relaxed">Notification</span>
     </div>
@@ -6839,7 +6839,6 @@
             });
             
             try {
-                let apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeApiKey}`; 
                 const prompt = `You are an expert aviation data extractor. Your task is to transcribe a handwritten Singapore Airlines crew manifest.
 
 CRITICAL EXTRACTION RULES:
@@ -6854,16 +6853,15 @@ CRITICAL EXTRACTION RULES:
    - 'pref' (Nickname): Extract the nickname that is circled or at the very end of the line.
    - 'id': If the name is "LAW PHOOI HWA" or "LAW PHOO HWA", output exactly "00230747". Otherwise, generate a random 8-digit number starting with '00'.
 
-EXAMPLES FROM IMAGE:
-"IFS - MD SANIR" -> pos: "IFS", role: "IFM", name: "MD SANIR", pref: "SANIR"
-"CS - MOHD NOOR AJI" -> pos: "CS1", role: "CS", name: "MOHD NOOR AJI", pref: "NOOR"
-"LS4 LS - CHEONG YEW SHIONG DERRICK" -> pos: "LS4", role: "LS", name: "CHEONG YEW SHIONG", pref: "DERRICK"
-"J2 LSS - LEE PING YING GINA" -> pos: "J2", role: "LSS", name: "LEE PING YING", pref: "GINA"
-"LS6 LSS - YEW SHU HUI NICOLE" -> pos: "LS6", role: "LSS", name: "YEW SHU HUI", pref: "NICOLE"
-"C2 FS - ENG KENG YANG GEORGE" -> pos: "C2", role: "FS", name: "ENG KENG YANG", pref: "GEORGE"
-"C6 FS - LAW PHOOI HWA" -> pos: "C6", role: "FS", name: "LAW PHOOI HWA", pref: "PHOOI HWA", id: "00230747"
-"CP7 - LEE H M" -> pos: "Commander", role: "CAPT", name: "LEE H M", pref: "LEE H M"
-"FO - KIONG CHEE HUNG" -> pos: "First Officer", role: "FO", name: "KIONG CHEE HUNG", pref: "CHEE HUNG"`;
+OUTPUT FORMAT: You MUST return ONLY a valid JSON object. Do not include markdown formatting like \`\`\`json.
+{
+  "flightNo": "SQ392",
+  "date": "2026-05-28",
+  "acType": "B772J",
+  "crew": [
+     { "pos": "C6", "role": "FS", "name": "LAW PHOOI HWA", "pref": "PHOOI HWA", "id": "00230747" }
+  ]
+}`;
 
                 const payload = {
                     contents: [{
@@ -6874,48 +6872,52 @@ EXAMPLES FROM IMAGE:
                         ]
                     }],
                     generationConfig: {
-                        responseMimeType: "application/json",
-                        responseSchema: {
-                            type: "OBJECT",
-                            properties: {
-                                flightNo: { type: "STRING", description: "Flight number like SQ392" },
-                                date: { type: "STRING", description: "Date in YYYY-MM-DD format" },
-                                acType: { type: "STRING", description: "Aircraft type like B772J" },
-                                crew: {
-                                    type: "ARRAY",
-                                    description: "List of all crew members on the flight",
-                                    items: {
-                                        type: "OBJECT",
-                                        properties: {
-                                            pos: { type: "STRING", description: "Work position (e.g. LS4, C6, Commander)" },
-                                            role: { type: "STRING", description: "Rank (e.g. FS, FSS, LS, LSS, CS, IFM, CAPT, FO)" },
-                                            name: { type: "STRING", description: "Full Name" },
-                                            pref: { type: "STRING", description: "Nickname (usually circled at the end)" },
-                                            id: { type: "STRING", description: "8 digit staff ID" }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        responseMimeType: "application/json"
                     }
                 };
 
-                let response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                const modelsToTry = [
+                    'gemini-3-flash-preview', // Canvas environment proxy
+                    'gemini-1.5-flash',       // Vercel Standard Public
+                    'gemini-1.5-flash-latest',// Vercel Fallback 1
+                    'gemini-1.5-pro'          // Vercel Fallback 2
+                ];
 
-                if (!response.ok) {
-                    let errorMsg = `HTTP ${response.status}`;
-                    try {
-                        const errData = await response.json();
-                        if (errData.error && errData.error.message) errorMsg = errData.error.message;
-                    } catch(e) {}
-                    throw new Error(`AI Scan Error: ${response.status} - ${errorMsg}`);
+                let response = null;
+                let result = null;
+                let success = false;
+                let errorMsg = '';
+
+                for (const model of modelsToTry) {
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeApiKey}`;
+                    
+                    response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        result = await response.json();
+                        success = true;
+                        break; // Stop loop, we found a working model!
+                    } else {
+                        const errData = await response.json().catch(() => ({}));
+                        errorMsg = errData.error ? errData.error.message : `HTTP ${response.status}`;
+                        
+                        // Break immediately if it is a hard Auth error so we don't spam Google
+                        if (response.status === 400 || response.status === 403) {
+                            break; 
+                        }
+                    }
                 }
-                
-                const result = await response.json();
+
+                if (!success) {
+                    if (response && (response.status === 400 || response.status === 403)) {
+                         throw new Error(`API Key Rejected (${response.status}). Please verify your key in Google AI Studio.`);
+                    }
+                    throw new Error(`${errorMsg}`);
+                }
                 
                 if (result.candidates && result.candidates[0].content.parts[0].text) {
                     const textResponse = result.candidates[0].content.parts[0].text.replace(/```json/gi, '').replace(/```/gi, '').trim();
@@ -6947,7 +6949,7 @@ EXAMPLES FROM IMAGE:
                 }
             } catch(e) {
                 console.error("Vision AI Error:", e);
-                window.showToast(`AI Scan Failed: ${e.message}`);
+                window.showToast(`AI Scan Failed: ${e.message}`, 6000);
             }
         };
 
@@ -6978,8 +6980,6 @@ EXAMPLES FROM IMAGE:
             }
 
             try {
-                let apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeApiKey}`; 
-                
                 const prompt = `You are an expert flight logbook data extractor specialized in Singapore Airlines crew rosters.
 Analyze the provided images or PDF documents of crew rosters.
 Extract ALL valid flight sectors into a strictly formatted JSON array.
@@ -6993,7 +6993,22 @@ CRITICAL INSTRUCTIONS FOR ROSTER FORMAT:
 6.  **TIMES:** Extract STD as "depTime" and STA as "arrTime". Format them as "HH:MM".
 7.  **HOURS:** Convert the "Duty Time" column into a decimal number.
 8.  **DATES:** Convert "Start Date" to ISO format "YYYY-MM-DD".
-9.  **OUTPUT:** Respond ONLY with the raw JSON array. Absolutely no introductory text.`;
+
+OUTPUT FORMAT: You MUST return ONLY a valid JSON array of objects. Do not include markdown formatting like \`\`\`json.
+[
+  {
+     "date": "2026-08-01",
+     "flightNo": "SQ322",
+     "acType": "A350",
+     "acReg": "",
+     "gate": "",
+     "origin": "SIN",
+     "dest": "LHR",
+     "depTime": "23:30",
+     "arrTime": "05:55",
+     "hours": 13.5
+  }
+]`;
                 
                 const payload = {
                     contents: [
@@ -7004,25 +7019,54 @@ CRITICAL INSTRUCTIONS FOR ROSTER FORMAT:
                                 ...base64Files
                             ]
                         }
-                    ]
+                    ],
+                    generationConfig: {
+                        responseMimeType: "application/json"
+                    }
                 };
 
-                let response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                const modelsToTry = [
+                    'gemini-3-flash-preview', // Canvas environment proxy
+                    'gemini-1.5-flash',       // Vercel Standard Public
+                    'gemini-1.5-flash-latest',// Vercel Fallback 1
+                    'gemini-1.5-pro'          // Vercel Fallback 2
+                ];
 
-                if (!response.ok) {
-                    let errorMsg = `HTTP ${response.status}`;
-                    try {
-                        const errData = await response.json();
-                        if (errData.error && errData.error.message) errorMsg = errData.error.message;
-                    } catch(e) {}
-                    throw new Error(`AI Scan Error: ${response.status} - ${errorMsg}`);
+                let response = null;
+                let result = null;
+                let success = false;
+                let errorMsg = '';
+
+                for (const model of modelsToTry) {
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeApiKey}`;
+                    
+                    response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        result = await response.json();
+                        success = true;
+                        break; // Stop loop, we found a working model!
+                    } else {
+                        const errData = await response.json().catch(() => ({}));
+                        errorMsg = errData.error ? errData.error.message : `HTTP ${response.status}`;
+                        
+                        if (response.status === 400 || response.status === 403) {
+                            break; // Stop on auth errors
+                        }
+                    }
+                }
+
+                if (!success) {
+                    if (response && (response.status === 400 || response.status === 403)) {
+                         throw new Error(`API Key Rejected (${response.status}). Please verify your key in Google AI Studio.`);
+                    }
+                    throw new Error(`${errorMsg}`);
                 }
                 
-                const result = await response.json();
                 const textResponse = result.candidates[0].content.parts[0].text;
                 
                 let parsedLogs = [];
