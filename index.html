@@ -16,6 +16,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Add Tesseract for OCR -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -6654,6 +6656,36 @@
                     };
 
                     let payloads = [];
+                    
+                    const formatTime = (t) => {
+                        if (t === undefined || t === null || t === '') return '';
+                        if (t instanceof Date) {
+                            if (isNaN(t.getTime())) return '';
+                            return `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+                        }
+                        if (typeof t === 'number') {
+                            if (t >= 0 && t <= 1) { 
+                                const totalMinutes = Math.round(t * 24 * 60);
+                                return `${String(Math.floor(totalMinutes / 60) % 24).padStart(2,'0')}:${String(totalMinutes % 60).padStart(2,'0')}`;
+                            }
+                            const s = String(t).padStart(4, '0');
+                            if (s.length >= 4) return `${s.substring(0,2)}:${s.substring(2,4)}`;
+                        }
+                        const s = String(t).trim();
+                        // Handle raw formats like "0930" or "1425"
+                        if (/^\d{3,4}$/.test(s)) {
+                            const padded = s.padStart(4, '0');
+                            return `${padded.substring(0,2)}:${padded.substring(2,4)}`;
+                        }
+                        if (s.includes(':')) {
+                            const parts = s.match(/(\d{1,2}):(\d{2})/);
+                            if (parts) return `${parts[1].padStart(2,'0')}:${parts[2]}`;
+                        }
+                        const match = s.match(/^(\d{1,2})[:.]?(\d{2})$/);
+                        if (match) return `${match[1].padStart(2,'0')}:${match[2]}`;
+                        return '';
+                    };
+
                     for (let r = headerRowIdx + 1; r < rawData.length; r++) {
                         const row = rawData[r];
                         if (!row || row.length === 0) continue;
@@ -6721,123 +6753,191 @@
                                 const d = new Date(rDate); 
                                 if(!isNaN(d)) pDate = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
                             } catch(e){}
-
-                            const formatTime = (t) => {
-                                if (t === undefined || t === null || t === '') return '';
-                                if (t instanceof Date) {
-                                    if (isNaN(t.getTime())) return '';
-                                    return `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
-                                }
-                                if(typeof t === 'number') {
-                                    if (t >= 0 && t <= 1) { 
-                                        const totalMinutes = Math.round(t * 24 * 60);
-                                        return `${String(Math.floor(totalMinutes / 60) % 24).padStart(2,'0')}:${String(totalMinutes % 60).padStart(2,'0')}`;
-                                    } else { 
-                                        const s = String(t).padStart(4, '0');
-                                        if (s.length === 4) return `${s.substring(0,2)}:${s.substring(2,4)}`;
-                                    }
-                                }
-                                const s = String(t).trim();
-                                if (s.includes(' ')) {
-                                    const timePart = s.split(' ').find(part => part.includes(':'));
-                                    if (timePart) {
-                                        const parts = timePart.split(':');
-                                        return `${parts[0].padStart(2,'0')}:${(parts[1]||'00').substring(0,2)}`;
-                                    }
-                                }
-                                const match = s.match(/^(\d{1,2})[:.]?(\d{2})$/);
-                                if (match) return `${match[1].padStart(2,'0')}:${match[2]}`;
-                                return s.substring(0,5);
-                            };
-
+                            
                             payloads.push({
-                                staffId: window.currentStaffId,
-                                date: pDate, flightNo: String(fNo).toUpperCase(),
-                                acType: String(acType || '').toUpperCase(),
-                                acReg: String(reg || '').toUpperCase().replace(/-/g, ''), 
-                                gate: String(gate || '').toUpperCase(),
-                                origin: org, dest: dst,
-                                depTime: formatTime(depT), arrTime: formatTime(arrT),
-                                hours: parseFloat(parsedHrs.toFixed(2)) || 0, createdAt: Date.now()
+                                date: pDate,
+                                flightNo: String(fNo).toUpperCase().replace(/\s/g, ''),
+                                origin: org,
+                                dest: dst,
+                                hours: parsedHrs || 0,
+                                depTime: formatTime(depT),
+                                arrTime: formatTime(arrT),
+                                acType: acType || '',
+                                acReg: reg ? String(reg).toUpperCase().replace(/-/g, '') : '',
+                                gate: gate ? String(gate).toUpperCase() : ''
                             });
                         }
                     }
 
-                    if (payloads.length > 0) {
-                        // --- VERCEL OFFLINE FALLBACK MODE ---
-                        if (!db || cloudSyncDisabled) {
-                            const existing = JSON.parse(localStorage.getItem('crew_offline_flights') || '[]');
-                            const combined = [...existing, ...payloads.map((p, idx) => ({ id: 'local_flt_' + Date.now() + '_' + idx, ...p }))];
-                            localStorage.setItem('crew_offline_flights', JSON.stringify(combined));
-                            window.flightsData = combined;
-                            
-                            showToast(`Vercel Offline Mode: Saved ${payloads.length} flights locally!`, 5000);
-                            renderUI();
-                            e.target.value = '';
-                            return;
-                        }
-
-                        showToast(`Syncing ${payloads.length} flights to database...`, 4000);
-                        const ref = collection(db, 'artifacts', appId, 'public', 'data', 'flights');
-                        
-                        // Chunk uploads to prevent overwhelming the browser or database
-                        for (let i = 0; i < payloads.length; i += 50) {
-                            const chunk = payloads.slice(i, i + 50);
-                            const addPromises = chunk.map(p => addDoc(ref, p));
-                            await Promise.all(addPromises);
-                        }
-                        
-                        showToast(`Imported ${payloads.length} flights securely!`);
-                        
-                        // Force local data reload immediately so the UI reflects changes without refreshing
-                        setTimeout(() => loadData(), 500); 
-                    } else {
-                        showToast(`Import finished, but 0 valid flights were found. Check file format.`);
+                    if (payloads.length === 0) {
+                        showToast("Error: No valid flight data found in personal roster.", 5000);
+                        return;
                     }
-                } catch (err) {
-                    if (err && err.code === 'permission-denied') {
-                        handleFirestoreError(err, "Import Roster Excel");
+
+                    showToast(`Uploading ${payloads.length} logged flights...`, 5000);
+                    
+                    const ref = collection(db, 'artifacts', appId, 'public', 'data', 'flights');
+                    
+                    let added = 0;
+                    if (cloudSyncDisabled) {
+                         payloads.forEach((p, idx) => {
+                             p.id = 'local_flt_' + Date.now() + idx;
+                             p.staffId = window.currentStaffId;
+                             p.createdAt = Date.now();
+                             window.flightsData.push(p);
+                             added++;
+                         });
+                         localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+                         showToast(`Offline Mode: Saved ${added} flights locally!`, 5000);
+                         renderUI();
+                         if (ev.target) ev.target.value = '';
+                         return;
+                    }
+
+                    // Chunk and add new payloads
+                    for (let i = 0; i < payloads.length; i += 50) {
+                        const chunk = payloads.slice(i, i + 50);
+                        const addPromises = chunk.map(p => {
+                            p.staffId = window.currentStaffId;
+                            p.createdAt = Date.now();
+                            return addDoc(ref, p);
+                        });
+                        await Promise.all(addPromises);
+                        added += chunk.length;
+                    }
+
+                    showToast(`Success! Imported ${added} personal flights.`, 4000);
+                    renderUI();
+
+                } catch(e) {
+                    if(e && e.code === 'permission-denied') {
+                        handleFirestoreError(e, "Upload Roster");
                     } else {
-                        console.error("Personal Upload Error:", err);
-                        showToast("Error processing file. File may be corrupted.");
+                        console.error("Roster upload error:", e);
+                        showToast(`Upload Failed: ${e.message || 'File corrupted'}`, 6000);
                     }
                 }
-                e.target.value = '';
+                if (ev.target) ev.target.value = '';
+            };
+            reader.onerror = function() {
+                showToast("Error reading the file from your device.");
+                if (e.target) e.target.value = '';
             };
             reader.readAsArrayBuffer(file);
         });
 
-        // 🧠 INJECTING THE VISION AI ENGINE
+        // 🧠 INJECTING THE TESSERACT.JS OFFLINE ENGINE
         window.pendingScanFiles = [];
 
-        // --- NEW: AI CREW MANIFEST SCANNER ---
-        document.getElementById('manifest-upload')?.addEventListener('change', async function(e) {
+        // --- NEW: 100% OFFLINE ROSTER SCANNER (NO API KEY) ---
+        document.getElementById('image-upload')?.addEventListener('change', async function(e) {
             const files = e.target.files;
             if (!files || files.length === 0) return;
-            if (!window.currentStaffId) { window.showToast("Login Required to scan manifests."); return; }
+            if (!window.currentStaffId) { window.showToast("Login Required to scan rosters."); return; }
             
-            const activeApiKey = window.getSecureApiKey();
-            if (!activeApiKey) {
-                window.showToast("AI Setup Required!");
-                window.openApiSetupModal();
-                e.target.value = '';
-                return;
+            window.showToast(`Initializing Offline OCR Engine... please wait.`, 4000);
+
+            try {
+                // 1. Create the Tesseract Worker (Downloads ~3MB English language pack on first run)
+                const worker = await Tesseract.createWorker('eng', 1, {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            window.showToast(`Scanning: ${Math.round(m.progress * 100)}%`, 1000);
+                        }
+                    }
+                });
+
+                let parsedLogs = [];
+
+                // 2. Process each uploaded image
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    window.showToast(`Reading Image ${i+1}...`, 3000);
+                    
+                    const { data: { text } } = await worker.recognize(file);
+                    console.log("Raw OCR Text:", text);
+
+                    // 3. Regex Parsing Logic (To convert raw text into Flight Data)
+                    // This looks for standard lines like: "12 Aug SQ322 A350 SIN LHR 23:30 05:55 13:25"
+                    const lines = text.split('\n');
+                    
+                    lines.forEach(line => {
+                        const cleanLine = line.toUpperCase().trim();
+                        
+                        // Look for Flight Numbers (e.g., SQ322, TR12)
+                        const fltMatch = cleanLine.match(/([A-Z]{2,3}\s?\d{2,4})/);
+                        // Look for IATA Codes (e.g., SIN, LHR)
+                        const iataMatches = cleanLine.match(/\b([A-Z]{3})\b/g);
+                        // Look for Times (e.g., 23:30)
+                        const timeMatches = cleanLine.match(/\b(\d{2}:\d{2})\b/g);
+                        
+                        if (fltMatch && iataMatches && iataMatches.length >= 2 && timeMatches && timeMatches.length >= 2) {
+                            
+                            // Guess the date (Defaulting to today for this example)
+                            const today = new Date();
+                            const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                            
+                            // Calculate Hours
+                            const dep = timeMatches[0];
+                            const arr = timeMatches[1];
+                            let hrs = 0;
+                            const t1 = new Date(`1970-01-01T${dep}:00Z`);
+                            let t2 = new Date(`1970-01-01T${arr}:00Z`);
+                            if (t2 < t1) t2.setDate(t2.getDate() + 1); // Cross midnight
+                            hrs = (t2 - t1) / 3600000;
+
+                            parsedLogs.push({
+                                staffId: window.currentStaffId,
+                                date: dateStr, 
+                                flightNo: fltMatch[0].replace(/\s/g, ''),
+                                acType: '', acReg: '', gate: '',
+                                origin: iataMatches[0],
+                                dest: iataMatches[1],
+                                depTime: dep,
+                                arrTime: arr,
+                                hours: parseFloat(hrs.toFixed(2)) || 0, 
+                                createdAt: Date.now()
+                            });
+                        }
+                    });
+                }
+                
+                await worker.terminate();
+
+                if (parsedLogs.length === 0) {
+                    window.showToast("No valid flight data found in images.");
+                    return;
+                }
+                
+                window.showToast(`Saving ${parsedLogs.length} extracted flights...`);
+                
+                // 4. Save to Database
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+                const ref = collection(db, 'artifacts', appId, 'public', 'data', 'flights');
+                
+                let addedCount = 0;
+                
+                if (cloudSyncDisabled) {
+                     for (const payload of parsedLogs) {
+                         payload.id = 'local_flt_' + Date.now() + Math.random();
+                         window.flightsData.push(payload);
+                         addedCount++;
+                     }
+                     localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+                     window.showToast(`Offline Scan complete! ${addedCount} flights logged.`);
+                     renderUI();
+                } else {
+                    for (const payload of parsedLogs) {
+                        await addDoc(ref, payload);
+                        addedCount++;
+                    }
+                    window.showToast(`Scan complete! ${addedCount} flights logged.`);
+                }
+
+            } catch(e) {
+                console.error("Tesseract OCR Error:", e);
+                window.showToast(`Scan Failed: ${e.message}`);
             }
-
-            const flightId = document.getElementById('crew-flight-selector').value;
-
-            const validFiles = Array.from(files).filter(f => 
-                f.type === 'application/pdf' || 
-                f.type.startsWith('image/')
-            );
-            
-            if (validFiles.length === 0) {
-                window.showToast("Unsupported format. Please upload a PDF or Image.");
-                e.target.value = '';
-                return;
-            }
-
-            window.executeManifestScan(validFiles[0], flightId, activeApiKey);
             e.target.value = '';
         });
 
@@ -6961,187 +7061,6 @@ OUTPUT FORMAT: You MUST return ONLY a valid JSON object. Do not include markdown
                 window.showToast(`AI Scan Failed: ${e.message}`, 6000);
             }
         };
-
-        // --- NEW: AI ROSTER SCANNER (MONTHLY ROSTER) ---
-        document.getElementById('image-upload')?.addEventListener('change', async function(e) {
-            const files = e.target.files;
-            if (!files || files.length === 0) return;
-            if (!window.currentStaffId) { window.showToast("Login Required to scan rosters."); return; }
-            
-            const activeApiKey = window.getSecureApiKey();
-            if (!activeApiKey) {
-                window.showToast("AI Setup Required!");
-                window.openApiSetupModal();
-                e.target.value = '';
-                return;
-            }
-
-            window.showToast(`AI Vision scanning roster... please wait.`, 8000);
-            
-            const base64Files = [];
-            for (let i = 0; i < files.length; i++) {
-                const base64Data = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result.split(',')[1]);
-                    reader.readAsDataURL(files[i]);
-                });
-                base64Files.push({ inlineData: { data: base64Data, mimeType: files[i].type } });
-            }
-
-            try {
-                const prompt = `You are an expert flight logbook data extractor specialized in Singapore Airlines crew rosters.
-Analyze the provided images or PDF documents of crew rosters.
-Extract ALL valid flight sectors into a strictly formatted JSON array.
-
-CRITICAL INSTRUCTIONS FOR ROSTER FORMAT:
-1.  **FILTER:** ONLY extract rows where the "Duty" column is exactly "FLY" or "TVL". Ignore all other rows like "LO" (Layover), "SSSB", "EBT", "ATDO", "AALV", etc.
-2.  **CROSS-MIDNIGHT FLIGHTS (SPLIT ROWS):** Combine Duty time and STD/STA across multiple rows if they belong to the same flight. Use the Date from the row that contains the actual departure time (STD).
-3.  **FLIGHT NUMBERS (3 OR 4 DIGITS):** Extract exactly as written. DO NOT truncate 4-digit flight numbers.
-4.  **SECTOR:** Split the "Sector" column into separate "origin" and "dest" fields.
-5.  **AIRCRAFT (A/C):** Map the code in the "A/C" column.
-6.  **TIMES:** Extract STD as "depTime" and STA as "arrTime". Format them as "HH:MM".
-7.  **HOURS:** Convert the "Duty Time" column into a decimal number.
-8.  **DATES:** Convert "Start Date" to ISO format "YYYY-MM-DD".
-
-OUTPUT FORMAT: You MUST return ONLY a valid JSON array of objects. Do not include markdown formatting like \`\`\`json.
-[
-  {
-     "date": "2026-08-01",
-     "flightNo": "SQ322",
-     "acType": "A350",
-     "acReg": "",
-     "gate": "",
-     "origin": "SIN",
-     "dest": "LHR",
-     "depTime": "23:30",
-     "arrTime": "05:55",
-     "hours": 13.5
-  }
-]`;
-                
-                const payload = {
-                    contents: [
-                        {
-                            role: "user",
-                            parts: [
-                                { text: prompt },
-                                ...base64Files
-                            ]
-                        }
-                    ]
-                };
-
-                const modelsToTry = [
-                    'gemini-2.5-flash',
-                    'gemini-3.1-flash'
-                ];
-
-                let response = null;
-                let result = null;
-                let success = false;
-                let firstErrorMsg = '';
-
-                for (const model of modelsToTry) {
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeApiKey}`;
-                    
-                    response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (response.ok) {
-                        result = await response.json();
-                        success = true;
-                        break; // Stop loop, we found a working model!
-                    } else {
-                        const errData = await response.json().catch(() => ({}));
-                        const errMsg = errData.error ? errData.error.message : `HTTP ${response.status}`;
-                        if (!firstErrorMsg || response.status === 429) firstErrorMsg = errMsg;
-                        
-                        if (response.status === 400 || response.status === 403) {
-                            break; // Stop on auth errors
-                        }
-                    }
-                }
-
-                if (!success) {
-                    if (response && (response.status === 400 || response.status === 403)) {
-                         throw new Error(`API Key Rejected (${response.status}). Please verify your key in Google AI Studio.`);
-                    }
-                    throw new Error(`${firstErrorMsg || 'API Error'}`);
-                }
-                
-                const textResponse = result.candidates[0].content.parts[0].text;
-                
-                let parsedLogs = [];
-                try {
-                    parsedLogs = JSON.parse(textResponse.replace(/```json/gi, '').replace(/```/gi, '').trim());
-                } catch (jsonErr) {
-                    console.error("Raw AI Output:", textResponse);
-                    throw new Error("Failed to parse AI response into JSON format.");
-                }
-
-                if (!Array.isArray(parsedLogs) || parsedLogs.length === 0) {
-                    window.showToast("No flight data found in images.");
-                    return;
-                }
-                
-                window.showToast(`Saving ${parsedLogs.length} extracted flights...`);
-                
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
-                const ref = collection(db, 'artifacts', appId, 'public', 'data', 'flights');
-                
-                let addedCount = 0;
-                
-                if (cloudSyncDisabled) {
-                     for (const log of parsedLogs) {
-                        if (log.date && log.flightNo && log.origin && log.dest) {
-                            const payload = {
-                                id: 'local_flt_' + Date.now() + Math.random(), staffId: window.currentStaffId,
-                                date: log.date, flightNo: String(log.flightNo).toUpperCase(),
-                                acType: String(log.acType || '').toUpperCase(), acReg: String(log.acReg || '').toUpperCase().replace(/-/g, ''),
-                                gate: String(log.gate || '').toUpperCase(), origin: String(log.origin).toUpperCase().substring(0, 3),
-                                dest: String(log.dest).toUpperCase().substring(0, 3), depTime: log.depTime || '',
-                                arrTime: log.arrTime || '', hours: parseFloat(log.hours) || 0, createdAt: Date.now()
-                            };
-                            window.flightsData.push(payload);
-                            addedCount++;
-                        }
-                     }
-                     localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
-                     window.showToast(`AI Scan complete! ${addedCount} flights logged locally.`);
-                     renderUI();
-                     return;
-                }
-
-                for (const log of parsedLogs) {
-                    if (log.date && log.flightNo && log.origin && log.dest) {
-                        await addDoc(ref, {
-                            staffId: window.currentStaffId,
-                            date: log.date,
-                            flightNo: String(log.flightNo).toUpperCase(),
-                            acType: String(log.acType || '').toUpperCase(),
-                            acReg: String(log.acReg || '').toUpperCase().replace(/-/g, ''),
-                            gate: String(log.gate || '').toUpperCase(),
-                            origin: String(log.origin).toUpperCase().substring(0, 3),
-                            dest: String(log.dest).toUpperCase().substring(0, 3),
-                            depTime: log.depTime || '',
-                            arrTime: log.arrTime || '',
-                            hours: parseFloat(log.hours) || 0,
-                            createdAt: Date.now()
-                        });
-                        addedCount++;
-                    }
-                }
-                
-                window.showToast(`Scan complete! ${addedCount} flights logged.`);
-
-            } catch(e) {
-                console.error("Vision AI Error:", e);
-                window.showToast(`AI Scan Failed: ${e.message}`);
-            }
-        });
 
         document.addEventListener('DOMContentLoaded', async () => {
             initMobileForm();
