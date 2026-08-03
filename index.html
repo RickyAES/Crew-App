@@ -531,6 +531,9 @@
                         <button onclick="confirmPurgeData()" class="shrink-0 bg-red-900/20 hover:bg-red-900/40 border border-red-900/50 text-red-400 hover:text-red-300 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1" title="Purge All Data">
                             <i class="ph-bold ph-trash"></i> <span class="hidden md:inline">Purge</span>
                         </button>
+                        <button onclick="injectMay2026DemoData()" class="shrink-0 bg-blue-900/20 hover:bg-blue-900/40 border border-blue-500/50 text-blue-400 hover:text-blue-300 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors shadow-[0_0_10px_rgba(59,130,246,0.1)] flex items-center gap-1" title="Inject parsed May 2026 Training Data">
+                            <i class="ph-bold ph-magic-wand"></i> <span class="hidden lg:inline">Sync Training Data</span>
+                        </button>
                         <button onclick="autoInjectImageRosters()" class="shrink-0 bg-purple-900/20 hover:bg-purple-900/40 border border-purple-500/50 text-purple-400 hover:text-purple-300 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors shadow-[0_0_10px_rgba(168,85,247,0.1)] flex items-center gap-1" title="Scan new roster images">
                             <i class="ph-bold ph-image"></i> <span class="hidden lg:inline">Scan Image</span>
                         </button>
@@ -7087,6 +7090,101 @@
             }
             e.target.value = '';
         });
+
+        // --- HARDCODED TRAINING DATA SYNC (MAY 2026 ROSTER & SQ392 MANIFEST) ---
+        window.injectMay2026DemoData = async function() {
+            if (!window.currentStaffId) {
+                showToast("Please login first to sync training data.");
+                return;
+            }
+
+            showToast("Processing pre-trained AI Data...", 2000);
+
+            const trainingFlights = [
+                { date: '2026-04-30', flightNo: 'SQ227', origin: 'SIN', dest: 'MEL', depTime: '22:10', arrTime: '07:25', acType: 'B777', hours: 9.25 },
+                { date: '2026-05-02', flightNo: 'SQ238', origin: 'MEL', dest: 'SIN', depTime: '09:15', arrTime: '15:15', acType: 'B777', hours: 8.00 },
+                { date: '2026-05-07', flightNo: 'SQ868', origin: 'SIN', dest: 'XMN', depTime: '07:50', arrTime: '12:25', acType: 'B737MAX', hours: 4.58 },
+                { date: '2026-05-07', flightNo: 'SQ869', origin: 'XMN', dest: 'SIN', depTime: '13:40', arrTime: '18:25', acType: 'B737MAX', hours: 4.75 },
+                { date: '2026-05-09', flightNo: 'SQ26', origin: 'SIN', dest: 'FRA', depTime: '23:55', arrTime: '07:05', acType: 'B777', hours: 13.16 },
+                { date: '2026-05-12', flightNo: 'SQ26', origin: 'FRA', dest: 'JFK', depTime: '08:35', arrTime: '11:10', acType: 'B777', hours: 8.58 },
+                { date: '2026-05-14', flightNo: 'SQ25', origin: 'JFK', dest: 'FRA', depTime: '20:55', arrTime: '10:40', acType: 'B777', hours: 7.75 },
+                { date: '2026-05-16', flightNo: 'SQ25', origin: 'FRA', dest: 'SIN', depTime: '12:15', arrTime: '06:50', acType: 'B777', hours: 12.58 },
+                { date: '2026-05-24', flightNo: 'SQ174', origin: 'SIN', dest: 'DAD', depTime: '14:00', arrTime: '15:55', acType: 'B737MAX', hours: 2.91 },
+                { date: '2026-05-24', flightNo: 'SQ173', origin: 'DAD', dest: 'SIN', depTime: '16:45', arrTime: '20:40', acType: 'B737MAX', hours: 2.91 },
+                { date: '2026-05-27', flightNo: 'SQ215', origin: 'SIN', dest: 'PER', depTime: '18:45', arrTime: '23:55', acType: 'A350', hours: 5.16 },
+                {
+                    date: '2026-05-28', flightNo: 'SQ392', origin: 'SIN', dest: 'IST', depTime: '01:45', arrTime: '07:45', acType: 'B772J', acReg: '9VSVM', gate: 'B1', hours: 11.0,
+                    manifest: [
+                        { id: '001001', role: 'CAPT', name: 'LEE H M', pref: 'LEE', pos: 'Flight Deck (Port)', door: 'Flight Deck' },
+                        { id: '001002', role: 'CAPT', name: 'KHOU BENG KUAN', pref: 'KHOU', pos: 'Flight Deck Rest', door: 'Flight Deck' },
+                        { id: '001003', role: 'FO', name: 'KIONG CHEE HUNG', pref: 'KIONG', pos: 'Flight Deck (Starboard)', door: 'Flight Deck' },
+                        { id: '001004', role: 'IFM', name: 'MD SANIP', pref: 'SANIP', pos: 'IFM', door: 'D1L/D1R' },
+                        { id: '001005', role: 'CS', name: 'MOHD NOOR AJC', pref: 'NOOR', pos: 'CS', door: 'D2L/D2R' },
+                        { id: '001006', role: 'LS', name: 'CHEONG YEW SHIONG DERRICK', pref: 'DERRICK', pos: 'LS4', door: 'D1L' },
+                        { id: '001007', role: 'LSS', name: 'LEE PING YANG GINA', pref: 'GINA', pos: 'J2', door: 'D1R' },
+                        { id: '001008', role: 'LSS', name: 'YEW SHU HUI NICOLE', pref: 'NICOLE', pos: 'LS6', door: 'D4L/D4R' },
+                        { id: '001009', role: 'FS', name: 'ENG KONG YANG GEORGE', pref: 'GEORGE', pos: 'C2', door: 'D4R' },
+                        { id: window.currentStaffId, role: 'FS', name: window.currentName || 'LAW PHOOI HWA', pref: (window.currentName || 'PHOOI HWA').split(' ')[0], pos: 'C6', door: 'D3R' },
+                        { id: '001011', role: 'FSS', name: 'NUR FAZIN FATINAH', pref: 'FATINAH', pos: 'C7', door: 'Cabin Eqpt' },
+                        { id: '001012', role: 'FSS', name: 'CHUA MING LIN CELINE', pref: 'CELINE', pos: 'C3', door: 'D2L' },
+                        { id: '001013', role: 'FSS', name: 'KOO ZHEN MEI CELINE', pref: 'CELINE', pos: 'C4', door: 'D2R' },
+                        { id: '001014', role: 'FSS', name: 'YONG YUN QING YVONNE', pref: 'YVONNE', pos: 'C5', door: 'D3L' }
+                    ]
+                },
+                { date: '2026-05-29', flightNo: 'SQ216', origin: 'PER', dest: 'SIN', depTime: '01:10', arrTime: '06:35', acType: 'A350', hours: 5.41 },
+                { date: '2026-05-31', flightNo: 'SQ192', origin: 'SIN', dest: 'HAN', depTime: '09:00', arrTime: '11:30', acType: 'A350', hours: 3.50 },
+                { date: '2026-05-31', flightNo: 'SQ191', origin: 'HAN', dest: 'SIN', depTime: '12:40', arrTime: '17:10', acType: 'A350', hours: 3.50 }
+            ];
+
+            // 1. Deduplication Engine (Ensure no repeated flights)
+            const existingSignatures = new Set(window.flightsData.map(f => `${f.flightNo}_${f.date}`));
+            
+            const newPayloads = [];
+            trainingFlights.forEach(flt => {
+                const sig = `${flt.flightNo}_${flt.date}`;
+                if (!existingSignatures.has(sig)) {
+                    flt.staffId = window.currentStaffId;
+                    flt.createdAt = Date.now();
+                    newPayloads.push(flt);
+                }
+            });
+
+            if (newPayloads.length === 0) {
+                showToast("All training flights are already in your logbook (No duplicates synced).");
+                return;
+            }
+
+            // 2. Sync to Database / Local Storage
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+            const flightRef = collection(db, 'artifacts', appId, 'public', 'data', 'flights');
+
+            let added = 0;
+            if (cloudSyncDisabled || !db) {
+                newPayloads.forEach((p, idx) => {
+                    p.id = 'local_train_' + Date.now() + idx;
+                    window.flightsData.push(p);
+                    added++;
+                });
+                localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+                showToast(`Offline Sync: Extracted ${added} new flights from May 2026 data!`);
+                renderUI();
+                return;
+            }
+
+            try {
+                for (let i = 0; i < newPayloads.length; i += 20) {
+                    const chunk = newPayloads.slice(i, i + 20);
+                    const addPromises = chunk.map(p => addDoc(flightRef, p));
+                    await Promise.all(addPromises);
+                    added += chunk.length;
+                }
+                showToast(`Cloud Sync: Extracted ${added} new flights and the SQ392 Manifest!`);
+                renderUI();
+            } catch (e) {
+                console.error("Training Sync Error:", e);
+                showToast("Failed to upload training data to cloud.");
+            }
+        };
 
         document.addEventListener('DOMContentLoaded', async () => {
             initMobileForm();
