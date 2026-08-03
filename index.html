@@ -6860,7 +6860,7 @@
         // 🧠 INJECTING THE TESSERACT.JS OFFLINE ENGINE
         window.pendingScanFiles = [];
 
-        // --- NEW: 100% OFFLINE ROSTER SCANNER (NO API KEY) ---
+        // --- NEW: 100% OFFLINE ROSTER SCANNER (SYNC TO CLOUD FIX) ---
         document.getElementById('image-upload')?.addEventListener('change', async function(e) {
             const files = e.target.files;
             if (!files || files.length === 0) return;
@@ -6894,14 +6894,16 @@
                     lines.forEach(line => {
                         const cleanLine = line.toUpperCase().trim().replace(/\|/g, ''); 
                         
-                        const fltMatch = cleanLine.match(/(SQ\s?\d{2,4})/);
+                        // Enhanced Regex to handle common offline OCR misreads
+                        const fltMatch = cleanLine.match(/(?:SQ|S0|5Q|S[O0])\s?\d{2,4}/);
                         const iataMatches = cleanLine.match(/\b([A-Z]{3})\b/g);
                         const timeMatches = cleanLine.match(/\b(\d{2}:?\d{2})\b/g);
                         const dateMatch = cleanLine.match(/\b(\d{1,2})([A-Z]{3})\b/);
                         
                         if (fltMatch && iataMatches && iataMatches.length >= 2 && timeMatches && timeMatches.length >= 2) {
                             
-                            const cleanFltNo = fltMatch[0].replace(/\s/g, '');
+                            // Auto-correct common mistakes like S0 -> SQ
+                            const cleanFltNo = fltMatch[0].replace(/\s/g, '').replace(/S0|5Q|S[O0]/, 'SQ');
                             let org = iataMatches[0];
                             let dst = iataMatches[1];
                             
@@ -6958,15 +6960,36 @@
                     return;
                 }
                 
-                window.showToast(`Saving ${parsedLogs.length} extracted flights locally...`);
+                window.showToast(`Syncing ${parsedLogs.length} extracted flights to cloud...`);
+                
+                // FIREBASE CLOUD SYNC INJECTION
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+                const flightRef = collection(db, 'artifacts', appId, 'public', 'data', 'flights');
                 
                 for (const payload of parsedLogs) {
-                    payload.id = 'local_flt_' + Date.now() + Math.random();
-                    window.flightsData.push(payload);
+                    if (!cloudSyncDisabled && db) {
+                        try {
+                            const newRef = doc(flightRef);
+                            await setDoc(newRef, payload);
+                            payload.id = newRef.id;
+                        } catch(e) {
+                            // Fallback to local if cloud permission denied
+                            payload.id = 'local_flt_' + Date.now() + Math.random();
+                            window.flightsData.push(payload);
+                        }
+                    } else {
+                        payload.id = 'local_flt_' + Date.now() + Math.random();
+                        window.flightsData.push(payload);
+                    }
                     window.pushToUndoStack('ADD', payload);
                 }
-                localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
-                window.showToast(`Offline Scan Complete! Logged ${parsedLogs.length} flights.`);
+                
+                if (cloudSyncDisabled || !db) {
+                    localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+                    window.showToast(`Offline Scan Complete! Logged ${parsedLogs.length} flights locally.`);
+                } else {
+                    window.showToast(`Cloud Sync Complete! Logged ${parsedLogs.length} flights.`);
+                }
                 
                 if (typeof renderUI === 'function') renderUI();
 
@@ -6977,7 +7000,7 @@
             e.target.value = '';
         });
 
-        // --- NEW: 100% OFFLINE CREW MANIFEST SCANNER ---
+        // --- NEW: 100% OFFLINE CREW MANIFEST SCANNER (SYNC TO CLOUD FIX) ---
         document.getElementById('manifest-upload')?.addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -7045,8 +7068,16 @@
                 const flightToUpdate = window.flightsData.find(f => f.id === targetFlightId);
                 if (flightToUpdate) {
                     flightToUpdate.manifest = extractedCrew;
-                    localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
-                    window.showToast("Offline Manifest Extracted and Saved Locally!");
+                    
+                    // FIREBASE CLOUD SYNC INJECTION
+                    if (!cloudSyncDisabled && db && !targetFlightId.startsWith('local_')) {
+                        const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+                        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'flights', targetFlightId), { manifest: extractedCrew });
+                        window.showToast("Cloud Manifest Updated Successfully!");
+                    } else {
+                        localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+                        window.showToast("Offline Manifest Extracted and Saved Locally!");
+                    }
                     window.renderCrewView(targetFlightId);
                 }
 
