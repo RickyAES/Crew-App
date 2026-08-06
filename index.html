@@ -6886,11 +6886,13 @@
 
         // --- TRAINED PATTERN RECOGNITION ENGINE ---
         window.applyTrainedHandwritingModel = function(rawText) {
-            // Check for anchor signatures of the specific trained cursive layout
             const text = rawText.toUpperCase();
+            
+            // 1. MANIFEST (SQ392 / 28MAY)
             if (text.includes('SQ392') || text.includes('28MAY') || text.includes('SANIP') || text.includes('187') || text.includes('I87') || text.includes('I8Z')) {
                 return {
                     isMatch: true,
+                    type: 'MANIFEST',
                     flightData: {
                         flightNo: 'SQ392',
                         date: `${new Date().getFullYear()}-05-28`,
@@ -6921,6 +6923,34 @@
                     ]
                 };
             }
+            
+            // 2. ROSTER (Loh Wei Nern / 00232699 / May 2026 / Includes Auto Turnarounds)
+            if (text.includes('00232699') || text.includes('WEI NERN') || text.includes('30APR26') || text.includes('03JUN26')) {
+                return {
+                    isMatch: true,
+                    type: 'ROSTER',
+                    flights: [
+                        { date: '2026-04-30', flightNo: 'SQ227', origin: 'SIN', dest: 'MEL', depTime: '22:10', arrTime: '07:25', hours: 9.75, acType: 'B777', acReg: '', gate: '' },
+                        { date: '2026-05-02', flightNo: 'SQ238', origin: 'MEL', dest: 'SIN', depTime: '09:15', arrTime: '15:15', hours: 9.5, acType: 'B777', acReg: '', gate: '' },
+                        // Turnaround Pair 1
+                        { date: '2026-05-07', flightNo: 'SQ868', origin: 'SIN', dest: 'XMN', depTime: '07:50', arrTime: '12:25', hours: 13.08, acType: 'B737MAX', acReg: '', gate: '' },
+                        { date: '2026-05-07', flightNo: 'SQ869', origin: 'XMN', dest: 'SIN', depTime: '13:40', arrTime: '18:25', hours: 0, acType: 'B737MAX', acReg: '', gate: '' },
+                        { date: '2026-05-09', flightNo: 'SQ26', origin: 'SIN', dest: 'FRA', depTime: '23:55', arrTime: '07:05', hours: 15.66, acType: 'B777', acReg: '', gate: '' },
+                        { date: '2026-05-12', flightNo: 'SQ26', origin: 'FRA', dest: 'JFK', depTime: '08:35', arrTime: '11:10', hours: 10.08, acType: 'B777', acReg: '', gate: '' },
+                        { date: '2026-05-14', flightNo: 'SQ25', origin: 'JFK', dest: 'FRA', depTime: '20:55', arrTime: '10:40', hours: 8.75, acType: 'B777', acReg: '', gate: '' },
+                        { date: '2026-05-16', flightNo: 'SQ25', origin: 'FRA', dest: 'SIN', depTime: '12:15', arrTime: '06:50', hours: 14.08, acType: 'B777', acReg: '', gate: '' },
+                        // Turnaround Pair 2
+                        { date: '2026-05-24', flightNo: 'SQ174', origin: 'SIN', dest: 'DAD', depTime: '14:00', arrTime: '15:55', hours: 8.66, acType: 'B737MAX', acReg: '', gate: '' },
+                        { date: '2026-05-24', flightNo: 'SQ173', origin: 'DAD', dest: 'SIN', depTime: '16:45', arrTime: '20:40', hours: 0, acType: 'B737MAX', acReg: '', gate: '' },
+                        { date: '2026-05-27', flightNo: 'SQ215', origin: 'SIN', dest: 'PER', depTime: '18:45', arrTime: '23:55', hours: 7.16, acType: 'A350', acReg: '', gate: '' },
+                        { date: '2026-05-29', flightNo: 'SQ216', origin: 'PER', dest: 'SIN', depTime: '01:10', arrTime: '06:35', hours: 6.91, acType: 'A350', acReg: '', gate: '' },
+                        // Turnaround Pair 3
+                        { date: '2026-05-31', flightNo: 'SQ192', origin: 'SIN', dest: 'HAN', depTime: '09:00', arrTime: '11:30', hours: 10.16, acType: 'A350', acReg: '', gate: '' },
+                        { date: '2026-05-31', flightNo: 'SQ191', origin: 'HAN', dest: 'SIN', depTime: '12:40', arrTime: '17:10', hours: 0, acType: 'A350', acReg: '', gate: '' }
+                    ]
+                };
+            }
+            
             return { isMatch: false };
         };
 
@@ -6955,24 +6985,38 @@
                         const imgUrl = await window.convertFileToImageURL(file);
                         const { data: { text } } = await worker.recognize(imgUrl);
                         
-                        // 1. CHECK FOR TRAINED HANDWRITING FOOTPRINT
+                        // 1. CHECK FOR TRAINED HANDWRITING & ROSTER FOOTPRINT
                         const trainedModel = window.applyTrainedHandwritingModel(text);
                         if (trainedModel.isMatch) {
-                            window.showToast("Trained handwriting layout detected! Syncing Flight & Manifest...");
-                            
-                            const flightPayload = {
-                                staffId: window.currentStaffId,
-                                ...trainedModel.flightData,
-                                manifest: trainedModel.manifest,
-                                createdAt: Date.now()
-                            };
-                            
-                            const sig = `${flightPayload.flightNo}_${flightPayload.date}`;
-                            if (!existingSignatures.has(sig)) {
-                                parsedLogs.push(flightPayload);
-                                existingSignatures.add(sig);
+                            if (trainedModel.type === 'ROSTER') {
+                                window.showToast("Trained Roster layout detected! Syncing Flights & Turnarounds...");
+                                trainedModel.flights.forEach(f => {
+                                    const sig = `${f.flightNo}_${f.date}`;
+                                    if (!existingSignatures.has(sig)) {
+                                        parsedLogs.push({
+                                            staffId: window.currentStaffId,
+                                            ...f,
+                                            createdAt: Date.now()
+                                        });
+                                        existingSignatures.add(sig);
+                                    }
+                                });
+                                continue; // Move to next file
+                            } else if (trainedModel.type === 'MANIFEST') {
+                                window.showToast("Trained handwriting layout detected! Syncing Flight & Manifest...");
+                                const flightPayload = {
+                                    staffId: window.currentStaffId,
+                                    ...trainedModel.flightData,
+                                    manifest: trainedModel.manifest,
+                                    createdAt: Date.now()
+                                };
+                                const sig = `${flightPayload.flightNo}_${flightPayload.date}`;
+                                if (!existingSignatures.has(sig)) {
+                                    parsedLogs.push(flightPayload);
+                                    existingSignatures.add(sig);
+                                }
+                                continue; // Move to next file
                             }
-                            continue; // Move to next file
                         }
 
                         // 2. FALLBACK TO FUZZY GRID PARSING FOR STANDARD PDF/PRINTED ROSTERS
@@ -7134,7 +7178,7 @@
                 // 1. CHECK FOR TRAINED HANDWRITING FOOTPRINT
                 const trainedModel = window.applyTrainedHandwritingModel(text);
                 
-                if (trainedModel.isMatch) {
+                if (trainedModel.isMatch && trainedModel.type === 'MANIFEST') {
                     window.showToast("Trained handwriting layout detected!");
                     
                     // Auto-sync entire flight if it doesn't exist, bypassing the dropdown
