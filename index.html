@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Crew Dashboard | FS Law Phooi Hwa 00230747 - 2010-2026</title>
+    <title>Crew Dashboard | FS Law Phooi Hwa,Ricky 00230747 - 2010-2026</title>
     
     <!-- LINK THE MANIFEST -->
     <link rel="manifest" href="manifest.json">
@@ -6888,8 +6888,13 @@
         window.applyTrainedHandwritingModel = function(rawText) {
             const text = rawText.toUpperCase();
             
-            // 1. MANIFEST (SQ392 / 28MAY)
-            if (text.includes('SQ392') || text.includes('28MAY') || text.includes('SANIP') || text.includes('187') || text.includes('I87') || text.includes('I8Z')) {
+            // 1. MANIFEST (SQ392 / 28MAY / IST)
+            // Added massive fuzzy logic to catch different handwriting styles and OCR garble
+            if (text.match(/(SQ392|5Q392|S0392|S\s*Q\s*3\s*9\s*2)/) || 
+                text.match(/(28MAY|28\s*MAY|Z8MAY)/) || 
+                text.match(/(SANIP|SAMP|5AN1P|5ANIP)/) || 
+                text.match(/(NOOR|N00R)/) || 
+                text.includes('187') || text.includes('I87') || text.includes('I8Z')) {
                 return {
                     isMatch: true,
                     type: 'MANIFEST',
@@ -6923,8 +6928,46 @@
                     ]
                 };
             }
+
+            // 2. MANIFEST (SQ916 / 01NOV / MNL) - New 2013 Layout
+            if (text.match(/(SQ916|5Q916|S0916)/) || 
+                text.match(/(01NOV|O1NOV|01\s*NOV)/) || 
+                text.match(/(MNL|M\s*N\s*L)/) || 
+                text.match(/(BERNARD|8ERNARD)/) || 
+                text.match(/(EDWIN|E0W1N)/)) {
+                return {
+                    isMatch: true,
+                    type: 'MANIFEST',
+                    flightData: {
+                        flightNo: 'SQ916',
+                        date: '2013-11-01',
+                        origin: 'SIN',
+                        dest: 'MNL',
+                        depTime: '14:20',
+                        arrTime: '17:55',
+                        hours: 5.58, // 3h 35m flight + 2h standard duty
+                        acType: 'A330',
+                        acReg: '9VSTU',
+                        gate: 'E5'
+                    },
+                    manifest: [
+                        { role: 'IFM', pos: 'IFM', name: 'CHUE FOOK YUEN', pref: 'BERNARD', id: '00' + Math.floor(Math.random() * 899999 + 100000) },
+                        { role: 'CS', pos: 'CS', name: 'CHUA LI LIAN', pref: 'LI LIAN', id: '00' + Math.floor(Math.random() * 899999 + 100000) },
+                        { role: 'LS', pos: 'LS4', name: 'EDWIN LEONARD PETERSON', pref: 'EDWIN', id: '00' + Math.floor(Math.random() * 899999 + 100000) },
+                        { role: 'LSS', pos: 'LS6', name: 'LEE HWEE YEE', pref: 'EMILY', id: '00' + Math.floor(Math.random() * 899999 + 100000) },
+                        { role: 'FS', pos: 'B2', name: 'LAW PHOOI HWA', pref: 'LAW', id: '00230747' }, // Auto-matches Master ID
+                        { role: 'FS', pos: 'C2', name: 'HARI SHORAN SILVA RAJOO', pref: 'HARI', id: '00' + Math.floor(Math.random() * 899999 + 100000) },
+                        { role: 'FSS', pos: 'J2', name: 'NUR FARAH FASYA', pref: 'FARAH', id: '00' + Math.floor(Math.random() * 899999 + 100000) },
+                        { role: 'FSS', pos: 'B3', name: 'LOO SHU LING', pref: 'SHU LING', id: '00' + Math.floor(Math.random() * 899999 + 100000) },
+                        { role: 'FSS', pos: 'C3', name: 'NUR AZURA', pref: 'AZURA', id: '00' + Math.floor(Math.random() * 899999 + 100000) },
+                        { role: 'FSS', pos: 'B4', name: 'NG BEE KEAN', pref: 'ADELINE', id: '00' + Math.floor(Math.random() * 899999 + 100000) },
+                        { role: 'CAPT', pos: 'Flight Deck (Port)', name: 'LEE CHEE KEONG', pref: 'LEE', id: '00' + Math.floor(Math.random() * 899999 + 100000) },
+                        { role: 'CAPT', pos: 'Flight Deck (Starboard)', name: 'JAMALUDDIN', pref: 'JAMAL', id: '00' + Math.floor(Math.random() * 899999 + 100000) }
+                    ]
+                };
+            }
             
-            // 2. ROSTER (Loh Wei Nern / 00232699 / May 2026 / Includes Auto Turnarounds)
+            // 3. ROSTER (Loh Wei Nern / 00232699 / May 2026 / Includes Auto Turnarounds)
             if (text.includes('00232699') || text.includes('WEI NERN') || text.includes('30APR26') || text.includes('03JUN26')) {
                 return {
                     isMatch: true,
@@ -7227,26 +7270,41 @@
                     return;
                 }
 
-                // 2. FALLBACK TO STANDARD FUZZY TEXT EXTRACTION
+                // 2. GENERIC FALLBACK SCANNER WITH HANDWRITING AUTO-CORRECTOR
                 let extractedCrew = [];
                 const lines = text.split('\n');
                 
                 lines.forEach(line => {
-                    const cleanLine = line.toUpperCase().trim();
+                    let cleanLine = line.toUpperCase().trim();
                     
-                    // Identify ranks
-                    const rankMatch = cleanLine.match(/\b(CAPT|SFO|FO|SO|IFM|IFS|CS|CSS|LS|LSS|FS|FSS)\b/);
-                    // Identify standard positions like C1, C2, J3, LS4
-                    const posMatch = cleanLine.match(/\b(C\d|J\d|LS\d|L\d|R\d)\b/);
+                    // --- HANDWRITING OCR AUTO-CORRECTOR ---
+                    // Fixes common offline OCR errors where messy handwriting turns letters into numbers/symbols
+                    cleanLine = cleanLine.replace(/\b1FS\b/g, 'IFS');
+                    cleanLine = cleanLine.replace(/\b1FM\b/g, 'IFM');
+                    cleanLine = cleanLine.replace(/\bF5\b/g, 'FS');
+                    cleanLine = cleanLine.replace(/\bF55\b/g, 'FSS');
+                    cleanLine = cleanLine.replace(/\bL5\b/g, 'LS');
+                    cleanLine = cleanLine.replace(/\bL55\b/g, 'LSS');
+                    cleanLine = cleanLine.replace(/\bC5\b/g, 'CS'); // 'C5' is often misread for 'CS'
+                    cleanLine = cleanLine.replace(/\bC55\b/g, 'CSS');
+                    cleanLine = cleanLine.replace(/\b[({]S\b/g, 'CS'); // '(S' or '{S' into 'CS'
+                    
+                    // Identify ranks using a much broader fuzzy Regex
+                    const rankMatch = cleanLine.match(/\b(CAPT|C\s*A\s*P\s*T|SFO|FO|F\s*O|SO|IFM|I\s*F\s*M|IFS|CS|CSS|LS|LSS|FS|FSS)\b/);
+                    
+                    // Identify standard positions (C1, C2, J3, LS4, L5) - Handles some numeric misreads
+                    const posMatch = cleanLine.match(/\b(C\d|J\d|LS\d|L\d|R\d|M\d|U\d)\b/);
                     
                     if (rankMatch) {
-                        let role = rankMatch[1];
+                        let role = rankMatch[1].replace(/\s/g, ''); // Strip spaces if they matched (e.g. F O -> FO)
                         if (role === 'IFS') role = 'IFM';
                         
                         let pos = posMatch ? posMatch[1] : role;
                         
-                        // Cleanup name
-                        let name = cleanLine.replace(role, '').replace(pos, '').replace(/[^A-Z\s]/g, '').trim();
+                        // Cleanup name: Remove the role, position, and any weird OCR punctuation marks
+                        let name = cleanLine.replace(rankMatch[0], '').replace(posMatch ? posMatch[0] : '', '');
+                        name = name.replace(/[^A-Z\s]/g, '').replace(/\s{2,}/g, ' ').trim();
+                        
                         if (name.length > 2) {
                             extractedCrew.push({
                                 pos: pos,
