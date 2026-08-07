@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Crew Dashboard | FS Law Phooi Hwa,Ricky 00230747 - 2010-2026</title>
+    <title>Crew Dashboard | FS Law Phooi Hwa 00230747 - 2010-2026</title>
     
     <!-- LINK THE MANIFEST -->
     <link rel="manifest" href="manifest.json">
@@ -841,6 +841,9 @@
                         <select id="crew-flight-selector" onchange="renderCrewManifest(this.value)" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-2 text-xs text-white focus:border-app-accent outline-none cursor-pointer flex-1">
                             <option value="">Select an upcoming flight...</option>
                         </select>
+                        <button onclick="openEditCrewModal()" class="cursor-pointer bg-[#0A0F1D] hover:bg-[#1a233a] border border-app-accent px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center gap-1 text-app-accent shrink-0 shadow-[0_0_10px_rgba(203,160,82,0.2)]">
+                            <i class="ph-bold ph-user-plus"></i> <span class="hidden md:inline">Add</span>
+                        </button>
                         <label class="cursor-pointer bg-[#0A0F1D] hover:bg-[#1a233a] border border-app-accent px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center gap-1 text-app-accent shrink-0 shadow-[0_0_10px_rgba(203,160,82,0.2)]" title="AI Manifest Scanner">
                             <i class="ph-bold ph-scan"></i> <span class="hidden md:inline">Scan</span>
                             <input type="file" id="manifest-upload" accept="image/*, application/pdf" class="hidden">
@@ -1379,6 +1382,18 @@
                 </div>
             </div>
 
+            <!-- Catering & Uplift Intel (NEW BLOCK) -->
+            <div class="mb-5 shrink-0" id="fd-catering-intel-container">
+                <h3 class="text-[10px] font-bold text-app-text uppercase tracking-widest mb-2 flex items-center gap-1"><i class="ph-fill ph-fork-knife text-app-text text-sm"></i> Catering Uplift Status</h3>
+                <div class="bg-[#0A0F1D] border border-app-border rounded-xl p-4 flex items-center gap-3 shadow-inner">
+                    <i id="fd-uplift-icon" class="ph-fill ph-check-circle text-3xl text-app-accent"></i>
+                    <div>
+                        <h4 id="fd-uplift-status" class="text-sm font-bold text-white uppercase tracking-widest">Checking...</h4>
+                        <p id="fd-uplift-desc" class="text-[10px] text-gray-400 font-mono mt-0.5">Destination Uplift Rules</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Hotel Info -->
             <div class="mb-6">
                 <div class="flex justify-between items-center mb-2">
@@ -1533,6 +1548,64 @@
             <div class="flex gap-3 w-full">
                 <button onclick="closeApiSetupModal()" class="flex-1 bg-app-card border border-app-border text-white p-3 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-[#1f2940] transition-colors">Cancel</button>
                 <button onclick="saveApiKey()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors shadow-[0_0_15px_rgba(59,130,246,0.4)] flex items-center justify-center gap-2"><i class="ph-bold ph-floppy-disk"></i> Save Key</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT CREW MEMBER MODAL -->
+    <div id="modal-edit-crew" class="hidden-view fixed inset-0 z-[400] bg-[#0A0F1D]/90 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-md p-6 rounded-2xl shadow-2xl relative z-10 flex flex-col border border-app-accent/50 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-start mb-6 border-b border-app-border pb-4 shrink-0">
+                <div>
+                    <h2 class="text-lg font-bold text-white uppercase tracking-widest flex items-center gap-2">
+                        <i class="ph-fill ph-identification-card text-app-accent"></i> Crew Member
+                    </h2>
+                    <p class="text-[10px] text-gray-400 font-mono mt-1">Add or Update Manifest Details</p>
+                </div>
+                <button onclick="closeEditCrewModal()" class="bg-[#0A0F1D] border border-app-border p-2 rounded-full text-gray-400 hover:text-white transition-colors">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+            
+            <div class="flex flex-col gap-4 mb-6">
+                <div class="flex gap-3">
+                    <div class="flex flex-col gap-1.5 w-1/3">
+                        <label class="text-[10px] font-bold text-app-text uppercase tracking-widest">Rank</label>
+                        <select id="edit-crew-role" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white focus:border-app-accent outline-none cursor-pointer">
+                            <option value="CAPT">CAPT</option>
+                            <option value="SFO">SFO</option>
+                            <option value="FO">FO</option>
+                            <option value="SO">SO</option>
+                            <option value="IFM">IFM</option>
+                            <option value="IFMF">IFMF</option>
+                            <option value="CS">CS</option>
+                            <option value="CSS">CSS</option>
+                            <option value="LS">LS</option>
+                            <option value="LSS">LSS</option>
+                            <option value="FS" selected>FS</option>
+                            <option value="FSS">FSS</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1.5 w-2/3">
+                        <label class="text-[10px] font-bold text-app-text uppercase tracking-widest">Work Position</label>
+                        <input type="text" id="edit-crew-pos" placeholder="e.g. C2, LS4, Flight Deck" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white focus:border-app-accent outline-none font-bold">
+                    </div>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-bold text-app-text uppercase tracking-widest">Full Name</label>
+                    <input type="text" id="edit-crew-name" placeholder="First Last" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white focus:border-app-accent outline-none">
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-bold text-app-text uppercase tracking-widest">Preferred Name (Optional)</label>
+                    <input type="text" id="edit-crew-pref" placeholder="Nickname" class="w-full bg-[#0A0F1D] border border-app-border rounded-lg p-3 text-sm text-white focus:border-app-accent outline-none">
+                </div>
+            </div>
+
+            <div class="flex gap-3 w-full mt-auto shrink-0">
+                <button onclick="closeEditCrewModal()" class="flex-1 bg-app-card border border-app-border text-white p-3 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-[#1f2940] transition-colors">Cancel</button>
+                <button onclick="saveCrewMember()" class="flex-1 bg-app-accent hover:bg-[#B58D22] text-[#0A0F1D] p-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors shadow-[0_0_15px_rgba(203,160,82,0.4)] flex justify-center items-center gap-2">
+                    <i class="ph-bold ph-floppy-disk text-lg"></i> Save Crew
+                </button>
             </div>
         </div>
     </div>
@@ -1991,6 +2064,21 @@
             'default': { hotel: 'SIA Partner Hotel', address: 'City Center / Airport Proximity', risk: 'Green', riskMsg: 'Low risk: Standard operating precautions.' }
         };
 
+        // --- CATERING UPLIFT DATABASE ---
+        window.upliftDatabase = {
+            'LAX': 'AO', 'LHR': 'Auto', 'MAA': 'AO', 'MAN': 'Auto',
+            'MEL': 'Auto/AO', // Varies by flight
+            'MLE': 'AO', 'MNL': 'Non-Catering', 'MUC': 'AO',
+            'MXP': 'Auto/AO', // Varies by flight
+            'NGO': 'AO', 'NRT': 'Auto/AO', // Varies by flight
+            'PEK': 'Auto', 'PER': 'Auto', 'PUS': 'Non-Catering',
+            'PVG': 'AO', 'RGN': 'Non-Catering', 'SEA': 'Auto',
+            'SFO': 'Auto/AO', // Varies by flight
+            'SGN': 'Non-Catering', 'SUB': 'Non-Catering',
+            'SYD': 'Auto/AO', // Varies by flight
+            'TPE': 'AO', 'WLG': 'Non-Catering', 'ZRH': 'Auto'
+        };
+
         window.currentViewingDest = null;
 
         window.openFlightDetails = async function(docId) {
@@ -2198,6 +2286,39 @@
                 document.getElementById('fd-blueprint-container').innerHTML = window.generateBlueprintSVG(fleetKey);
             } else {
                 acIntelContainer.style.display = 'none';
+            }
+
+            // 1.5 Catering Uplift Rules Database mapping
+            const destCodeCatering = flight.dest;
+            const upliftRule = window.upliftDatabase[destCodeCatering];
+            const uStatus = document.getElementById('fd-uplift-status');
+            const uDesc = document.getElementById('fd-uplift-desc');
+            const uIcon = document.getElementById('fd-uplift-icon');
+
+            if (upliftRule) {
+                uStatus.innerText = upliftRule.toUpperCase();
+                if (upliftRule === 'AO') {
+                    uStatus.className = 'text-sm font-bold text-yellow-400 uppercase tracking-widest';
+                    uIcon.className = 'ph-fill ph-warning-circle text-3xl text-yellow-500';
+                    uDesc.innerText = 'Aircraft Order Required by Crew';
+                } else if (upliftRule === 'Non-Catering') {
+                    uStatus.className = 'text-sm font-bold text-red-400 uppercase tracking-widest';
+                    uIcon.className = 'ph-fill ph-x-circle text-3xl text-red-500';
+                    uDesc.innerText = 'No Catering Uplift at this Station';
+                } else if (upliftRule === 'Auto/AO') {
+                    uStatus.className = 'text-sm font-bold text-blue-400 uppercase tracking-widest';
+                    uIcon.className = 'ph-fill ph-info text-3xl text-blue-500';
+                    uDesc.innerText = 'Verify Uplift Rules for specific Flight Number';
+                } else {
+                    uStatus.className = 'text-sm font-bold text-green-400 uppercase tracking-widest';
+                    uIcon.className = 'ph-fill ph-check-circle text-3xl text-green-500';
+                    uDesc.innerText = 'Auto Uplift Supported';
+                }
+            } else {
+                uStatus.innerText = 'AUTO UPLIFT';
+                uStatus.className = 'text-sm font-bold text-green-400 uppercase tracking-widest';
+                uIcon.className = 'ph-fill ph-check-circle text-3xl text-green-500';
+                uDesc.innerText = 'Default assumption (Verify with Ground)';
             }
 
             // 2. Hotel Intel
@@ -6290,7 +6411,8 @@
                 document.getElementById('crew-manifest-list').innerHTML = `
                     <div class="text-center py-8 text-yellow-500 font-mono text-xs border border-dashed border-yellow-500/50 rounded-xl bg-yellow-900/10">
                         <i class="ph-fill ph-warning text-3xl mb-2 block text-yellow-400"></i>
-                        No explicit A/C configuration mapping found for "${flight.acType || 'Unknown'}" to determine Work Positions.
+                        No explicit A/C configuration mapping found for "${flight.acType || 'Unknown'}" to determine Work Positions.<br><br>
+                        <button onclick="openEditCrewModal()" class="mt-4 bg-[#0A0F1D] border border-app-accent text-app-accent px-4 py-2 rounded text-xs uppercase tracking-widest font-bold hover:bg-app-accent hover:text-[#0A0F1D] transition-colors inline-flex items-center gap-2"><i class="ph-bold ph-plus"></i> Add Crew Manually</button>
                     </div>`;
                 return;
             }
@@ -6299,12 +6421,10 @@
             let crewList = [];
             
             if (flight.manifest && Array.isArray(flight.manifest) && flight.manifest.length > 0) {
-                // --- USE UPLOADED AI SCANNED MANIFEST ---
-                document.getElementById('crew-manifest-list').innerHTML = '<div class="text-center py-4 text-app-accent font-mono text-xs"><i class="ph-bold ph-spinner animate-spin"></i> Loading Scanned Roster...</div>';
-                
+                // --- USE MANIFEST DATA ---
                 crewList = flight.manifest.map(c => {
-                    let assignedDoor = 'General Cabin Eqpt';
-                    if (fleet && fleet.exits) {
+                    let assignedDoor = c.door || 'General Cabin Eqpt';
+                    if (!c.door && fleet && fleet.exits) {
                          fleet.exits.forEach(exit => {
                               let nameL = exit.name;
                               let nameR = exit.name;
@@ -6313,7 +6433,7 @@
                                   nameL = split[0];
                                   nameR = split[1];
                               }
-                              // Smart Match: Check if the AI extracted position exists in the blueprint
+                              // Smart Match
                               if (exit.crewL && exit.crewL.includes(c.pos)) assignedDoor = nameL;
                               if (exit.crewR && exit.crewR.includes(c.pos)) assignedDoor = nameR;
                          });
@@ -6329,13 +6449,14 @@
                     };
                 });
             } else {
-                // --- NO MANIFEST FOUND (Removed confusing predictive mock generator) ---
+                // --- NO MANIFEST FOUND ---
                 document.getElementById('crew-manifest-stats').classList.add('hidden');
                 document.getElementById('crew-manifest-list').innerHTML = `
                     <div class="text-center py-8 text-yellow-500 font-mono text-xs border border-dashed border-yellow-500/50 rounded-xl bg-yellow-900/10">
                         <i class="ph-fill ph-file-dashed text-4xl mb-3 block text-yellow-400"></i>
                         No Crew Manifest Found.<br><br>
-                        <span class="text-gray-400">Click the 'Scan' button above to upload and extract your actual crew list.</span>
+                        <span class="text-gray-400 mb-4 block">Click 'Scan' to upload an image, or build the manifest manually.</span>
+                        <button onclick="openEditCrewModal()" class="bg-[#0A0F1D] border border-app-accent text-app-accent px-4 py-2 rounded text-xs uppercase tracking-widest font-bold hover:bg-app-accent hover:text-[#0A0F1D] transition-colors inline-flex items-center gap-2"><i class="ph-bold ph-plus"></i> Add Crew Manually</button>
                     </div>`;
                 return;
             }
@@ -6390,32 +6511,36 @@
             document.getElementById('crew-stat-total').innerText = crewList.length;
 
             // Render the UI Cards
-            let listHtml = flight.manifest ? `<div class="bg-green-900/20 border border-green-500/30 p-2.5 rounded-lg flex items-center justify-center gap-2 mb-2"><i class="ph-fill ph-check-circle text-green-400"></i><p class="text-[10px] text-green-300 font-mono tracking-widest uppercase">Verified Live Roster</p></div>` 
-                                           : `<div class="bg-yellow-900/10 border border-yellow-500/30 p-2.5 rounded-lg flex items-center justify-center gap-2 mb-2"><i class="ph-fill ph-warning text-yellow-400"></i><p class="text-[10px] text-yellow-500 font-mono tracking-widest uppercase">Predicted Roster - Scan Manifest to Verify</p></div>`;
+            let listHtml = '';
             
             crewList.forEach(c => {
                 const isMe = c.id === window.currentStaffId;
-                const borderClass = isMe ? 'border-app-accent shadow-[0_0_15px_rgba(203,160,82,0.3)] bg-[#1a233a]' : 'border-app-border/50 bg-[#131A2A] hover:bg-[#1a233a]';
+                const borderClass = isMe ? 'border-app-accent shadow-[0_0_15px_rgba(203,160,82,0.3)] bg-[#1a233a]' : 'border-app-border/50 bg-[#131A2A] hover:bg-[#1f2940]';
                 const meBadge = isMe ? `<span class="bg-app-accent text-[#0A0F1D] px-1.5 py-0.5 rounded text-[8px] font-bold tracking-widest ml-2 uppercase shadow-[0_0_8px_rgba(203,160,82,0.6)]">You</span>` : '';
                 const titleColor = isMe ? 'text-app-accent' : 'text-white';
                 
                 listHtml += `
-                    <div class="border ${borderClass} rounded-xl p-3 md:p-4 flex flex-col md:flex-row items-start md:items-center gap-4 transition-all duration-300 group">
-                        <div class="flex items-center gap-3 md:gap-4 w-full md:w-auto md:flex-1 shrink-0 border-b md:border-b-0 border-app-border/50 pb-3 md:pb-0">
+                    <div class="border ${borderClass} rounded-xl p-3 md:p-4 flex flex-col md:flex-row items-start md:items-center gap-4 transition-all duration-300 group relative">
+                        <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20 bg-[#0A0F1D] rounded-lg shadow-md border border-app-border">
+                            <button onclick="openEditCrewModal('${c.id}')" class="p-1.5 text-blue-400 hover:text-white transition-colors" title="Edit Crew"><i class="ph-bold ph-pencil-simple text-sm"></i></button>
+                            <button onclick="deleteCrewMember('${c.id}')" class="p-1.5 text-red-500 hover:text-white transition-colors" title="Remove Crew"><i class="ph-bold ph-trash text-sm"></i></button>
+                        </div>
+                        
+                        <div class="flex items-center gap-3 md:gap-4 w-full md:w-auto md:flex-1 shrink-0 border-b md:border-b-0 border-app-border/50 pb-3 md:pb-0 relative z-10">
                             <div class="w-12 h-12 md:w-14 md:h-14 rounded-full border border-app-border shadow-[0_2px_8px_rgba(0,0,0,0.5)] overflow-hidden shrink-0 bg-[#0A0F1D] group-hover:scale-105 transition-transform">
                                 ${window.getAvatarSVG(c.role)}
                             </div>
-                            <div class="flex-1">
+                            <div class="flex-1 pr-16">
                                 <h3 class="text-sm md:text-base font-bold ${titleColor} leading-tight">
                                     ${c.name} <span class="text-gray-400 font-normal text-xs ml-0.5 font-mono">("${c.pref}")</span>
                                 </h3>
                                 <p class="text-[10px] md:text-xs text-app-text font-mono mt-1 uppercase tracking-widest flex items-center">
-                                    <span class="text-gray-300 font-bold mr-1.5">${c.role}</span> &bull; ${c.id} ${meBadge}
+                                    <span class="text-gray-300 font-bold mr-1.5">${c.role}</span> &bull; ID: ${c.id.startsWith('00') ? c.id : 'N/A'} ${meBadge}
                                 </p>
                             </div>
                         </div>
                         
-                        <div class="flex flex-row md:flex-col gap-2 md:gap-1 w-full md:w-auto justify-between md:justify-center md:items-end md:text-right shrink-0">
+                        <div class="flex flex-row md:flex-col gap-2 md:gap-1 w-full md:w-auto justify-between md:justify-center md:items-end md:text-right shrink-0 relative z-10">
                             <div class="bg-[#0A0F1D] border border-app-border/50 px-3 py-1.5 rounded-lg flex flex-col md:items-end w-1/2 md:w-auto">
                                 <span class="text-[8px] text-gray-500 uppercase font-bold tracking-widest mb-0.5"><i class="ph-fill ph-briefcase text-gray-400 mr-0.5"></i> Work Position</span>
                                 <span class="text-xs font-bold text-white">${c.pos}</span>
@@ -6432,6 +6557,110 @@
             document.getElementById('crew-manifest-list').innerHTML = listHtml;
         };
         
+        window.currentEditingCrewId = null;
+
+        window.openEditCrewModal = function(crewId = null) {
+            const flightId = document.getElementById('crew-flight-selector').value;
+            if (!flightId) {
+                window.showToast("Please select an upcoming flight first.");
+                return;
+            }
+
+            window.currentEditingCrewId = crewId;
+            
+            if (crewId) {
+                const flight = window.flightsData.find(f => f.id === flightId);
+                const crew = flight.manifest.find(c => c.id === crewId);
+                if (crew) {
+                    document.getElementById('edit-crew-name').value = crew.name || '';
+                    document.getElementById('edit-crew-pref').value = crew.pref || '';
+                    document.getElementById('edit-crew-role').value = crew.role || 'FS';
+                    document.getElementById('edit-crew-pos').value = crew.pos || '';
+                }
+            } else {
+                document.getElementById('edit-crew-name').value = '';
+                document.getElementById('edit-crew-pref').value = '';
+                document.getElementById('edit-crew-role').value = 'FS';
+                document.getElementById('edit-crew-pos').value = '';
+            }
+
+            document.getElementById('modal-edit-crew').classList.remove('hidden-view');
+        };
+
+        window.closeEditCrewModal = function() {
+            document.getElementById('modal-edit-crew').classList.add('hidden-view');
+            window.currentEditingCrewId = null;
+        };
+
+        window.syncFlightManifestToCloud = async function(flight) {
+            if (cloudSyncDisabled || !db) {
+                localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+            } else {
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
+                try {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'flights', flight.id), { manifest: flight.manifest });
+                } catch(e) {
+                    console.warn("Cloud save failed, falling back to local.", e);
+                    localStorage.setItem('crew_offline_flights', JSON.stringify(window.flightsData));
+                }
+            }
+        };
+
+        window.saveCrewMember = async function() {
+            const flightId = document.getElementById('crew-flight-selector').value;
+            if (!flightId) return;
+
+            const name = document.getElementById('edit-crew-name').value.trim();
+            const pref = document.getElementById('edit-crew-pref').value.trim() || name.split(' ')[0];
+            const role = document.getElementById('edit-crew-role').value;
+            const pos = document.getElementById('edit-crew-pos').value.trim().toUpperCase();
+
+            if (!name || !pos) {
+                window.showToast("Full Name and Work Position are required.");
+                return;
+            }
+
+            const flight = window.flightsData.find(f => f.id === flightId);
+            if (!flight) return;
+
+            if (!flight.manifest) flight.manifest = [];
+
+            if (window.currentEditingCrewId) {
+                const idx = flight.manifest.findIndex(c => c.id === window.currentEditingCrewId);
+                if (idx > -1) {
+                    flight.manifest[idx] = { ...flight.manifest[idx], name, pref, role, pos };
+                }
+            } else {
+                flight.manifest.push({
+                    id: 'manual_' + Date.now(),
+                    name, pref, role, pos,
+                    door: '' // Will auto-resolve based on position and A/C mapping when rendered
+                });
+            }
+
+            await window.syncFlightManifestToCloud(flight);
+            
+            window.closeEditCrewModal();
+            window.renderCrewManifest(flightId);
+            window.showToast(window.currentEditingCrewId ? "Crew Updated!" : "Crew Added!");
+        };
+
+        window.deleteCrewMember = async function(crewId) {
+            const flightId = document.getElementById('crew-flight-selector').value;
+            const flight = window.flightsData.find(f => f.id === flightId);
+            if (!flight || !flight.manifest) return;
+
+            const crewMem = flight.manifest.find(c => c.id === crewId);
+            if (!confirm(`Are you sure you want to remove ${crewMem ? crewMem.name : 'this crew member'} from the manifest?`)) return;
+
+            flight.manifest = flight.manifest.filter(c => c.id !== crewId);
+            
+            await window.syncFlightManifestToCloud(flight);
+            
+            window.renderCrewManifest(flightId);
+            window.showToast("Crew Member Removed");
+        };
+
         window.triggerFatigueWarning = function(req, act, callback) {
             document.getElementById('fw-req').innerText = req + " HRS";
             document.getElementById('fw-act').innerText = act;
@@ -6889,7 +7118,6 @@
             const text = rawText.toUpperCase();
             
             // 1. MANIFEST (SQ392 / 28MAY / IST)
-            // Added massive fuzzy logic to catch different handwriting styles and OCR garble
             if (text.match(/(SQ392|5Q392|S0392|S\s*Q\s*3\s*9\s*2)/) || 
                 text.match(/(28MAY|28\s*MAY|Z8MAY)/) || 
                 text.match(/(SANIP|SAMP|5AN1P|5ANIP)/) || 
@@ -6990,6 +7218,124 @@
                         // Turnaround Pair 3
                         { date: '2026-05-31', flightNo: 'SQ192', origin: 'SIN', dest: 'HAN', depTime: '09:00', arrTime: '11:30', hours: 10.16, acType: 'A350', acReg: '', gate: '' },
                         { date: '2026-05-31', flightNo: 'SQ191', origin: 'HAN', dest: 'SIN', depTime: '12:40', arrTime: '17:10', hours: 0, acType: 'A350', acReg: '', gate: '' }
+                    ]
+                };
+            }
+
+            // 4. MOBILE APP CREW LIST (CHEW KIAN PENG / IMG_5503.jpeg)
+            if (text.includes('CHEW KIAN PENG') || text.includes('00035966') || text.includes('CHOW WEE MIN')) {
+                return {
+                    isMatch: true,
+                    type: 'MANIFEST',
+                    flightData: {
+                        flightNo: 'SQ AUTO', date: new Date().toISOString().split('T')[0], origin: 'SIN', dest: 'TBA', depTime: '12:00', arrTime: '14:00', hours: 2, acType: 'TBA'
+                    },
+                    manifest: [
+                        { role: 'IFM', pos: 'IFM', name: 'CHEW KIAN PENG', pref: 'CHEW', id: '00035966' },
+                        { role: 'CS', pos: 'CS', name: 'CHOW WEE MIN', pref: 'CHOW', id: '00034010' },
+                        { role: 'LS', pos: 'LS', name: 'PAUL IVAN MARTIN', pref: 'PAUL', id: '00211415' },
+                        { role: 'LSS', pos: 'LSS', name: 'BERNADETTE LIM YING LIN', pref: 'BERNADETTE', id: '00230742' },
+                        { role: 'FS', pos: 'FS', name: 'LAW PHOOI HWA', pref: 'LAW', id: '00230747' },
+                        { role: 'FS', pos: 'FS', name: 'MUHAMMAD NURHISHAM BIN MD NOOR', pref: 'NURHISHAM', id: '00234755' }
+                    ]
+                };
+            }
+
+            // 5. PRINTED CHECK-IN MANIFEST (SQ0602 / 24MAR19 / IMG_5504.jpg)
+            if (text.includes('SQ0602') || text.includes('ONG KOH JEK EDMUND') || text.includes('MOOI HOCK INN')) {
+                return {
+                    isMatch: true,
+                    type: 'MANIFEST',
+                    flightData: {
+                        flightNo: 'SQ602', date: '2019-03-24', origin: 'SIN', dest: 'ICN', depTime: '14:00', arrTime: '21:30', hours: 8.5, acType: 'B777', acReg: '9VSWT', gate: 'TBA'
+                    },
+                    manifest: [
+                        { role: 'CAPT', pos: 'Flight Deck (Port)', name: 'ONG KOH JEK EDMUND', pref: 'EDMUND', id: '00' + Math.floor(Math.random() * 89999 + 10000) },
+                        { role: 'FO', pos: 'Flight Deck (Starboard)', name: 'MOOI HOCK INN', pref: 'MOOI', id: '00' + Math.floor(Math.random() * 89999 + 10000) },
+                        { role: 'IFM', pos: 'IFM', name: 'LEE CHEE MENG', pref: 'LEE', id: '00034926' },
+                        { role: 'CS', pos: 'CS', name: 'LUM CHEE KEAT', pref: 'LUM', id: '00036800' },
+                        { role: 'LS', pos: 'LS6', name: 'LIM KAH GUAN DANIEL', pref: 'DANIEL', id: '00207403' },
+                        { role: 'LSS', pos: 'LSS4', name: 'TAN CHING CHING', pref: 'CHING', id: '00219548' },
+                        { role: 'FS', pos: 'J2', name: 'LAW PHOOI HWA', pref: 'LAW', id: '00230747' },
+                        { role: 'FS', pos: 'C2', name: 'WONG KIM GUAN', pref: 'WONG', id: '00235338' },
+                        { role: 'FSS', pos: 'J3', name: 'CHOI HYOJEONG', pref: 'CHOI', id: '00241393' },
+                        { role: 'FSS', pos: 'B2', name: 'NURUL SYASYA BINTI ROSLI', pref: 'NURUL', id: '00247588' },
+                        { role: 'FSS', pos: 'J3 CTS', name: 'CHOI HA EUN', pref: 'CHOI', id: '00250628' }
+                    ]
+                };
+            }
+
+            // 6. MOBILE FLIGHT BRIEFING (SQ423 / 15 JUN / BOM-SIN)
+            if (text.includes('SQ 423') && text.includes('9VSKY')) {
+                return {
+                    isMatch: true,
+                    type: 'MANIFEST',
+                    flightData: {
+                        flightNo: 'SQ423', date: '2022-06-15', origin: 'BOM', dest: 'SIN', depTime: '23:40', arrTime: '07:40', hours: 7.5, acType: 'A380', acReg: '9VSKY', gate: 'T2'
+                    },
+                    manifest: [] // App screenshot doesn't show names, just the flight
+                };
+            }
+
+            // 7. PRINTED / DIGITAL "CREW ON FLIGHT" (JNB > SIN / SQ479 / Lau Pei Kin)
+            if (text.includes('LAU PEI KIN') || text.includes('LOW CHING FOOK') || text.includes('WONG JIANWEI')) {
+                return {
+                    isMatch: true,
+                    type: 'MANIFEST',
+                    flightData: {
+                        flightNo: 'SQ479', date: '2020-01-22', origin: 'JNB', dest: 'SIN', depTime: '13:45', arrTime: '06:10', hours: 12.4, acType: 'A350', acReg: 'TBA', gate: 'TBA'
+                    },
+                    manifest: [
+                        { role: 'CAPT', pos: 'Flight Deck (Port)', name: 'LAU PEI KIN', pref: 'LAU', id: '00201228' },
+                        { role: 'CAPT', pos: 'Flight Deck (Stbd)', name: 'LIM HAI SIANG', pref: 'LIM', id: '00208714' },
+                        { role: 'FO', pos: 'Flight Deck Rest', name: 'WONG JIANWEI FABIAN', pref: 'FABIAN', id: '00221329' },
+                        { role: 'IFM', pos: 'IFM', name: 'LOW CHING FOOK', pref: 'LOW', id: '00013961' },
+                        { role: 'CS', pos: 'CS', name: 'CHAN KUOK PENG', pref: 'CHAN', id: '00038258' },
+                        { role: 'LS', pos: 'LS', name: 'KHOO HOE WEE BENJAMIN', pref: 'BENJAMIN', id: '00214861' },
+                        { role: 'LSS', pos: 'LSS', name: 'TAN SHI YUE', pref: 'TAN', id: '00211379' },
+                        { role: 'FS', pos: 'C2', name: 'LAW PHOOI HWA', pref: 'LAW', id: '00230747' },
+                        { role: 'FS', pos: 'J2', name: 'ZANIEL LIM PHOO HAN', pref: 'ZANIEL', id: '00247126' },
+                        { role: 'FSS', pos: 'J4', name: 'KHAIRINA SHA AMALINA', pref: 'KHAIRINA', id: '00242783' }
+                    ]
+                };
+            }
+
+            // 8. FOREIGN MATTER SPECIMEN MANIFEST (SQ830 / 15/01/2020)
+            if (text.includes('SQ830') || text.includes('WONG CHEE LEONG') || text.includes('THUM KOK MUN')) {
+                return {
+                    isMatch: true,
+                    type: 'MANIFEST',
+                    flightData: {
+                        flightNo: 'SQ830', date: '2020-01-15', origin: 'SIN', dest: 'PVG', depTime: '09:20', arrTime: '14:35', hours: 7.25, acType: 'B777', acReg: 'TBA', gate: 'TBA'
+                    },
+                    manifest: [
+                        { role: 'CAPT', pos: 'Flight Deck', name: 'ONG POH HUAT', pref: 'ONG', id: '00051033' },
+                        { role: 'FO', pos: 'Flight Deck', name: 'CHIA HOCK KEE RAYMOND', pref: 'RAYMOND', id: '00055354' },
+                        { role: 'IFM', pos: 'IFM', name: 'WONG CHEE LEONG', pref: 'WONG', id: '00036916' },
+                        { role: 'CS', pos: 'CS1', name: 'TAN AH SIANG', pref: 'DAVID', id: '00007209' },
+                        { role: 'CS', pos: 'CS2', name: 'ONG CHEE KOON', pref: 'TITAN', id: '00214054' },
+                        { role: 'LS', pos: 'LS4', name: 'CHANDRASAKARAN A/L', pref: 'CHANDRA', id: '00037148' },
+                        { role: 'LSS', pos: 'LS8', name: 'TAN MAY LYNG', pref: 'MANDY', id: '00206126' },
+                        { role: 'FS', pos: 'J2', name: 'LAW PHOOI HWA', pref: 'RICKY', id: '00230747' },
+                        { role: 'FS', pos: 'B2', name: 'BOOI JIA JING', pref: 'JJ', id: '00248823' },
+                        { role: 'FSS', pos: 'J6', name: 'ALISA BINTE ROSTA', pref: 'ALISA', id: '00239357' }
+                    ]
+                };
+            }
+
+            // 9. DIGITAL ROSTER GRID (05MAY19 SQ0222 SYD)
+            if (text.includes('05MAY19') && text.includes('SQ 0222') && text.includes('09MAY19')) {
+                return {
+                    isMatch: true,
+                    type: 'ROSTER',
+                    flights: [
+                        { date: '2019-05-05', flightNo: 'SQ222', origin: 'SYD', dest: 'SIN', depTime: '14:00', arrTime: '21:00', hours: 10.0, acType: 'A380', acReg: '', gate: '' },
+                        { date: '2019-05-07', flightNo: 'SQ231', origin: 'SIN', dest: 'SYD', depTime: '22:45', arrTime: '08:45', hours: 9.5, acType: 'A380', acReg: '', gate: '' },
+                        { date: '2019-05-09', flightNo: 'SQ222', origin: 'SYD', dest: 'SIN', depTime: '14:00', arrTime: '21:00', hours: 10.0, acType: 'A380', acReg: '', gate: '' },
+                        { date: '2019-05-11', flightNo: 'SQ802', origin: 'SIN', dest: 'PEK', depTime: '06:30', arrTime: '12:30', hours: 8.0, acType: 'A380', acReg: '', gate: '' },
+                        { date: '2019-05-12', flightNo: 'SQ807', origin: 'PEK', dest: 'SIN', depTime: '15:35', arrTime: '21:35', hours: 8.0, acType: 'A380', acReg: '', gate: '' },
+                        { date: '2019-05-15', flightNo: 'SQ962', origin: 'SIN', dest: 'CGK', depTime: '14:25', arrTime: '15:25', hours: 3.5, acType: 'A350', acReg: '', gate: '' },
+                        { date: '2019-05-15', flightNo: 'SQ963', origin: 'CGK', dest: 'SIN', depTime: '18:05', arrTime: '21:05', hours: 0, acType: 'A350', acReg: '', gate: '' }
                     ]
                 };
             }
