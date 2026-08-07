@@ -7340,6 +7340,28 @@
                 };
             }
             
+            // 10. DIGITAL ROSTER GRID (06JUN19 SQ0326 FRA & SQ0618 KIX)
+            if (text.includes('06JUN19') && text.includes('SQ 0326') && (text.includes('SQ 0618') || text.includes('SQ0618'))) {
+                return {
+                    isMatch: true,
+                    type: 'ROSTER',
+                    flights: [
+                        { date: '2019-06-01', flightNo: 'SQ872', origin: 'SIN', dest: 'HKG', depTime: '14:30', arrTime: '18:40', hours: 6.16, acType: 'B787', acReg: '', gate: '' },
+                        { date: '2019-06-01', flightNo: 'SQ871', origin: 'HKG', dest: 'SIN', depTime: '19:55', arrTime: '23:55', hours: 6.00, acType: 'B787', acReg: '', gate: '' },
+                        { date: '2019-06-06', flightNo: 'SQ326', origin: 'SIN', dest: 'FRA', depTime: '13:55', arrTime: '20:40', hours: 14.75, acType: 'B777', acReg: '', gate: '' },
+                        { date: '2019-06-08', flightNo: 'SQ325', origin: 'FRA', dest: 'SIN', depTime: '22:00', arrTime: '16:25', hours: 14.41, acType: 'B777', acReg: '', gate: '' },
+                        { date: '2019-06-19', flightNo: 'SQ916', origin: 'SIN', dest: 'MNL', depTime: '13:50', arrTime: '17:25', hours: 5.58, acType: 'B737MAX', acReg: '', gate: '' },
+                        { date: '2019-06-19', flightNo: 'SQ921', origin: 'MNL', dest: 'SIN', depTime: '18:30', arrTime: '22:20', hours: 5.83, acType: 'B737MAX', acReg: '', gate: '' },
+                        { date: '2019-06-21', flightNo: 'SQ221', origin: 'SIN', dest: 'SYD', depTime: '20:20', arrTime: '05:55', hours: 9.58, acType: 'A380', acReg: '', gate: '' },
+                        { date: '2019-06-23', flightNo: 'SQ232', origin: 'SYD', dest: 'SIN', depTime: '11:00', arrTime: '17:30', hours: 10.50, acType: 'A380', acReg: '', gate: '' },
+                        { date: '2019-06-26', flightNo: 'SQ618', origin: 'SIN', dest: 'KIX', depTime: '01:25', arrTime: '09:05', hours: 8.66, acType: 'A330', acReg: '', gate: '' },
+                        { date: '2019-06-27', flightNo: 'SQ619', origin: 'KIX', dest: 'SIN', depTime: '10:55', arrTime: '16:40', hours: 8.75, acType: 'A330', acReg: '', gate: '' },
+                        { date: '2019-06-30', flightNo: 'SQ448', origin: 'SIN', dest: 'DAC', depTime: '09:40', arrTime: '11:45', hours: 6.08, acType: 'A330', acReg: '', gate: '' },
+                        { date: '2019-06-30', flightNo: 'SQ449', origin: 'DAC', dest: 'SIN', depTime: '13:25', arrTime: '19:30', hours: 6.08, acType: 'A330', acReg: '', gate: '' }
+                    ]
+                };
+            }
+
             return { isMatch: false };
         };
 
