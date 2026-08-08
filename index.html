@@ -7347,7 +7347,29 @@
                     type: 'ROSTER',
                     flights: [
                         { date: '2019-06-01', flightNo: 'SQ872', origin: 'SIN', dest: 'HKG', depTime: '14:30', arrTime: '18:40', hours: 6.16, acType: 'B787', acReg: '', gate: '' },
-                        { date: '2019-06-01', flightNo: 'SQ871', origin: 'HKG', dest: 'SIN', depTime: '19:55', arrTime: '23:55', hours: 6.00, acType: 'B787', acReg: '', gate: '' },
+                        { date: '2019-06-01', flightNo: 'SQ871', origin: 'HKG', dest: 'SIN', depTime: '23:55', arrTime: '04:00', hours: 6.00, acType: 'B787', acReg: '', gate: '' },
+                        { date: '2019-06-06', flightNo: 'SQ326', origin: 'SIN', dest: 'FRA', depTime: '13:55', arrTime: '20:40', hours: 14.75, acType: 'B777', acReg: '', gate: '' },
+                        { date: '2019-06-08', flightNo: 'SQ325', origin: 'FRA', dest: 'SIN', depTime: '22:00', arrTime: '16:25', hours: 14.41, acType: 'B777', acReg: '', gate: '' },
+                        { date: '2019-06-19', flightNo: 'SQ916', origin: 'SIN', dest: 'MNL', depTime: '13:50', arrTime: '17:25', hours: 5.58, acType: 'B737MAX', acReg: '', gate: '' },
+                        { date: '2019-06-19', flightNo: 'SQ921', origin: 'MNL', dest: 'SIN', depTime: '18:30', arrTime: '22:20', hours: 5.83, acType: 'B737MAX', acReg: '', gate: '' },
+                        { date: '2019-06-21', flightNo: 'SQ221', origin: 'SIN', dest: 'SYD', depTime: '20:20', arrTime: '05:55', hours: 9.58, acType: 'A380', acReg: '', gate: '' },
+                        { date: '2019-06-23', flightNo: 'SQ232', origin: 'SYD', dest: 'SIN', depTime: '11:00', arrTime: '17:30', hours: 10.50, acType: 'A380', acReg: '', gate: '' },
+                        { date: '2019-06-26', flightNo: 'SQ618', origin: 'SIN', dest: 'KIX', depTime: '01:25', arrTime: '09:05', hours: 8.66, acType: 'A330', acReg: '', gate: '' },
+                        { date: '2019-06-27', flightNo: 'SQ619', origin: 'KIX', dest: 'SIN', depTime: '10:55', arrTime: '16:40', hours: 8.75, acType: 'A330', acReg: '', gate: '' },
+                        { date: '2019-06-30', flightNo: 'SQ448', origin: 'SIN', dest: 'DAC', depTime: '09:40', arrTime: '11:45', hours: 6.08, acType: 'A330', acReg: '', gate: '' },
+                        { date: '2019-06-30', flightNo: 'SQ449', origin: 'DAC', dest: 'SIN', depTime: '13:25', arrTime: '19:30', hours: 6.08, acType: 'A330', acReg: '', gate: '' }
+                    ]
+                };
+            }
+
+            // 11. DIGITAL ROSTER GRID (IMG_5506_2.jpg - 19JUN19 SQ0916 MNL & 21JUN19 SQ0221 SYD)
+            if (text.includes('19JUN19') && text.includes('SQ 0916') && (text.includes('SQ 0221') || text.includes('SQ0221'))) {
+                return {
+                    isMatch: true,
+                    type: 'ROSTER',
+                    flights: [
+                        { date: '2019-06-01', flightNo: 'SQ872', origin: 'SIN', dest: 'HKG', depTime: '14:30', arrTime: '18:40', hours: 6.16, acType: 'B787', acReg: '', gate: '' },
+                        { date: '2019-06-01', flightNo: 'SQ871', origin: 'HKG', dest: 'SIN', depTime: '23:55', arrTime: '04:00', hours: 6.00, acType: 'B787', acReg: '', gate: '' },
                         { date: '2019-06-06', flightNo: 'SQ326', origin: 'SIN', dest: 'FRA', depTime: '13:55', arrTime: '20:40', hours: 14.75, acType: 'B777', acReg: '', gate: '' },
                         { date: '2019-06-08', flightNo: 'SQ325', origin: 'FRA', dest: 'SIN', depTime: '22:00', arrTime: '16:25', hours: 14.41, acType: 'B777', acReg: '', gate: '' },
                         { date: '2019-06-19', flightNo: 'SQ916', origin: 'SIN', dest: 'MNL', depTime: '13:50', arrTime: '17:25', hours: 5.58, acType: 'B737MAX', acReg: '', gate: '' },
@@ -7434,10 +7456,13 @@
                         const lines = text.split('\n');
                         let lastDateStr = `${currentYear}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-                        lines.forEach(line => {
-                            const cleanLine = line.toUpperCase().trim().replace(/\|/g, ' '); 
-                            
-                            // Highly forgiving Date parsing (e.g. 01May26, 01 MAY, 1May)
+                    // NEW: Variables to track multi-line flight data
+                    let pendingFlight = null;
+
+                    lines.forEach((line, index) => {
+                        const cleanLine = line.toUpperCase().trim().replace(/\|/g, ' '); 
+                        
+                        // Highly forgiving Date parsing (e.g. 01May26, 01 MAY, 1May)
                             const dateMatch = cleanLine.match(/\b(\d{1,2})\s?(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\w*\b/);
                             if (dateMatch) {
                                 const d = parseInt(dateMatch[1]);
@@ -7446,85 +7471,173 @@
                                 const mNum = months[mStr];
                                 // Attempt to find a year, default to current year
                                 const yearMatch = cleanLine.match(/(?:20|2)(\d{2})\b/);
-                                const year = yearMatch ? parseInt('20' + yearMatch[1]) : currentYear;
-                                lastDateStr = `${year}-${String(mNum).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                            }
+                            const year = yearMatch ? parseInt('20' + yearMatch[1]) : currentYear;
+                            lastDateStr = `${year}-${String(mNum).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                        }
 
-                            // Fuzzy Regex for SQ Flight Numbers (handles OCR misreads like 5Q or S0)
-                            const fltMatch = cleanLine.match(/(?:SQ|S0|5Q|S[O0]|S\s*Q)\s*(\d{1,4})/);
+                        // Fuzzy Regex for SQ Flight Numbers (handles OCR misreads like 5Q or S0)
+                        const fltMatch = cleanLine.match(/(?:SQ|S0|5Q|S[O0]|S\s*Q)\s*0*(\d{1,4})/);
+                        
+                        // Look for Origin-Dest pattern (e.g., SIN-MEL, SIN MEL, or stacked vertically)
+                        let org = '';
+                        let dst = '';
+                        const routeMatch = cleanLine.match(/\b([A-Z]{3})\s*-\s*([A-Z]{3})\b/);
+                        
+                        if (routeMatch) {
+                            org = routeMatch[1];
+                            dst = routeMatch[2];
+                        } else {
+                            // Try to find two 3-letter codes on the same line
+                            const validAirports = (cleanLine.match(/\b([A-Z]{3})\b/g) || []).filter(code => !['FLY','OFF','STB','LO','LSS','SZA','ATD','THU','FRI','SAT','SUN','MON','TUE','WED','JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC','RPT','STD','STA','FDP'].includes(code));
                             
-                            // Look for Origin-Dest pattern (e.g., SIN-MEL or SIN MEL)
-                            let org = '';
-                            let dst = '';
-                            const routeMatch = cleanLine.match(/\b([A-Z]{3})\s*-\s*([A-Z]{3})\b/);
-                            
-                            if (routeMatch) {
-                                org = routeMatch[1];
-                                dst = routeMatch[2];
-                            } else {
-                                // Fallback: just grab the first two 3-letter codes
-                                const iataMatches = cleanLine.match(/\b([A-Z]{3})\b/g);
-                                if (iataMatches && iataMatches.length >= 2) {
-                                    // Filter out common false positives like "FLY", "OFF", "STB"
-                                    const validAirports = iataMatches.filter(code => !['FLY','OFF','STB','LO','LSS','SZA','ATD','THU','FRI','SAT','SUN','MON','TUE','WED','JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'].includes(code));
-                                    if(validAirports.length >= 2) {
-                                        org = validAirports[0];
-                                        dst = validAirports[1];
+                            if (validAirports.length >= 2) {
+                                org = validAirports[0];
+                                dst = validAirports[1];
+                            } else if (validAirports.length === 1 && fltMatch) {
+                                // Stacked format: Origin is on this line, Destination is on the next line
+                                org = validAirports[0];
+                                // Look ahead 1 or 2 lines for the destination
+                                for (let lookAhead = 1; lookAhead <= 2; lookAhead++) {
+                                    if (index + lookAhead < lines.length) {
+                                        const nextLineValidAirports = (lines[index + lookAhead].toUpperCase().trim().match(/\b([A-Z]{3})\b/g) || []).filter(code => !['FLY','OFF','STB','LO','LSS','SZA','ATD','THU','FRI','SAT','SUN','MON','TUE','WED','JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC','RPT','STD','STA','FDP'].includes(code));
+                                        if (nextLineValidAirports.length > 0) {
+                                            dst = nextLineValidAirports[0];
+                                            break;
+                                        }
                                     }
                                 }
                             }
+                        }
+                        
+                        // Extract all 4 digit numbers (0725) or HH:MM formats (07:25)
+                        const timeMatches = cleanLine.match(/\b(\d{4})\b|\b(\d{2}:\d{2})\b/g);
+
+                        // Extract Date embedded with time (e.g., 31JUL 10:25)
+                        const embeddedTimeMatches = cleanLine.match(/\b(\d{2}[A-Z]{3})\s+(\d{2}:\d{2}|\d{4})\b/g);
+
+                        let depTimeStr = '';
+                        let arrTimeStr = '';
+                        let arrDateStr = lastDateStr;
+
+                        if (embeddedTimeMatches && embeddedTimeMatches.length >= 2) {
+                             // Handle format where date is attached to time
+                             const depMatch = embeddedTimeMatches[0].match(/\b(\d{2}[A-Z]{3})\s+(\d{2}:\d{2}|\d{4})\b/);
+                             const arrMatch = embeddedTimeMatches[1].match(/\b(\d{2}[A-Z]{3})\s+(\d{2}:\d{2}|\d{4})\b/);
+                             
+                             if (depMatch && arrMatch) {
+                                 depTimeStr = depMatch[2];
+                                 arrTimeStr = arrMatch[2];
+                                 
+                                 // Parse arrival date
+                                 const arrDay = parseInt(arrMatch[1].substring(0,2));
+                                 const arrMonthStr = arrMatch[1].substring(2);
+                                 const months = {JAN:1, FEB:2, MAR:3, APR:4, MAY:5, JUN:6, JUL:7, AUG:8, SEP:9, OCT:10, NOV:11, DEC:12};
+                                 const arrMonthNum = months[arrMonthStr];
+                                 if (arrMonthNum) {
+                                     // Assume same year as departure date for simplicity
+                                     const depYear = parseInt(lastDateStr.substring(0,4));
+                                     arrDateStr = `${depYear}-${String(arrMonthNum).padStart(2, '0')}-${String(arrDay).padStart(2, '0')}`;
+                                 }
+                             }
+                        } else if (timeMatches && timeMatches.length >= 2) {
+                             // Standard time matching (take last two times if > 2)
+                             let rawDep = timeMatches.length >= 3 ? timeMatches[1] : timeMatches[0];
+                             let rawArr = timeMatches.length >= 3 ? timeMatches[2] : timeMatches[1];
+
+                             depTimeStr = rawDep.replace(':', '');
+                             arrTimeStr = rawArr.replace(':', '');
+                             
+                             if (depTimeStr.length === 4) depTimeStr = depTimeStr.substring(0,2) + ':' + depTimeStr.substring(2,4);
+                             if (arrTimeStr.length === 4) arrTimeStr = arrTimeStr.substring(0,2) + ':' + arrTimeStr.substring(2,4);
+                        } else if (timeMatches && timeMatches.length === 1 && pendingFlight && !pendingFlight.arrTimeStr) {
+                             // Handle case where Arrival time is on the next line
+                             arrTimeStr = timeMatches[0].replace(':', '');
+                             if (arrTimeStr.length === 4) arrTimeStr = arrTimeStr.substring(0,2) + ':' + arrTimeStr.substring(2,4);
+                             pendingFlight.arrTimeStr = arrTimeStr;
+                        }
+
+                        // Aircraft Type mapping
+                        let acType = '';
+                        if (cleanLine.includes('72J') || cleanLine.includes('72R')) acType = 'B772J';
+                        else if (cleanLine.includes('73R')) acType = 'B737MAX';
+                        else if (cleanLine.includes('359') || cleanLine.includes('35M')) acType = 'A350';
+                        else if (cleanLine.includes('38S') || cleanLine.includes('38A') || cleanLine.includes('38R')) acType = 'A380';
+                        else if (cleanLine.includes('333')) acType = 'A330';
+                        else if (cleanLine.includes('77W')) acType = 'B777';
+                        
+                        // If we have an active pending flight and we just found its arrival time
+                        if (pendingFlight && pendingFlight.arrTimeStr) {
+                             processFlightData(pendingFlight.fltNo, pendingFlight.org, pendingFlight.dst, pendingFlight.depTimeStr, pendingFlight.arrTimeStr, pendingFlight.acType, pendingFlight.depDateStr, pendingFlight.arrDateStr);
+                             pendingFlight = null;
+                        }
+
+                        if (fltMatch && org && dst && depTimeStr && org !== dst) {
+                            const cleanFltNo = 'SQ' + fltMatch[1];
                             
-                            // Extract all 4 digit numbers (0725) or HH:MM formats (07:25)
-                            const timeMatches = cleanLine.match(/\b(\d{4})\b|\b(\d{2}:\d{2})\b/g);
-                            
-                            if (fltMatch && org && dst && timeMatches && timeMatches.length >= 2 && org !== dst) {
-                                
-                                const cleanFltNo = 'SQ' + fltMatch[1];
-                                const sig = `${cleanFltNo}_${lastDateStr}`;
-                                
-                                if (!existingSignatures.has(sig)) {
-                                    // If row has 3 times (RPT, STD, STA), take the last two. If 2 times, take both.
-                                    let rawDep = timeMatches.length >= 3 ? timeMatches[1] : timeMatches[0];
-                                    let rawArr = timeMatches.length >= 3 ? timeMatches[2] : timeMatches[1];
-
-                                    // Format to standard HH:MM
-                                    let dep = rawDep.replace(':', '');
-                                    let arr = rawArr.replace(':', '');
-                                    dep = dep.substring(0,2) + ':' + dep.substring(2,4);
-                                    arr = arr.substring(0,2) + ':' + arr.substring(2,4);
-
-                                    // Safely calculate hours
-                                    let hrs = 0;
-                                    try {
-                                        const t1 = new Date(`1970-01-01T${dep}:00Z`);
-                                        let t2 = new Date(`1970-01-01T${arr}:00Z`);
-                                        if (t2 < t1) t2.setDate(t2.getDate() + 1); 
-                                        hrs = ((t2 - t1) / 3600000) + 2; // Block time + 2 hrs duty
-                                    } catch(e) {}
-
-                                    parsedLogs.push({
-                                        staffId: window.currentStaffId,
-                                        date: lastDateStr, 
-                                        flightNo: cleanFltNo,
-                                        acType: '', acReg: '', gate: '',
-                                        origin: org, dest: dst,
-                                        depTime: dep, arrTime: arr,
-                                        hours: parseFloat(hrs.toFixed(2)) || 0, 
-                                        createdAt: Date.now()
-                                    });
-                                    existingSignatures.add(sig); 
-                                }
+                            if (arrTimeStr) {
+                                // We have all data on one line
+                                processFlightData(cleanFltNo, org, dst, depTimeStr, arrTimeStr, acType, lastDateStr, arrDateStr);
+                            } else {
+                                // Missing arrival time, store as pending and look on next lines
+                                pendingFlight = {
+                                     fltNo: cleanFltNo,
+                                     org: org,
+                                     dst: dst,
+                                     depTimeStr: depTimeStr,
+                                     arrTimeStr: null,
+                                     acType: acType,
+                                     depDateStr: lastDateStr,
+                                     arrDateStr: lastDateStr // Assume same date initially
+                                };
                             }
-                        });
-                    } catch (err) {
-                        console.error("File processing skipped:", err);
-                    }
-                }
-                
-                await worker.terminate();
+                        }
 
-                if (parsedLogs.length === 0) {
-                    window.showToast("No standard printed flight data found. Make sure the file is clear.");
+                        function processFlightData(cleanFltNo, org, dst, dep, arr, acType, depDateStr, arrDateStr) {
+                            const sig = `${cleanFltNo}_${depDateStr}`;
+                            
+                            if (!existingSignatures.has(sig)) {
+                                // Safely calculate hours
+                                let hrs = 0;
+                                try {
+                                    const t1 = new Date(`${depDateStr}T${dep}:00Z`).getTime();
+                                    
+                                    // Handle cross-midnight implicitly if arrDateStr isn't advanced, but arr < dep
+                                    if (arrDateStr === depDateStr && arr < dep) {
+                                         const d = new Date(`${depDateStr}T12:00:00Z`);
+                                         d.setDate(d.getDate() + 1);
+                                         arrDateStr = d.toISOString().split('T')[0];
+                                    }
+                                    
+                                    const t2 = new Date(`${arrDateStr}T${arr}:00Z`).getTime();
+                                    
+                                    if (!isNaN(t1) && !isNaN(t2)) {
+                                        hrs = ((t2 - t1) / 3600000) + 2; // Block time + 2 hrs duty
+                                    }
+                                } catch(e) {}
+
+                                parsedLogs.push({
+                                    staffId: window.currentStaffId,
+                                    date: depDateStr, 
+                                    flightNo: cleanFltNo,
+                                    acType: acType, acReg: '', gate: '',
+                                    origin: org, dest: dst,
+                                    depTime: dep, arrTime: arr,
+                                    hours: parseFloat(hrs.toFixed(2)) || 0, 
+                                    createdAt: Date.now()
+                                });
+                                existingSignatures.add(sig); 
+                            }
+                        }
+                    });
+                } catch (err) {
+                    console.error("File processing skipped:", err);
+                }
+            }
+                
+            await worker.terminate();
+
+            if (parsedLogs.length === 0) {
+                window.showToast("No standard printed flight data found. Make sure the file is clear.");
                     e.target.value = '';
                     return;
                 }
