@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Crew Dashboard | FS Law Phooi Hwa 00230747 - 2010-2026</title>
+    <title>Crew Dashboard | FS Law Phooi Hwa Ricky 00230747 - 2010-2026</title>
     
     <!-- LINK THE MANIFEST -->
     <link rel="manifest" href="manifest.json">
@@ -26,6 +26,10 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
+    <!-- Add driver.js for User Onboarding Tutorial -->
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
+
     <script>
         tailwind.config = {
             theme: {
@@ -152,6 +156,57 @@
             /* Softened filter to prevent the map from becoming pitch black */
             filter: sepia(10%) hue-rotate(190deg) saturate(150%) brightness(0.9);
         }
+
+        /* driver.js Custom Theme overrides for Navy/Gold Theme */
+        .driver-popover {
+            background-color: #131A2A !important;
+            color: #f3f4f6 !important;
+            border: 1px solid #CBA052 !important;
+            box-shadow: 0 0 20px rgba(203, 160, 82, 0.2) !important;
+            font-family: 'Inter', sans-serif !important;
+            border-radius: 12px !important;
+        }
+        .driver-popover-title {
+            color: #CBA052 !important;
+            font-weight: 700 !important;
+            font-size: 16px !important;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px !important;
+        }
+        .driver-popover-description {
+            color: #a1a8b8 !important;
+            font-size: 13px !important;
+            line-height: 1.5 !important;
+        }
+        .driver-popover-footer button {
+            background-color: #0A0F1D !important;
+            color: #f3f4f6 !important;
+            border: 1px solid #8A6B32 !important;
+            text-shadow: none !important;
+            font-family: 'Inter', sans-serif !important;
+            font-weight: 600 !important;
+            border-radius: 6px !important;
+            padding: 5px 10px !important;
+            transition: all 0.2s;
+        }
+        .driver-popover-footer button:hover {
+            background-color: #CBA052 !important;
+            color: #0A0F1D !important;
+        }
+        .driver-popover-progress-text {
+            color: #6b7280 !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 12px !important;
+        }
+        .driver-popover-arrow {
+            border-color: transparent !important;
+        }
+        /* Style the arrow pointing to the element based on position */
+        .driver-popover-arrow[data-position^="top"] { border-top-color: #CBA052 !important; }
+        .driver-popover-arrow[data-position^="bottom"] { border-bottom-color: #CBA052 !important; }
+        .driver-popover-arrow[data-position^="left"] { border-left-color: #CBA052 !important; }
+        .driver-popover-arrow[data-position^="right"] { border-right-color: #CBA052 !important; }
     </style>
 </head>
 <body class="font-sans text-gray-100 relative z-0 bg-[#0A0F1D]">
@@ -286,12 +341,16 @@
         </div>
         
         <div class="flex items-center justify-end gap-2 flex-wrap mt-2 md:mt-0">
-            <label class="cursor-pointer bg-[#0A0F1D] hover:bg-[#1a233a] border border-app-accent px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2 text-app-accent shadow-[0_0_15px_rgba(203,160,82,0.2)]" title="AI Monthly Roster Scanner">
+            <button onclick="startAppTutorial()" id="btn-tutorial" class="cursor-pointer bg-[#0A0F1D] hover:bg-[#1a233a] border border-blue-500/50 px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)]" title="Start User Guide">
+                <i class="ph-bold ph-question"></i>
+                <span class="hidden md:inline">User Guide</span>
+            </button>
+            <label id="btn-ai-scan" class="cursor-pointer bg-[#0A0F1D] hover:bg-[#1a233a] border border-app-accent px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2 text-app-accent shadow-[0_0_15px_rgba(203,160,82,0.2)]" title="AI Monthly Roster Scanner">
                 <i class="ph-fill ph-sparkle"></i>
                 <span class="hidden md:inline">AI Roster Scan</span>
                 <input type="file" id="image-upload" multiple accept="image/*, application/pdf" class="hidden">
             </label>
-            <label class="cursor-pointer bg-app-card hover:bg-[#1f2940] border border-app-border px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2">
+            <label id="btn-import-xlsx" class="cursor-pointer bg-app-card hover:bg-[#1f2940] border border-app-border px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2">
                 <i class="ph ph-upload-simple text-app-accent"></i>
                 <span class="hidden md:inline">Import XLSX</span>
                 <input type="file" id="excel-upload" accept=".xlsx, .xls" class="hidden">
@@ -300,19 +359,19 @@
                 <i class="ph-bold ph-arrows-clockwise" id="sync-icon"></i>
                 <span class="hidden md:inline">Sync</span>
             </button>
-            <button onclick="openViewSettingsModal()" class="cursor-pointer bg-app-card hover:bg-[#1f2940] border border-app-border px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2 text-yellow-400">
+            <button onclick="openViewSettingsModal()" id="btn-display-settings" class="cursor-pointer bg-app-card hover:bg-[#1f2940] border border-app-border px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2 text-yellow-400">
                 <i class="ph-bold ph-monitor"></i>
                 <span class="hidden md:inline">Display</span>
             </button>
-            <button onclick="openExportModal()" class="cursor-pointer bg-app-card hover:bg-[#1f2940] border border-app-border px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2 text-green-400">
+            <button onclick="openExportModal()" id="btn-export-data" class="cursor-pointer bg-app-card hover:bg-[#1f2940] border border-app-border px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2 text-green-400">
                 <i class="ph ph-download-simple"></i>
                 <span class="hidden md:inline">Export</span>
             </button>
-            <button onclick="openProfileModal()" class="cursor-pointer bg-app-card hover:bg-[#1f2940] border border-app-border px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2 text-purple-400">
+            <button onclick="openProfileModal()" id="btn-profile" class="cursor-pointer bg-app-card hover:bg-[#1f2940] border border-app-border px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2 text-purple-400">
                 <i class="ph-bold ph-user-gear"></i>
                 <span class="hidden md:inline">Profile</span>
             </button>
-            <button onclick="logoutAccount()" class="cursor-pointer bg-app-card hover:bg-red-900/30 border border-red-900/50 px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2 text-red-400 shadow-[0_0_10px_rgba(248,113,113,0.1)]">
+            <button onclick="logoutAccount()" id="btn-logout" class="cursor-pointer bg-app-card hover:bg-red-900/30 border border-red-900/50 px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-2 text-red-400 shadow-[0_0_10px_rgba(248,113,113,0.1)]">
                 <i class="ph-bold ph-sign-out"></i>
                 <span class="hidden md:inline">Logout</span>
             </button>
@@ -403,7 +462,7 @@
             </div>
 
             <!-- Highlight Summaries (Top Route & Top Hours) -->
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="dashboard-highlights">
                 <div class="bg-app-card border border-app-border rounded-xl p-4 md:p-5 relative overflow-hidden shadow-[0_4px_20px_rgba(203,160,82,0.05)] batik-card-bg">
                     <i class="ph ph-path text-app-border text-6xl absolute -bottom-2 -right-2 opacity-20 z-0"></i>
                     <div class="relative z-10">
@@ -493,7 +552,7 @@
 
         <!-- VIEW: LOGS (DATA ENTRY) -->
         <div id="view-logs" class="hidden-view flex flex-col max-w-7xl mx-auto flex-1 min-h-0 w-full">
-            <div class="bg-app-card border border-app-border rounded-xl overflow-hidden flex flex-col flex-1 min-h-0 shadow-[0_0_20px_rgba(203,160,82,0.05)] relative batik-card-bg">
+            <div class="bg-app-card border border-app-border rounded-xl overflow-hidden flex flex-col flex-1 min-h-0 shadow-[0_0_20px_rgba(203,160,82,0.05)] relative batik-card-bg" id="logs-container">
                 
                 <div class="p-4 border-b border-app-border flex flex-col xl:flex-row justify-between items-start xl:items-center bg-[#131A2A]/90 backdrop-blur-md gap-4 relative z-10 shrink-0">
                     <div class="flex items-center gap-3 shrink-0">
@@ -523,7 +582,7 @@
                         </div>
                         
                         <!-- Undo / Redo -->
-                        <div class="flex gap-1 shrink-0 bg-[#0A0F1D] border border-app-border rounded-md p-0.5">
+                        <div class="flex gap-1 shrink-0 bg-[#0A0F1D] border border-app-border rounded-md p-0.5" id="undo-redo-controls">
                             <button id="btn-undo" onclick="undoAction()" class="text-gray-600 px-2 py-1 rounded text-xs font-bold transition-colors cursor-not-allowed" disabled title="Undo">
                                 <i class="ph-bold ph-arrow-u-up-left text-base"></i>
                             </button>
@@ -535,13 +594,13 @@
                         <button onclick="confirmPurgeData()" class="shrink-0 bg-red-900/20 hover:bg-red-900/40 border border-red-900/50 text-red-400 hover:text-red-300 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1" title="Purge All Data">
                             <i class="ph-bold ph-trash"></i> <span class="hidden md:inline">Purge</span>
                         </button>
-                        <button onclick="autoInjectImageRosters()" class="shrink-0 bg-purple-900/20 hover:bg-purple-900/40 border border-purple-500/50 text-purple-400 hover:text-purple-300 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors shadow-[0_0_10px_rgba(168,85,247,0.1)] flex items-center gap-1" title="Scan new roster images">
+                        <button onclick="autoInjectImageRosters()" id="btn-logs-ai-scan" class="shrink-0 bg-purple-900/20 hover:bg-purple-900/40 border border-purple-500/50 text-purple-400 hover:text-purple-300 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors shadow-[0_0_10px_rgba(168,85,247,0.1)] flex items-center gap-1" title="Scan new roster images">
                             <i class="ph-bold ph-image"></i> <span class="hidden lg:inline">Scan Image</span>
                         </button>
-                        <button onclick="openQuickAddModal()" class="shrink-0 bg-green-900/20 hover:bg-green-900/40 border border-green-500/50 text-green-400 hover:text-green-300 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors shadow-[0_0_10px_rgba(34,197,94,0.1)] flex items-center gap-1" title="Instantly log flight and turnaround from Timetable">
+                        <button onclick="openQuickAddModal()" id="btn-logs-quick-add" class="shrink-0 bg-green-900/20 hover:bg-green-900/40 border border-green-500/50 text-green-400 hover:text-green-300 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors shadow-[0_0_10px_rgba(34,197,94,0.1)] flex items-center gap-1" title="Instantly log flight and turnaround from Timetable">
                             <i class="ph-bold ph-lightning"></i> <span class="hidden lg:inline">Quick Auto-Log</span>
                         </button>
-                        <button onclick="openAddForm()" class="shrink-0 bg-[#0A0F1D] hover:bg-[#1a233a] border border-app-accent text-app-accent hover:text-white px-4 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors shadow-[0_0_10px_rgba(203,160,82,0.2)] flex items-center gap-1">
+                        <button onclick="openAddForm()" id="btn-logs-add-new" class="shrink-0 bg-[#0A0F1D] hover:bg-[#1a233a] border border-app-accent text-app-accent hover:text-white px-4 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors shadow-[0_0_10px_rgba(203,160,82,0.2)] flex items-center gap-1">
                             <i class="ph-bold ph-plus"></i> Add New
                         </button>
                     </div>
@@ -949,6 +1008,13 @@
                         <!-- Messages injected here -->
                         <div class="m-auto text-[10px] text-app-accent font-mono border border-app-accent/30 px-3 py-1 rounded-full bg-[#0A0F1D]/50 mt-4 mb-2">End-to-End Encrypted Crew Comms</div>
                     </div>
+                    
+                    <!-- AI Typing Indicator -->
+                    <div id="chat-ai-typing" class="hidden p-3 border-t border-app-border bg-[#0A0F1D] flex items-center gap-2">
+                        <i class="ph-fill ph-robot text-blue-400 animate-pulse text-lg"></i>
+                        <span class="text-xs text-gray-400 font-mono italic">Gemini AI is thinking...</span>
+                    </div>
+
                     <div class="p-3 border-t border-app-border bg-[#131A2A] flex items-center gap-2 shrink-0">
                         <button id="chat-share-btn" onclick="openShareRosterModal()" class="bg-[#0A0F1D] border border-app-border text-app-accent w-10 h-10 rounded-md flex items-center justify-center hover:bg-[#1a233a] transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed" disabled title="Share Roster">
                             <i class="ph-bold ph-calendar-plus text-lg"></i>
@@ -965,7 +1031,7 @@
     </main>
 
     <!-- BOTTOM NAVIGATION -->
-    <nav class="flex-none shrink-0 w-full glass-panel border-t border-app-border z-50 bg-[#131A2A]/95 backdrop-blur-lg pb-[env(safe-area-inset-bottom)] relative">
+    <nav class="flex-none shrink-0 w-full glass-panel border-t border-app-border z-50 bg-[#131A2A]/95 backdrop-blur-lg pb-[env(safe-area-inset-bottom)] relative" id="bottom-nav">
         <div class="max-w-md mx-auto flex justify-between items-stretch px-2 h-16">
             <button onclick="switchView('overview')" id="nav-overview" class="flex-1 flex flex-col items-center justify-center gap-1 text-app-accent transition-colors">
                 <i class="ph-fill ph-house text-2xl"></i>
@@ -1908,6 +1974,130 @@
         window.currentName = null;
         window.isAdmin = false;
         
+        // --- APP TUTORIAL & ONBOARDING SYSTEM ---
+        window.startAppTutorial = function() {
+            // Safely locate the driver initialization function across different v1.0+ CDN builds
+            const initDriver = window.driver?.js?.driver || window.driver?.driver || window.driver;
+
+            if (typeof initDriver !== 'function') {
+                showToast("Tutorial engine is loading or unavailable. Please try again.");
+                return;
+            }
+
+            const driverObj = initDriver({
+                showProgress: true,
+                animate: true,
+                overlayColor: 'rgba(10, 15, 29, 0.85)',
+                doneBtnText: 'Finish',
+                nextBtnText: 'Next',
+                prevBtnText: 'Back',
+                steps: [
+                    {
+                        popover: {
+                            title: 'Welcome to Crew Portal',
+                            description: 'Let us take a quick tour of your digital logbook and dashboard. We will guide you through the key features.',
+                            align: 'center'
+                        }
+                    },
+                    {
+                        element: '#nav-overview',
+                        popover: {
+                            title: 'Dashboard Overview',
+                            description: 'This is your home base. It displays your total duty hours, most flown routes, and alerts you about upcoming flights or expiring documents.',
+                            side: 'top',
+                            align: 'center'
+                        }
+                    },
+                    {
+                        element: '#dashboard-highlights',
+                        popover: {
+                            title: 'Flight Highlights',
+                            description: 'Your flight statistics are automatically calculated based on your logbook entries. Stay compliant with CAAS limits via the Fatigue Status calculator.',
+                            side: 'bottom',
+                            align: 'center'
+                        }
+                    },
+                    {
+                        element: '#nav-logs',
+                        popover: {
+                            title: 'Flight Logbook',
+                            description: 'The Logs section is where you manage your roster. You can view flights in a Calendar or a detailed Table List.',
+                            side: 'top',
+                            align: 'center',
+                            onHighlighted: () => { window.switchView('logs'); }
+                        }
+                    },
+                    {
+                        element: '#btn-logs-quick-add',
+                        popover: {
+                            title: 'Quick Auto-Log',
+                            description: 'Save time! Enter a flight number and date, and the system fetches the timings and aircraft directly from the Master Timetable.',
+                            side: 'bottom',
+                            align: 'end'
+                        }
+                    },
+                    {
+                        element: '#btn-ai-scan',
+                        popover: {
+                            title: 'AI Roster Scanner',
+                            description: 'Upload a screenshot or PDF of your roster or manifest. Our offline Vision AI will automatically extract and log all flights for you.',
+                            side: 'bottom',
+                            align: 'start'
+                        }
+                    },
+                    {
+                        element: '#nav-map',
+                        popover: {
+                            title: 'Geographic HUD',
+                            description: 'Visualize your entire flight history on an interactive global map. Flight paths light up based on the frequency of the routes you fly.',
+                            side: 'top',
+                            align: 'center',
+                            onHighlighted: () => { window.switchView('map'); }
+                        }
+                    },
+                    {
+                        element: '#nav-fleet',
+                        popover: {
+                            title: 'Fleet Intel',
+                            description: 'Access aircraft configurations, passenger capacity, and emergency exit blueprints for every aircraft in the fleet.',
+                            side: 'top',
+                            align: 'center',
+                            onHighlighted: () => { window.switchView('fleet'); }
+                        }
+                    },
+                    {
+                        element: '#btn-profile',
+                        popover: {
+                            title: 'Digital Wallet',
+                            description: 'Manage your profile and track the expiry dates for crucial documents like your Passport, Medical Cert, and Visas here.',
+                            side: 'bottom',
+                            align: 'end'
+                        }
+                    },
+                    {
+                        element: '#btn-export-data',
+                        popover: {
+                            title: 'Export Data',
+                            description: 'Need a backup or a physical copy? Download your entire logbook as a clean PDF or an Excel spreadsheet at any time.',
+                            side: 'bottom',
+                            align: 'end'
+                        }
+                    },
+                    {
+                        popover: {
+                            title: 'You are all set!',
+                            description: 'Your logbook works 100% offline. If the cloud database is unavailable, your flights are securely saved to your local device memory.',
+                            align: 'center'
+                        }
+                    }
+                ]
+            });
+
+            // Make sure we start on the overview tab
+            window.switchView('overview');
+            driverObj.drive();
+        };
+
         const MASTER_ADMINS = ['00230747']; // REVERTED: Only Ricky Law is Master Admin
         
         // Rank Weight System for Hierarchical Grouping
@@ -2897,6 +3087,19 @@
             
             showToast(`Welcome back, ${account.role} ${account.name}`);
             loadData(); 
+
+            // Auto-start tutorial for new users (if they have no flights logged yet)
+            setTimeout(() => {
+                if (window.flightsData && window.flightsData.length === 0) {
+                    const hasSeenTutorial = localStorage.getItem('crew_has_seen_tutorial_' + account.staffId);
+                    if (!hasSeenTutorial) {
+                        localStorage.setItem('crew_has_seen_tutorial_' + account.staffId, 'true');
+                        if (confirm("Welcome to Crew Portal! Would you like to take a quick 1-minute guided tour of the features?")) {
+                            window.startAppTutorial();
+                        }
+                    }
+                }
+            }, 1500);
         }
 
         window.logoutAccount = async function() {
@@ -5077,10 +5280,29 @@
             if (!listContainer) return;
             
             let html = '';
+            
+            // --- INJECT GEMINI AI ASSISTANT AT THE TOP ---
+            const aiIsActive = window.chatTarget === 'GEMINI_AI' ? 'bg-[#1f2940]' : 'hover:bg-[#1f2940]';
+            html += `
+                <div onclick="openChat('GEMINI_AI')" class="flex items-center gap-3 p-3 border-b border-app-accent/30 cursor-pointer transition-colors ${aiIsActive} bg-blue-900/10">
+                    <div class="relative shrink-0">
+                        <div class="w-10 h-10 rounded-full border border-blue-500 overflow-hidden bg-[#0A0F1D] flex items-center justify-center shadow-[0_0_10px_rgba(59,130,246,0.3)]">
+                            <i class="ph-fill ph-robot text-blue-400 text-2xl"></i>
+                        </div>
+                        <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border border-[#131A2A] bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-bold text-blue-400">Gemini Assistant <span class="text-[10px] text-blue-300 font-mono ml-1">AI</span></p>
+                        <p class="text-[10px] font-mono text-gray-400">Flight & Data Analyst</p>
+                    </div>
+                </div>
+            `;
+
             const crew = window.accountsData.filter(a => a.status === 'approved' && a.staffId !== window.currentStaffId);
             
             if (crew.length === 0) {
-                listContainer.innerHTML = '<p class="text-xs font-mono text-gray-500 p-4">No other crew members on network.</p>';
+                html += '<p class="text-xs font-mono text-gray-500 p-4">No other crew members on network.</p>';
+                listContainer.innerHTML = html;
                 return;
             }
 
@@ -5165,9 +5387,19 @@
 
         window.updateChatHeader = function() {
             if (!window.chatTarget) return;
+            
+            if (window.chatTarget === 'GEMINI_AI') {
+                document.getElementById('chat-active-name').innerText = "Gemini AI Assistant";
+                document.getElementById('chat-active-name').className = "text-sm font-bold tracking-widest uppercase text-blue-400";
+                const statusEl = document.getElementById('chat-active-status');
+                statusEl.className = `w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]`;
+                return;
+            }
+
             const targetAcc = window.accountsData.find(a => a.staffId === window.chatTarget);
             if (targetAcc) {
                 document.getElementById('chat-active-name').innerText = `${targetAcc.role} ${targetAcc.name}`;
+                document.getElementById('chat-active-name').className = "text-sm font-bold tracking-widest uppercase text-white";
                 const statusEl = document.getElementById('chat-active-status');
                 statusEl.className = `w-2.5 h-2.5 rounded-full ${targetAcc.isOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-gray-500'}`;
             }
@@ -5177,18 +5409,44 @@
             const container = document.getElementById('chat-messages-container');
             if (!container || !window.chatTarget) return;
             
-            // Secure Memory Filtering (Satisfies Database Firewall Rule 2)
-            const chatMsgs = window.messagesData.filter(m => 
-                (m.senderId === window.currentStaffId && m.receiverId === window.chatTarget) ||
-                (m.senderId === window.chatTarget && m.receiverId === window.currentStaffId)
-            ).sort((a, b) => a.timestamp - b.timestamp);
+            let chatMsgs = [];
+
+            if (window.chatTarget === 'GEMINI_AI') {
+                // Fetch local conversation history with Gemini
+                const historyRaw = localStorage.getItem(`gemini_chat_history_${window.currentStaffId}`);
+                if (historyRaw) {
+                    try {
+                        chatMsgs = JSON.parse(historyRaw);
+                    } catch(e) { chatMsgs = []; }
+                }
+                if (chatMsgs.length === 0) {
+                    // Inject a welcome message if empty
+                    chatMsgs.push({
+                        senderId: 'GEMINI_AI',
+                        receiverId: window.currentStaffId,
+                        text: "Hello! I am your AI Assistant powered by Google Gemini. I can analyze your flight logbook, check fleet configurations, or answer general aviation questions. How can I help you today?",
+                        timestamp: Date.now()
+                    });
+                    localStorage.setItem(`gemini_chat_history_${window.currentStaffId}`, JSON.stringify(chatMsgs));
+                }
+            } else {
+                // Standard Crew Comms Memory Filtering
+                chatMsgs = window.messagesData.filter(m => 
+                    (m.senderId === window.currentStaffId && m.receiverId === window.chatTarget) ||
+                    (m.senderId === window.chatTarget && m.receiverId === window.currentStaffId)
+                ).sort((a, b) => a.timestamp - b.timestamp);
+            }
             
-            let html = '<div class="m-auto text-[10px] text-app-accent font-mono border border-app-accent/30 px-3 py-1 rounded-full bg-[#0A0F1D]/50 mt-4 mb-2">End-to-End Encrypted Crew Comms</div>';
+            let html = '<div class="m-auto text-[10px] text-app-accent font-mono border border-app-accent/30 px-3 py-1 rounded-full bg-[#0A0F1D]/50 mt-4 mb-2">End-to-End Encrypted Comms</div>';
             
             chatMsgs.forEach(m => {
                 const isMe = m.senderId === window.currentStaffId;
+                const isAI = m.senderId === 'GEMINI_AI';
+                
                 const align = isMe ? 'self-end' : 'self-start';
-                const bg = isMe ? 'bg-[#CBA052] text-[#0A0F1D]' : 'bg-[#131A2A] border border-app-border text-white';
+                let bg = isMe ? 'bg-[#CBA052] text-[#0A0F1D]' : 'bg-[#131A2A] border border-app-border text-white';
+                if (isAI) bg = 'bg-blue-900/20 border border-blue-500/50 text-blue-100'; // Unique style for AI
+                
                 const radius = isMe ? 'rounded-2xl rounded-tr-sm' : 'rounded-2xl rounded-tl-sm';
                 
                 const msgDate = new Date(m.timestamp);
@@ -5238,8 +5496,13 @@
                         `;
                     }
                 } else {
-                    // Standard text message
-                    messageContentHtml = `<p class="text-sm ${isMe ? 'font-semibold' : ''}">${m.text}</p>`;
+                    // Standard text message. Parse simple markdown for AI responses (bolding)
+                    let formattedText = m.text;
+                    if (isAI) {
+                        formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong class="text-blue-300">$1</strong>');
+                        formattedText = formattedText.replace(/\n/g, '<br>');
+                    }
+                    messageContentHtml = `<p class="text-sm ${isMe ? 'font-semibold' : ''}">${formattedText}</p>`;
                 }
 
                 html += `
@@ -5255,13 +5518,20 @@
         };
 
         window.sendChatMessage = async function() {
-            if (!window.chatTarget || !window.currentStaffId || !db) return;
+            if (!window.chatTarget || !window.currentStaffId) return;
             const input = document.getElementById('chat-message-input');
             const text = input.value.trim();
             if (!text) return;
             
             input.value = '';
+
+            // --- ROUTE TO GEMINI AI IF TARGET IS AI ---
+            if (window.chatTarget === 'GEMINI_AI') {
+                await processGeminiChat(text);
+                return;
+            }
             
+            if (!db) return;
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'crewlog-app';
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
@@ -5278,6 +5548,106 @@
                 }
             }
         };
+
+        // --- GEMINI AI REST API INTEGRATION ---
+        async function processGeminiChat(userText) {
+            const apiKey = window.getSecureApiKey();
+            if (!apiKey) {
+                window.showToast("Please configure your Gemini API Key in Display Settings first.");
+                window.openApiSetupModal();
+                return;
+            }
+
+            // 1. Save user message locally and render
+            let history = JSON.parse(localStorage.getItem(`gemini_chat_history_${window.currentStaffId}`) || '[]');
+            history.push({
+                senderId: window.currentStaffId,
+                receiverId: 'GEMINI_AI',
+                text: userText,
+                timestamp: Date.now()
+            });
+            localStorage.setItem(`gemini_chat_history_${window.currentStaffId}`, JSON.stringify(history));
+            window.renderChatMessages();
+
+            // 2. Show typing indicator
+            const typingIndicator = document.getElementById('chat-ai-typing');
+            if(typingIndicator) typingIndicator.classList.remove('hidden');
+
+            try {
+                // 3. Build context-aware system instructions
+                const flightSummary = window.flightsData.map(f => `${f.date}: ${f.flightNo} (${f.origin}-${f.dest}) - ${f.hours}hrs`).join('\n');
+                
+                const systemPrompt = `You are the onboard AI Assistant for the 'Crew Portal' logbook app. 
+You are speaking to crew member: ${window.currentName} (ID: ${window.currentStaffId}, Rank: ${window.currentUserRole}).
+Your job is to answer questions about aviation, the Singapore Airlines fleet, or analyze the user's flight logbook.
+Keep your answers very concise, friendly, and formatted nicely (use **bolding** for emphasis).
+
+Here is the user's current flight logbook data:
+${flightSummary || "No flights logged yet."}
+
+Here is the fleet database you have access to:
+${JSON.stringify(window.fleetDatabase)}`;
+
+                // 4. Construct payload for generateContent API
+                const payload = {
+                    system_instruction: { parts: [{ text: systemPrompt }] },
+                    contents: [
+                        { role: 'user', parts: [{ text: userText }] }
+                    ],
+                    generationConfig: {
+                        temperature: 0.7,
+                        maxOutputTokens: 500, // Keep responses snappy
+                    }
+                };
+
+                // 5. Make the Fetch Call
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error?.message || "API Error");
+                }
+
+                const aiReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't process that.";
+
+                // 6. Save AI Response
+                history.push({
+                    senderId: 'GEMINI_AI',
+                    receiverId: window.currentStaffId,
+                    text: aiReply,
+                    timestamp: Date.now()
+                });
+                localStorage.setItem(`gemini_chat_history_${window.currentStaffId}`, JSON.stringify(history));
+
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                
+                // Save Error Response
+                history.push({
+                    senderId: 'GEMINI_AI',
+                    receiverId: window.currentStaffId,
+                    text: `⚠️ **Connection Error:** ${error.message}. Please check your API key or network.`,
+                    timestamp: Date.now()
+                });
+                localStorage.setItem(`gemini_chat_history_${window.currentStaffId}`, JSON.stringify(history));
+                
+                if (error.message.includes('API_KEY_INVALID')) {
+                     window.showToast("Invalid API Key. Please update it in settings.");
+                     setTimeout(window.openApiSetupModal, 1500);
+                }
+            } finally {
+                // 7. Hide typing indicator and re-render
+                if(typingIndicator) typingIndicator.classList.add('hidden');
+                window.renderChatMessages();
+            }
+        }
 
         window.handleChatFileUpload = async function(event) {
             if (!window.chatTarget || !window.currentStaffId || !db) return;
